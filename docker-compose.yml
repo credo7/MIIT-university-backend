@@ -1,0 +1,44 @@
+version: '3'
+services:
+  db:
+    restart: always
+    container_name: db
+    image: postgres:11.13
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - TZ=Europe/Moscow
+      - PGTZ=Europe/Moscow
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_PORT}:5432
+    command: postgres -c stats_temp_directory=/tmp
+  api:
+    build: .
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    restart: always
+    container_name: api
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - ACCESS_TOKEN_SECRET_KEY=${ACCESS_TOKEN_SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - DATABASE_URL=${DATABASE_URL}
+      - ALGORITHM=${ALGORITHM}
+      - FASTAPI_PORT=${FASTAPI_PORT}
+      - SOCKET_PORT=${SOCKET_PORT}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    command: bash -c "sleep 7 && python3 app/main.py"
+    depends_on:
+      - db
