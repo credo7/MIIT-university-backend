@@ -1,105 +1,193 @@
-from flask import Flask, request, session
-from flask_socketio import SocketIO, disconnect, emit, send
-
-import oauth2
+import eventlet
+import socketio
+from typing import List
 from config import settings
-from telegram_bot import TelegramBot
+from sqlalchemy.sql.expression import func
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = settings.flask_secret_key
-socketio = SocketIO(app)
+from telegram_bot import TelegramBot
+import database
+import models
+import oauth2
+
+
+sio = socketio.Server()
+app = socketio.WSGIApp(sio, static_files={
+    '/': {'content_type': 'text/html', 'filename': 'index.html'}
+})
 
 tg_bot = TelegramBot()
 
-connected_users = {}
+connected_computers = {}
 
+session = {}
 
-@app.route('/')
-def main():
-    app.logger.info('Processing request')
-    return {"message": "OK"}
+computers_status = {}
 
+last_event_session = None
 
-@socketio.on('connect')
-def handle_connect():
-    computer_id = request.args.get('computer_id')
-    tg_bot.send_message_async("Computer id is {0}".format(computer_id))
-    if not computer_id:
-        disconnect()
-        tg_bot.send_message_async("Computer id wasn't provided")
-        return
-
-    environ = request.environ
+@sio.on('connect')
+def handle_connect(sid, environ):
     first_token = environ.get('HTTP_AUTHORIZATION')
     second_token = environ.get('HTTP_AUTHORIZATION_TWO')
 
-    if not first_token:
-        disconnect()
-        tg_bot.send_message_async('AUTHORIZATION header is missing')
-        return
-
-    if first_token == second_token:
-        disconnect()
-        tg_bot.send_message_async('Cannot connect with the same user credentials for both users')
+    if not first_token or first_token == second_token:
+        print("First token wasn't provided or tokens are the same", flush=True)
+        sio.disconnect(sid)
         return
 
     user = oauth2.get_current_user_socket(first_token)
 
+    session.setdefault(sid, {})
+
+    if user.role == "TEACHER":
+        session[sid]["is_teacher"] = True
+        return
+
+    computer_id = environ.get("HTTP_COMPUTER_ID")
+
+    if not computer_id:
+        print("Computer id wasn't provided", flush=True)
+        sio.disconnect(sid)
+        return
+
     if not user:
-        disconnect()
-        tg_bot.send_message_async('User not found')
+        print("User wasn't found", flush=True)
+        sio.disconnect(sid)
         return
 
     user2 = None
     if second_token:
         user2 = oauth2.get_current_user_socket(second_token)
         if not user2:
-            disconnect()
-            tg_bot.send_message_async('Second authorization token is not correct')
+            print("Second authorization token is not correct", flush=True)
+            sio.disconnect(sid)
             return
 
-    connected_users[computer_id] = [user.serialize()]
+    connected_computers[computer_id] = [user.serialize()]
+
+    user_ids = [user.id]
+    user_usernames = [user.username]
 
     if user2:
-        connected_users[computer_id].append(user.serialize())
+        connected_computers[computer_id].append(user.serialize())
+        user_ids.append(user2.id)
+        user_usernames.append(user2.username)
 
-    session["ids"] = [user.id, user2.id if user2 else None]
-    session["usernames"] = [user.username, user2.username if user2 else None]
-    session["computer_id"] = computer_id
+    session[sid]["ids"] = user_ids
+    session[sid]["usernames"] = user_usernames
+    session[sid]["computer_id"] = computer_id
 
-    message = f'User {user.username} with ID {user.id} connected to socket with device id {computer_id}'
+    message = f'User {user.username} with ID {user.id} connected to socket with computer id {computer_id}'
     if user2:
         message += f' and {user2.username} with ID {user2.id}'
     else:
         message += ' without a second user'
-    tg_bot.send_message_async(message)
+    print(message, flush=True)
+    sio.emit('connected_computers', connected_computers)
 
 
-@socketio.on('disconnect')
-def handle_disconnect():
-    if "ids" not in session:
-        tg_bot.send_message_async("Client without session was disconnected")
+
+@sio.on('disconnect')
+def handle_disconnect(sid):
+    if not sid in session or "ids" not in session[sid]:
+        print("Client without session was disconnected", flush=True)
         return
 
-    connected_users.remove(session["computer_id"])
+    del connected_computers[session[sid]["computer_id"]]
 
-    message = f'User {session["usernames"][0]} with ID {session["ids"][0]} connected to socket'
-    if session["ids"][1]:
-        message += f' and {session["usernames"][1]} with ID {session["ids"][1]}'
+    message = f'User {session[sid]["usernames"][0]} with ID {session[sid]["ids"][0]} connected to socket'
+    if "ids" in session[sid] and len(session[sid]["ids"]) > 1:
+        message += f' and {session[sid]["usernames"][1]} with ID {session[sid]["ids"][1]}'
     else:
         message += ' without a second user'
 
-    tg_bot.send_message_async(message)
-    print('Client disconnected')
+    print(message, flush=True)
+
+    sio.emit('connected_computers', connected_computers)
 
 
-@socketio.on('connected_users')
-def handle_connected_users(msg):
-    """Emit a list of connected users to the client."""
-    tg_bot.send_message_async("In connected users handler, message is {0}".format(msg))
-    emit('connected_users_response', {"computers_with_users": connected_users})
+@sio.on('start_events')
+def start_events(sid, computers):
+    if not sid in session or "is_teacher" not in session[sid]:
+        sio.disconnect(sid)
+        return
+    
+    events_session = models.Session()
+    database.session.add(events_session)
+    database.session.commit()
+    last_event_session = events_session.id
+    computers_status = {}
 
+    for computer in computers:
+        users = connected_computers[str(computer["id"])]
+
+        variant = None
+        if computer["type"] == 1:
+            sio.emit(f'computer_{computer["id"]}_event', "first_point")
+            variant = database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
+
+        new_event = models.Event(
+            session_id=events_session.id,
+            computer_id=computer["id"],
+            type=computer["type"],
+            mode=computer["mode"],
+            practice_one_variant_id=variant.id,
+            user_1_id=users[0]["id"],
+            user_2_id=users[1]["id"] if len(users) > 1 else None
+        )
+
+        database.session.add(new_event)
+        database.session.commit()
+
+        sio.emit(f'computer_{computer["id"]}_event', {
+            "event_id": new_event.id,
+            "computer_id": computer["id"],
+            "mode": computer["mode"],
+            "type": computer["type"],
+            "description": variant.description,
+            "right_logist": variant.right_logist,
+            "wrong_logist1": variant.wrong_logist1,
+            "wrong_logist2": variant.wrong_logist2,
+            "test": variant.test.to_json(),
+            "bets": models.Bet.to_json_list(variant.bets)
+        })
+
+    sio.emit("session_id", events_session.id)
+
+class CheckpointData:
+    def __init__(self, event_id, step: int, points, attempts: int):
+        self.event_id = event_id
+        self.points = points
+        self.attempts = attempts
+        self.step = step
+
+
+@sio.on('event_checkpoint')
+def checkpoint(sid, checkpoint_data: CheckpointData):
+    def event_checkpoint(event_id: int, user_id: int, step:int, points: int, attempts: int, computer_id: int):
+        checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step=step, points=points, attempts=attempts)
+        database.session.add(checkpoint)
+        database.session.commit()
+        step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == step).first().name
+        computers_status[computer_id] = step_name
+
+    if sid not in session or "ids" not in session[sid]:
+        sio.disconnect(sid)
+        return
+
+    for user_id in session[sid]["ids"]:
+        event_checkpoint(event_id=checkpoint_data.event_id, user_id=user_id,
+                         step=checkpoint_data.step, points=checkpoint_data.points,
+                         attempts=checkpoint_data.attempts)
+        
+    sio.emit('events_status', computers_status)
+
+
+@sio.on('finish_event')
+def finish_event(sid, event_id):
+    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
+    event.is_finished = True
+    
 
 def start_socket_server():
-    print("Server is starting...")
-    socketio.run(app, host='0.0.0.0', port=settings.socket_port)
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', settings.socket_port)), app)

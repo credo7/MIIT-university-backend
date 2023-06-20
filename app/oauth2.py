@@ -75,6 +75,8 @@ def is_teacher_or_error(user_id: int, db: Session = Depends(get_db)):
 def get_current_user_socket(token: str):
     user = None
     try:
+        if "Bearer" in token:
+            token = token.split("Bearer ")[1]
         token = verify_access_token(token=token, credentials_exception=None, raise_on_error=False)
 
         user = database.session.query(models.User).filter(models.User.id == token.id).first()

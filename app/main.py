@@ -26,7 +26,7 @@ app.include_router(auth.router)
 app.include_router(group.router)
 app.include_router(user.router)
 
-app.middleware('http')(custom_logger_middleware)
+# app.middleware('http')(custom_logger_middleware)
 
 
 @app.get("/")
@@ -39,6 +39,7 @@ def start_fastapi_server():
 
 
 if __name__ == "__main__":
+    # start_socket_server()
     socket_process = mp.Process(target=start_socket_server)
     socket_process.start()
 
