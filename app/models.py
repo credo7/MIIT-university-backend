@@ -254,14 +254,14 @@ class EventCheckpoint(Base):
     event_id = Column(Integer, ForeignKey(Event.id), nullable=False)
     user_id = Column(Integer, ForeignKey(User.id), nullable=False)
     step_id = Column(Integer, ForeignKey(PracticeOneStep.id) , nullable=False)
-    attempts = Column(Integer, nullable=True)
+    fails = Column(Integer, nullable=True)
     points = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow())
 
     step = relationship("PracticeOneStep")
 
     __table_args__ = (
-        UniqueConstraint('event_id', 'step'),
+        UniqueConstraint('event_id', 'step_id'),
     )
 
 

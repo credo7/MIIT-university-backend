@@ -1,10 +1,8 @@
 import eventlet
-import socketio
-from typing import List
-from config import settings
 from sqlalchemy.sql.expression import func
+import socketio
 
-from telegram_bot import TelegramBot
+from config import settings
 import database
 import models
 import oauth2
@@ -15,15 +13,10 @@ app = socketio.WSGIApp(sio, static_files={
     '/': {'content_type': 'text/html', 'filename': 'index.html'}
 })
 
-tg_bot = TelegramBot()
+connected_computers, session, computers_status = {}, {}, {}
 
-connected_computers = {}
+LAST_STEP_NUMBER = 15
 
-session = {}
-
-computers_status = {}
-
-last_event_session = None
 
 @sio.on('connect')
 def handle_connect(sid, environ):
@@ -37,6 +30,11 @@ def handle_connect(sid, environ):
 
     user = oauth2.get_current_user_socket(first_token)
 
+    if not user:
+        print("User wasn't found", flush=True)
+        sio.disconnect(sid)
+        return
+
     session.setdefault(sid, {})
 
     if user.role == "TEACHER":
@@ -47,11 +45,6 @@ def handle_connect(sid, environ):
 
     if not computer_id:
         print("Computer id wasn't provided", flush=True)
-        sio.disconnect(sid)
-        return
-
-    if not user:
-        print("User wasn't found", flush=True)
         sio.disconnect(sid)
         return
 
@@ -115,7 +108,6 @@ def start_events(sid, computers):
     events_session = models.Session()
     database.session.add(events_session)
     database.session.commit()
-    last_event_session = events_session.id
     computers_status = {}
 
     for computer in computers:
@@ -155,17 +147,42 @@ def start_events(sid, computers):
     sio.emit("session_id", events_session.id)
 
 class CheckpointData:
-    def __init__(self, event_id, step: int, points, attempts: int):
+    def __init__(self, event_id, step: int, points, fails: int):
         self.event_id = event_id
         self.points = points
-        self.attempts = attempts
+        self.fails = fails
         self.step = step
+
+
+def finish_event(sid, event_id):
+    computer_id = session[sid]['computer_id']
+    users_id = session[sid]['ids']
+    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
+    event.is_finished = True
+    database.session.commit()
+    users_result = []
+    for user_id in users_id:
+        result = session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)).\
+            filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id).first()
+        
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+
+        users_result.append({
+                    "id": user_id,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "group_name": user.student.group.name,
+                    "points": result[0],
+                    "fails": result[1]
+                })
+
+    sio.emit(f'computer_{computer_id}_results', users_result)
 
 
 @sio.on('event_checkpoint')
 def checkpoint(sid, checkpoint_data: CheckpointData):
-    def event_checkpoint(event_id: int, user_id: int, step:int, points: int, attempts: int, computer_id: int):
-        checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step=step, points=points, attempts=attempts)
+    def event_checkpoint(event_id: int, user_id: int, step:int, points: int, fails: int, computer_id: int):
+        checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step=step, points=points, fails=fails)
         database.session.add(checkpoint)
         database.session.commit()
         step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == step).first().name
@@ -178,7 +195,7 @@ def checkpoint(sid, checkpoint_data: CheckpointData):
     for user_id in session[sid]["ids"]:
         event_checkpoint(event_id=checkpoint_data.event_id, user_id=user_id,
                          step=checkpoint_data.step, points=checkpoint_data.points,
-                         attempts=checkpoint_data.attempts)
+                         fails=checkpoint_data.fails, computer_id=session[sid]['computer_id'])
         
     sio.emit('events_status', computers_status)
 
