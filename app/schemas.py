@@ -1,6 +1,5 @@
 from datetime import datetime
-from enum import Enum
-from pydantic import BaseModel, constr, validator
+from pydantic import BaseModel, constr
 from typing import Optional
 import enum
 
@@ -76,3 +75,10 @@ class UserEdit(BaseModel):
 
 class UserChangePassword(BaseModel):
     password: str
+
+class CheckpointData:
+    def __init__(self, event_id, step: int, points, fails: int):
+        self.event_id = event_id
+        self.points = points
+        self.fails = fails
+        self.step = step

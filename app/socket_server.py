@@ -2,10 +2,14 @@ import eventlet
 from sqlalchemy.sql.expression import func
 import socketio
 
-from config import settings
 import database
 import models
-import oauth2
+from schemas import CheckpointData
+from config import settings
+from socker_service import emit_connected_computers, update_session, validate_tokens, is_valid_teacher_session, \
+    create_events_session, create_event, get_random_practice_one_variant, emit_computer_event, finish_event, \
+    create_users_checkpoints
+
 
 
 sio = socketio.Server()
@@ -15,68 +19,19 @@ app = socketio.WSGIApp(sio, static_files={
 
 connected_computers, session, computers_status = {}, {}, {}
 
-LAST_STEP_NUMBER = 15
-
 
 @sio.on('connect')
 def handle_connect(sid, environ):
-    first_token = environ.get('HTTP_AUTHORIZATION')
-    second_token = environ.get('HTTP_AUTHORIZATION_TWO')
+    tokens_valid, user, computer_id, user2 = validate_tokens(environ)
 
-    if not first_token or first_token == second_token:
-        print("First token wasn't provided or tokens are the same", flush=True)
+    if not all([tokens_valid, user, computer_id]):
         sio.disconnect(sid)
         return
 
-    user = oauth2.get_current_user_socket(first_token)
-
-    if not user:
-        print("User wasn't found", flush=True)
-        sio.disconnect(sid)
-        return
-
-    session.setdefault(sid, {})
-
-    if user.role == "TEACHER":
-        session[sid]["is_teacher"] = True
-        return
-
-    computer_id = environ.get("HTTP_COMPUTER_ID")
-
-    if not computer_id:
-        print("Computer id wasn't provided", flush=True)
-        sio.disconnect(sid)
-        return
-
-    user2 = None
-    if second_token:
-        user2 = oauth2.get_current_user_socket(second_token)
-        if not user2:
-            print("Second authorization token is not correct", flush=True)
-            sio.disconnect(sid)
-            return
-
-    connected_computers[computer_id] = [user.serialize()]
-
-    user_ids = [user.id]
-    user_usernames = [user.username]
-
-    if user2:
-        connected_computers[computer_id].append(user.serialize())
-        user_ids.append(user2.id)
-        user_usernames.append(user2.username)
-
-    session[sid]["ids"] = user_ids
-    session[sid]["usernames"] = user_usernames
-    session[sid]["computer_id"] = computer_id
-
-    message = f'User {user.username} with ID {user.id} connected to socket with computer id {computer_id}'
-    if user2:
-        message += f' and {user2.username} with ID {user2.id}'
-    else:
-        message += ' without a second user'
-    print(message, flush=True)
-    sio.emit('connected_computers', connected_computers)
+    update_session(sid=sid, session=session, connected_computers=connected_computers, user=user,
+                    user2=user2, computer_id=computer_id)
+    
+    emit_connected_computers(sio=sio, connected_computers=connected_computers)
 
 
 
@@ -88,122 +43,44 @@ def handle_disconnect(sid):
 
     del connected_computers[session[sid]["computer_id"]]
 
-    message = f'User {session[sid]["usernames"][0]} with ID {session[sid]["ids"][0]} connected to socket'
-    if "ids" in session[sid] and len(session[sid]["ids"]) > 1:
-        message += f' and {session[sid]["usernames"][1]} with ID {session[sid]["ids"][1]}'
-    else:
-        message += ' without a second user'
-
-    print(message, flush=True)
-
-    sio.emit('connected_computers', connected_computers)
+    emit_connected_computers(sio=sio, connected_computers=connected_computers)
 
 
 @sio.on('start_events')
 def start_events(sid, computers):
-    if not sid in session or "is_teacher" not in session[sid]:
+    global computers_status
+    if not is_valid_teacher_session(sid):
         sio.disconnect(sid)
         return
     
-    events_session = models.Session()
-    database.session.add(events_session)
-    database.session.commit()
+    events_session = create_events_session()
     computers_status = {}
 
     for computer in computers:
         users = connected_computers[str(computer["id"])]
 
-        variant = None
+        random_variant = None
         if computer["type"] == 1:
             sio.emit(f'computer_{computer["id"]}_event', "first_point")
-            variant = database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
+            random_variant = get_random_practice_one_variant()
 
-        new_event = models.Event(
-            session_id=events_session.id,
-            computer_id=computer["id"],
-            type=computer["type"],
-            mode=computer["mode"],
-            practice_one_variant_id=variant.id,
-            user_1_id=users[0]["id"],
-            user_2_id=users[1]["id"] if len(users) > 1 else None
-        )
+        new_event = create_event(events_session.id, database.session, computer, users, random_variant)
 
-        database.session.add(new_event)
-        database.session.commit()
-
-        sio.emit(f'computer_{computer["id"]}_event', {
-            "event_id": new_event.id,
-            "computer_id": computer["id"],
-            "mode": computer["mode"],
-            "type": computer["type"],
-            "description": variant.description,
-            "right_logist": variant.right_logist,
-            "wrong_logist1": variant.wrong_logist1,
-            "wrong_logist2": variant.wrong_logist2,
-            "test": variant.test.to_json(),
-            "bets": models.Bet.to_json_list(variant.bets)
-        })
-
-    sio.emit("session_id", events_session.id)
-
-class CheckpointData:
-    def __init__(self, event_id, step: int, points, fails: int):
-        self.event_id = event_id
-        self.points = points
-        self.fails = fails
-        self.step = step
-
-
-def finish_event(sid, event_id):
-    computer_id = session[sid]['computer_id']
-    users_id = session[sid]['ids']
-    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
-    event.is_finished = True
-    database.session.commit()
-    users_result = []
-    for user_id in users_id:
-        result = session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)).\
-            filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id).first()
-        
-        user = session.query(models.User).filter(models.User.id == user_id).first()
-
-        users_result.append({
-                    "id": user_id,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "group_name": user.student.group.name,
-                    "points": result[0],
-                    "fails": result[1]
-                })
-
-    sio.emit(f'computer_{computer_id}_results', users_result)
+        emit_computer_event(sio=sio, computer=computer, event_id=new_event.id, variant=random_variant)
 
 
 @sio.on('event_checkpoint')
 def checkpoint(sid, checkpoint_data: CheckpointData):
-    def event_checkpoint(event_id: int, user_id: int, step:int, points: int, fails: int, computer_id: int):
-        checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step=step, points=points, fails=fails)
-        database.session.add(checkpoint)
-        database.session.commit()
-        step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == step).first().name
-        computers_status[computer_id] = step_name
-
     if sid not in session or "ids" not in session[sid]:
         sio.disconnect(sid)
         return
+    
+    create_users_checkpoints(sid=sid, session=session, checkpoint_data=checkpoint_data, computers_status=computers_status)
 
-    for user_id in session[sid]["ids"]:
-        event_checkpoint(event_id=checkpoint_data.event_id, user_id=user_id,
-                         step=checkpoint_data.step, points=checkpoint_data.points,
-                         fails=checkpoint_data.fails, computer_id=session[sid]['computer_id'])
+    if checkpoint_data.step == settings.pr1_last_step_number:
+        finish_event(sid=sid, sio=sio, session=session, event_id=checkpoint_data.event_id)
         
     sio.emit('events_status', computers_status)
-
-
-@sio.on('finish_event')
-def finish_event(sid, event_id):
-    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
-    event.is_finished = True
     
 
 def start_socket_server():

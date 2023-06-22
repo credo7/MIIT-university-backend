@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     flask_secret_key: str
     telegram_bot_token: str
     telegram_chat_id: int
+    pr1_last_step_number: int
 
     class Config:
         env_file = ".env"

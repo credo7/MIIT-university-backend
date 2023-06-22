@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean, CheckConstraint, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean, UniqueConstraint
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Numeric
@@ -42,6 +42,7 @@ class BetRole(str, enum.Enum):
     SELLER = "SELLER"
     BUYER = "BUYER"
     ALL = "ALL"
+
 
 class User(Base):
     __tablename__ = "user"
@@ -194,22 +195,6 @@ class PracticeOneVariant(Base):
     test_id = Column(Integer, ForeignKey("test.id"), nullable=False)
 
     test = relationship("Test", back_populates="practice_one_variants")
-    practice_one_variant_bets = relationship("PracticeOneVariantBet", back_populates="practice_one_variant")
-    bets = relationship("Bet", secondary="practice_one_variant_bet")
-    
-
-class PracticeOneVariantBet(Base):
-    __tablename__ = "practice_one_variant_bet"
-
-    id = Column(Integer, primary_key=True)
-    practice_one_variant_id = Column(Integer, ForeignKey(PracticeOneVariant.id), nullable=False)
-    bet_id = Column(Integer, ForeignKey(Bet.id), nullable=False)
-
-    practice_one_variant = relationship("PracticeOneVariant", back_populates="practice_one_variant_bets", overlaps="bets")
-
-    bets = relationship("Bet")
-
-
 
 
 class Session(Base):
@@ -219,7 +204,6 @@ class Session(Base):
     created_at = Column(DateTime, default=datetime.utcnow())
     
     events = relationship("Event", back_populates="session")
-
 
 
 class Event(Base):
