@@ -8,47 +8,43 @@ import models
 import database
 import schemas
 
-def validate_tokens(environ):
+def validate_tokens(environ, session, sid):
     first_token = environ.get('HTTP_AUTHORIZATION')
     second_token = environ.get('HTTP_AUTHORIZATION_TWO')
 
     if not first_token or first_token == second_token:
         print("First token wasn't provided or tokens are the same", flush=True)
-        return False, None, None, None
+        return False, None, None, None, None
 
     user = oauth2.get_current_user_socket(first_token)
     if not user:
         print("User wasn't found", flush=True)
-        return False, None, None, None
+        return False, None, None, None, None
 
     computer_id = environ.get("HTTP_COMPUTER_ID")
     if not computer_id:
         print("Computer id wasn't provided", flush=True)
-        return False, None, None, None
+        return False, None, None, None, None
+    
+    session.setdefault(sid, {})
+    
+    if user.role == "TEACHER":
+        session[sid]["is_teacher"] = True
+        return True, user, int(computer_id), None, True
 
     user2 = None
     if second_token:
         user2 = oauth2.get_current_user_socket(second_token)
         if not user2:
             print("Second authorization token is not correct", flush=True)
-            return False, None, None, None
+            return False, None, None, None, None
 
-    return True, user, computer_id, user2
+    return True, user, int(computer_id), user2, False
 
-def update_session(sid, session, connected_computers, user, user2, computer_id):
-    session.setdefault(sid, {})
-    
-    if user.role == "TEACHER":
-        session[sid]["is_teacher"] = True
-        return
-
+def update_session(sid, session, connected_computers, user, user2, computer_id:int):
     connected_computers[computer_id] = [user.serialize()]
     user_ids = [user.id]
     user_usernames = [user.username]
-
-    if user.role == "TEACHER":
-        session[sid]["is_teacher"] = True
-        return
 
     if user2:
         connected_computers[computer_id].append(user2.serialize())

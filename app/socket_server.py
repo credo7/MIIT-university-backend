@@ -22,14 +22,15 @@ computers_status = {}
 
 @sio.on('connect')
 def handle_connect(sid, environ):
-    tokens_valid, user, computer_id, user2 = validate_tokens(environ)
+    tokens_valid, user, computer_id, user2, is_teacher = validate_tokens(environ, session, sid)
 
     if not all([tokens_valid, user, computer_id]):
         sio.disconnect(sid)
         return
-
-    update_session(sid=sid, session=session, connected_computers=connected_computers, user=user,
-                    user2=user2, computer_id=computer_id)
+    
+    if not is_teacher:
+        update_session(sid=sid, session=session, connected_computers=connected_computers, user=user,
+                        user2=user2, computer_id=computer_id)
     
     emit_connected_computers(sio=sio, connected_computers=connected_computers)
 
