@@ -47,7 +47,7 @@ def handle_disconnect(sid):
 @sio.on('start_events')
 def start_events(sid, computers):
     global computers_status
-    if not is_valid_teacher_session(sid):
+    if not is_valid_teacher_session(sid=sid, session=session):
         sio.disconnect(sid)
         return
     
