@@ -15,7 +15,9 @@ app = socketio.WSGIApp(sio, static_files={
     '/': {'content_type': 'text/html', 'filename': 'index.html'}
 })
 
-connected_computers, session, computers_status = {}, {}, {}
+connected_computers = {}
+session = {}
+computers_status = {}
 
 
 @sio.on('connect')
@@ -46,7 +48,7 @@ def handle_disconnect(sid):
 
 @sio.on('start_events')
 def start_events(sid, computers):
-    global computers_status
+    global computers_status, connected_computers
     if not is_valid_teacher_session(sid=sid, session=session):
         sio.disconnect(sid)
         return
@@ -55,7 +57,7 @@ def start_events(sid, computers):
     computers_status = {}
 
     for computer in computers:
-        users = connected_computers[str(computer["id"])]
+        users = connected_computers[int(computer["id"])]
 
         random_variant = None
         if computer["type"] == 1:
