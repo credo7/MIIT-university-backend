@@ -12,7 +12,7 @@ from socker_service import emit_connected_computers, update_session, validate_to
 
 
 
-sio = socketio.Server()
+sio = socketio.Server(cors_allowed_origins='*')
 app = socketio.WSGIApp(sio, static_files={
     '/': {'content_type': 'text/html', 'filename': 'index.html'}
 })

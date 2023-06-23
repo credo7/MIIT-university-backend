@@ -2,8 +2,8 @@ import requests
 
 from custom_socket import CustomSocketIO
 
-api_url = "http://localhost:3001"
-socket_url = "http://localhost:3002"
+api_url = "http://95.163.236.35:3001"
+socket_url = "http://95.163.236.35:3002"
 
 
 def login(username: str, password: str):
