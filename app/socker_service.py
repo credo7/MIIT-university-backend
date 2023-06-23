@@ -50,7 +50,7 @@ def update_session(sid, session, connected_computers, user, user2, computer_id):
         return
 
     if user2:
-        connected_computers[computer_id].append(user.serialize())
+        connected_computers[computer_id].append(user2.serialize())
         user_ids.append(user2.id)
         user_usernames.append(user2.username)
 

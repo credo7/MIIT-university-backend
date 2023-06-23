@@ -1,9 +1,7 @@
 import eventlet
-from sqlalchemy.sql.expression import func
 import socketio
 
 import database
-import models
 from schemas import CheckpointData
 from config import settings
 from socker_service import emit_connected_computers, update_session, validate_tokens, is_valid_teacher_session, \
