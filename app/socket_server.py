@@ -58,15 +58,14 @@ def start_events(sid, computers):
     computers_status = {}
 
     for computer in computers:
+        sio.emit('logs', computer)
         users = connected_computers[int(computer["id"])]
 
         random_variant = None
         if computer["type"] == 1:
-            sio.emit(f'computer_{computer["id"]}_event', "first_point")
             random_variant = get_random_practice_one_variant()
 
-        new_event = create_event(events_session.id, database.session, computer, users, random_variant)
-
+        new_event = create_event(session_id=events_session.id, computer=computer, users=users, variant=random_variant)
         emit_computer_event(sio=sio, computer=computer, event_id=new_event.id, variant=random_variant)
 
 
@@ -76,10 +75,10 @@ def checkpoint(sid, checkpoint_data: CheckpointData):
         sio.disconnect(sid)
         return
     
-    create_users_checkpoints(sid=sid, session=session, checkpoint_data=checkpoint_data, computers_status=computers_status)
+    create_users_checkpoints(sio=sio, sid=sid, session=session, checkpoint_data=checkpoint_data, computers_status=computers_status)
 
-    if checkpoint_data.step == settings.pr1_last_step_number:
-        finish_event(sid=sid, sio=sio, session=session, event_id=checkpoint_data.event_id)
+    if checkpoint_data["step"] == settings.pr1_last_step_number:
+        finish_event(sid=sid, sio=sio, session=session, event_id=checkpoint_data["event_id"])
         
     sio.emit('events_status', computers_status)
     

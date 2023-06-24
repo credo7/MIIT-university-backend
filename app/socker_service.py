@@ -116,10 +116,10 @@ def finish_event(sid, sio, session, event_id):
     database.session.commit()
     users_result = []
     for user_id in users_id:
-        result = session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)).\
+        result = database.session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)).\
             filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id).first()
         
-        user = session.query(models.User).filter(models.User.id == user_id).first()
+        user = database.session.query(models.User).filter(models.User.id == user_id).first()
 
         users_result.append({
                     "id": user_id,
@@ -132,22 +132,25 @@ def finish_event(sid, sio, session, event_id):
 
     sio.emit(f'computer_{computer_id}_results', users_result)
 
-def create_checkpoint(event_id, user_id, step, points, fails):
-    checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step=step, points=points, fails=fails)
+def create_checkpoint(event_id, user_id, step_id, points, fails):
+    checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails)
     database.session.add(checkpoint)
     database.session.commit()
 
-def create_users_checkpoints(sid, session, checkpoint_data:schemas.CheckpointData, computers_status):
+def create_users_checkpoints(sio, sid, session, checkpoint_data:schemas.CheckpointData, computers_status):
     users = []
+    
+    sio.emit('logs', checkpoint_data)
 
     for user_id in session[sid]["ids"]:
-        create_checkpoint(event_id=checkpoint_data.event_id, user_id=user_id,
-                         step=checkpoint_data.step, points=checkpoint_data.points,
-                         fails=checkpoint_data.fails)
+        create_checkpoint(event_id=checkpoint_data["event_id"], user_id=user_id,
+                         step_id=checkpoint_data["step"], points=checkpoint_data["points"],
+                         fails=checkpoint_data["fails"])
         
         user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
         users.append(user)
 
-        step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == checkpoint_data.step).first().name
+        step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == checkpoint_data["step"]).first().name
         computer_id = session[sid]['computer_id']
         computers_status[computer_id] = {"step_name": step_name, "users": users}
+

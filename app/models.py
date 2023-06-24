@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean, UniqueConstraint, CheckConstraint
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Numeric
@@ -10,15 +10,7 @@ from database import Base, engine
 class UserRole(str, enum.Enum):
     TEACHER = "TEACHER"
     STUDENT = "STUDENT"
-
-
-class EventType(enum.Enum):
-    PR1 = 1
-    PR2 = 2
-    PR3 = 3
-
-    def __str__(self):
-        return str(self.value)
+    
 
 class EventMode(str, enum.Enum):
     CLASS = "CLASS"
@@ -209,11 +201,11 @@ class Session(Base):
 class Event(Base):
     __tablename__ = "event"
 
-    id = Column(Integer, primary_key=True, index=True, unique=True)
+    id = Column(Integer, primary_key=True)
     session_id = Column(ForeignKey(Session.id), nullable=False)
-    type = Column(Enum(EventType), nullable=False)
+    type = Column(Integer, nullable=False)
     mode = Column(Enum(EventMode), nullable=False)
-    practice_one_variant_id = Column(Integer, ForeignKey(PracticeOneVariant.id), primary_key=True)
+    practice_one_variant_id = Column(Integer, ForeignKey(PracticeOneVariant.id), nullable=False)
     computer_id = Column(Integer, nullable=False)
     user_1_id = Column(Integer, ForeignKey(User.id), nullable=False)
     user_2_id = Column(Integer, ForeignKey(User.id), nullable=True)
@@ -223,6 +215,9 @@ class Event(Base):
     session = relationship("Session", back_populates="events")
     practice_one_variant = relationship("PracticeOneVariant")
 
+    __table_args__ = (
+        CheckConstraint('type >= 1 AND type <= 3', name='check_valid_values'),
+    )
 
 class PracticeOneStep(Base):
     __tablename__ = "practice_one_step"
@@ -245,7 +240,7 @@ class EventCheckpoint(Base):
     step = relationship("PracticeOneStep")
 
     __table_args__ = (
-        UniqueConstraint('event_id', 'step_id'),
+        UniqueConstraint('event_id', 'step_id', 'user_id'),
     )
 
 
