@@ -1,5 +1,4 @@
 import random
-from typing import Dict, Any
 
 from sqlalchemy.sql.expression import func
 

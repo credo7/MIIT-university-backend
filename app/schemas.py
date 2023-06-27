@@ -77,7 +77,7 @@ class UserChangePassword(BaseModel):
     password: str
 
 class CheckpointData:
-    def __init__(self, event_id, step: int, points, fails: int):
+    def __init__(self, event_id: int, step: int, points, fails: int):
         self.event_id = event_id
         self.points = points
         self.fails = fails

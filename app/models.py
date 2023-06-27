@@ -10,7 +10,6 @@ from database import Base, engine
 class UserRole(str, enum.Enum):
     TEACHER = "TEACHER"
     STUDENT = "STUDENT"
-    
 
 class EventMode(str, enum.Enum):
     CLASS = "CLASS"
