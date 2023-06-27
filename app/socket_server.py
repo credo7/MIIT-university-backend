@@ -1,13 +1,11 @@
 import eventlet
 import socketio
 
-import database
 from schemas import CheckpointData
 from config import settings
-from socker_service import emit_connected_computers, update_session, validate_tokens, is_valid_teacher_session, \
+from socket_service import emit_connected_computers, update_session, validate_tokens, is_valid_teacher_session, \
     create_events_session, create_event, get_random_practice_one_variant, emit_computer_event, finish_event, \
     create_users_checkpoints
-
 
 
 sio = socketio.Server(cors_allowed_origins='*')

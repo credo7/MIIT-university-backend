@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import auth, user, group
 from socket_server import start_socket_server
-from logger_middleware import custom_logger_middleware
+# from logger_middleware import custom_logger_middleware
 from config import settings
 
 app = FastAPI()
@@ -39,7 +39,6 @@ def start_fastapi_server():
 
 
 if __name__ == "__main__":
-    # start_socket_server()
     socket_process = mp.Process(target=start_socket_server)
     socket_process.start()
 

@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import schemas, models, oauth2, utils, database
-from telegram_bot import TelegramBot
 
 router = APIRouter(tags=['Authentication'], prefix="/auth", )
 

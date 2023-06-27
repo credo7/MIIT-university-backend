@@ -10,6 +10,10 @@ __pycache__/
 db/
 .idea/
 goal.py
+.vscode
+.env
+.delete_after.py
+
 
 # Distribution / packaging
 .Python
