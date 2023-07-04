@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 from sqlalchemy.sql.expression import func
 
@@ -153,3 +154,20 @@ def create_users_checkpoints(sio, sid, session, checkpoint_data:schemas.Checkpoi
         computer_id = session[sid]['computer_id']
         computers_status[computer_id] = {"step_name": step_name, "users": users}
 
+def create_log(sio, endpoint:str, computer_id: int, user:models.User = None, id:int = None):
+    if not user:
+        user = database.session.query(models.User).filter(models.User.id == id).first().serialize()
+        
+    log = models.Log(user_id=user.id, endpoint=endpoint, computer_id=computer_id)
+    database.session.add(log)
+    database.session.commit()
+
+    sio.emit('logs', f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}")
+
+def create_log_for_users(sio, endpoint:str, computer_id: int, users:List[models.User] = [], ids:List[str] = []):
+    for user in users:
+            create_log(sio, user, endpoint, computer_id)
+
+    for user_id in ids:
+        user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
+        create_log(sio, user, endpoint, computer_id)
