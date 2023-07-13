@@ -13,6 +13,7 @@ goal.py
 .vscode
 .env
 .delete_after.py
+.deleteafter.py
 
 
 # Distribution / packaging

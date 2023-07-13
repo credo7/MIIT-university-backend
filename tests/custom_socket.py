@@ -1,5 +1,6 @@
 import socketio
 
+
 class CustomSocketIO:
     def __init__(self, socket_url, computer_id=None, headers=None):
         self.sio = socketio.Client()
@@ -39,7 +40,7 @@ class CustomSocketIO:
         print(message)
 
     def connected_computers(self, message):
-        print("Connected computers are: ", message)
+        print('Connected computers are: ', message)
 
     def send_events(self, events):
         self.sio.emit('start_events', events)

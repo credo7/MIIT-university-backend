@@ -4,13 +4,15 @@ from typing import List
 
 from app import models, schemas, oauth2, database
 
-router = APIRouter(tags=['Groups'], prefix="/groups")
+router = APIRouter(tags=['Groups'], prefix='/groups')
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED, response_model=schemas.GroupOut)
-def create(group: schemas.GroupCreate,
-           current_user: models.User = Depends(oauth2.get_current_user),
-           db: Session = Depends(database.get_db)):
+@router.post('/create', status_code=status.HTTP_201_CREATED, response_model=schemas.GroupOut)
+def create(
+    group: schemas.GroupCreate,
+    current_user: models.User = Depends(oauth2.get_current_user),
+    db: Session = Depends(database.get_db),
+):
 
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
 

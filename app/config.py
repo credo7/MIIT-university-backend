@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     pr1_last_step_number: int
 
     class Config:
-        env_file = ".env"
+        env_file = '.env'
 
 
 settings = Settings()

@@ -5,14 +5,14 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    TEACHER = "TEACHER"
-    STUDENT = "STUDENT"
+    TEACHER = 'TEACHER'
+    STUDENT = 'STUDENT'
 
 
 class UserBase(BaseModel):
-    first_name: constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")
-    last_name: constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")
-    surname: constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")
+    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
+    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
+    surname: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     role: UserRole = UserRole.STUDENT
 
 
@@ -66,15 +66,16 @@ class GroupOut(GroupBase):
 
 class UserEdit(BaseModel):
     id: int
-    first_name: Optional[constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")]
-    last_name: Optional[constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")]
-    surname: Optional[constr(min_length=2, max_length=35, regex="^[а-яА-ЯёЁ]+$")]
+    first_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    last_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
     group_id: Optional[int]
     username: Optional[str]
 
 
 class UserChangePassword(BaseModel):
     password: str
+
 
 class CheckpointData:
     def __init__(self, event_id: int, step: int, points, fails: int):

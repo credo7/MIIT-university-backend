@@ -16,7 +16,7 @@ class TelegramBot:
         try:
             await self.bot.send_message(chat_id=self.chat_id, text=text)
         except Exception as e:
-            logging.error(f"Error sending message to {self.chat_id}: {e}")
+            logging.error(f'Error sending message to {self.chat_id}: {e}')
 
     def send_message_async(self, text):
         asyncio.run(self.send_message(text))

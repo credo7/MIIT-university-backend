@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Tuple, Optional, Union
 
 from sqlalchemy.sql.expression import func
 
@@ -8,7 +8,10 @@ import models
 import database
 import schemas
 
-def validate_tokens(environ, session, sid):
+
+def validate_tokens(
+    environ, session, sid
+) -> Tuple[bool, Optional[models.User], Optional[int], Optional[models.User], Optional[bool]]:
     first_token = environ.get('HTTP_AUTHORIZATION')
     second_token = environ.get('HTTP_AUTHORIZATION_TWO')
 
@@ -21,27 +24,28 @@ def validate_tokens(environ, session, sid):
         print("User wasn't found", flush=True)
         return False, None, None, None, None
 
-    computer_id = environ.get("HTTP_COMPUTER_ID")
+    computer_id = environ.get('HTTP_COMPUTER_ID')
     if not computer_id:
         print("Computer id wasn't provided", flush=True)
         return False, None, None, None, None
-    
+
     session.setdefault(sid, {})
-    
-    if user.role == "TEACHER":
-        session[sid]["is_teacher"] = True
+
+    if user.role == 'TEACHER':
+        session[sid]['is_teacher'] = True
         return True, user, int(computer_id), None, True
 
     user2 = None
     if second_token:
         user2 = oauth2.get_current_user_socket(second_token)
         if not user2:
-            print("Second authorization token is not correct", flush=True)
+            print('Second authorization token is not correct', flush=True)
             return False, None, None, None, None
 
     return True, user, int(computer_id), user2, False
 
-def update_session(sid, session, connected_computers, user, user2, computer_id:int):
+
+def update_session(sid, session, connected_computers, user, user2, computer_id: int):
     connected_computers[computer_id] = [user.serialize()]
     user_ids = [user.id]
     user_usernames = [user.username]
@@ -51,15 +55,18 @@ def update_session(sid, session, connected_computers, user, user2, computer_id:i
         user_ids.append(user2.id)
         user_usernames.append(user2.username)
 
-    session[sid]["ids"] = user_ids
-    session[sid]["usernames"] = user_usernames
-    session[sid]["computer_id"] = computer_id
+    session[sid]['ids'] = user_ids
+    session[sid]['usernames'] = user_usernames
+    session[sid]['computer_id'] = computer_id
+
 
 def emit_connected_computers(sio, connected_computers):
     sio.emit('connected_computers', connected_computers)
 
+
 def is_valid_teacher_session(sid, session):
-    return sid in session and "is_teacher" in session[sid]
+    return sid in session and 'is_teacher' in session[sid]
+
 
 def create_events_session():
     events_session = models.Session()
@@ -67,46 +74,90 @@ def create_events_session():
     database.session.commit()
     return events_session
 
-def create_event(session_id, computer, users, variant):
+
+def get_random_variant(type: int):
+    if type == 1:
+        return (
+            database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
+        )
+    if type == 2:
+        return (
+            database.session.query(models.PracticeTwoVariant).order_by(func.random()).first()
+        )
+
+
+def create_event(sio, session_id, computer, users):
+    variant = get_random_variant()
+
+    if not variant:
+        sio.emit('errors', 'No random variant found')
+        raise Exception('No random variant found')
+
     new_event = models.Event(
         session_id=session_id,
-        computer_id=computer["id"],
-        type=computer["type"],
-        mode=computer["mode"],
-        practice_one_variant_id=variant.id,
-        user_1_id=users[0]["id"],
-        user_2_id=users[1]["id"] if len(users) > 1 else None
+        computer_id=computer['id'],
+        type=computer['type'],
+        mode=computer['mode'],
+        variant_id=variant.id,
+        user_1_id=users[0]['id'],
+        user_2_id=users[1]['id'] if len(users) > 1 else None,
     )
     database.session.add(new_event)
     database.session.commit()
     return new_event
 
-def get_random_practice_one_variant():
-    return database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
 
 def get_all_bets():
     return database.session.query(models.Bet).all()
 
+
 def get_random_incoterms():
     return random.sample(list(models.Incoterms), 9)
 
-def emit_computer_event(sio, computer, event_id, variant):
-    all_bets = get_all_bets()
-    random_incoterms = get_random_incoterms()
 
-    sio.emit(f'computer_{computer["id"]}_event', {
-            "event_id": event_id,
-            "computer_id": computer["id"],
-            "mode": computer["mode"],
-            "type": computer["type"],
-            "description": variant.description,
-            "right_logist": variant.right_logist,
-            "wrong_logist1": variant.wrong_logist1,
-            "wrong_logist2": variant.wrong_logist2,
-            "test": variant.test.to_json(),
-            "random_incoterms": random_incoterms,
-            "all_bets": models.Bet.to_json_list(all_bets)
-        })
+def emit_computer_event(
+    sio,
+    computer,
+    event_id,
+    variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
+):
+    if computer['type'] == 1:
+        all_bets = get_all_bets()
+        random_incoterms = get_random_incoterms()
+
+        sio.emit(
+            f'computer_{computer["id"]}_event',
+            {
+                'event_id': event_id,
+                'computer_id': computer['id'],
+                'mode': computer['mode'],
+                'type': computer['type'],
+                'description': variant.description,
+                'right_logist': variant.right_logist,
+                'wrong_logist1': variant.wrong_logist1,
+                'wrong_logist2': variant.wrong_logist2,
+                'test': variant.test.to_json(),
+                'random_incoterms': random_incoterms,
+                'all_bets': models.Bet.to_json_list(all_bets),
+            },
+        )
+
+    if computer['type'] == 2:
+        containers = database.session.query(models.Containers).all()
+
+        sio.emit(
+            f'computer_{computer["id"]}_event',
+            {
+                'event_id': event_id,
+                'computer_id': computer['id'],
+                'mode': computer['mode'],
+                'type': computer['type'],
+                'legend': variant.legend,
+                'rows': models.PracticeTwoVariantRow.to_json_list(variant.rows),
+                'containers': models.Container.to_json_list(containers),
+            },
+        )
+
 
 def finish_event(sid, sio, session, event_id):
     computer_id = session[sid]['computer_id']
@@ -116,58 +167,105 @@ def finish_event(sid, sio, session, event_id):
     database.session.commit()
     users_result = []
     for user_id in users_id:
-        result = database.session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)).\
-            filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id).first()
-        
+        result = (
+            database.session.query(
+                func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)
+            )
+            .filter(
+                models.EventCheckpoint.event_id == event_id,
+                models.EventCheckpoint.user_id == user_id,
+            )
+            .first()
+        )
+
         user = database.session.query(models.User).filter(models.User.id == user_id).first()
 
-        users_result.append({
-                    "id": user_id,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "group_name": user.student.group.name,
-                    "points": result[0],
-                    "fails": result[1]
-                })
+        users_result.append(
+            {
+                'id': user_id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'group_name': user.student.group.name,
+                'points': result[0],
+                'fails': result[1],
+            }
+        )
 
     sio.emit(f'computer_{computer_id}_results', users_result)
 
+
 def create_checkpoint(event_id, user_id, step_id, points, fails):
-    checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails)
+    checkpoint = models.EventCheckpoint(
+        event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails
+    )
     database.session.add(checkpoint)
     database.session.commit()
 
-def create_users_checkpoints(sio, sid, session, checkpoint_data:schemas.CheckpointData, computers_status):
+
+def create_users_checkpoints(
+    sio, sid, session, checkpoint_data: schemas.CheckpointData, computers_status
+):
     users = []
-    
+
     sio.emit('logs', checkpoint_data)
 
-    for user_id in session[sid]["ids"]:
-        create_checkpoint(event_id=checkpoint_data["event_id"], user_id=user_id,
-                         step_id=checkpoint_data["step"], points=checkpoint_data["points"],
-                         fails=checkpoint_data["fails"])
-        
-        user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
+    for user_id in session[sid]['ids']:
+        create_checkpoint(
+            event_id=checkpoint_data['event_id'],
+            user_id=user_id,
+            step_id=checkpoint_data['step'],
+            points=checkpoint_data['points'],
+            fails=checkpoint_data['fails'],
+        )
+
+        user = (
+            database.session.query(models.User)
+            .filter(models.User.id == user_id)
+            .first()
+            .serialize()
+        )
         users.append(user)
 
-        step_name = database.session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == checkpoint_data["step"]).first().name
+        step_name = (
+            database.session.query(models.PracticeOneStep)
+            .filter(models.PracticeOneStep.id == checkpoint_data['step'])
+            .first()
+            .name
+        )
         computer_id = session[sid]['computer_id']
-        computers_status[computer_id] = {"step_name": step_name, "users": users}
+        computers_status[computer_id] = {'step_name': step_name, 'users': users}
 
-def create_log(sio, endpoint:str, computer_id: int, user:models.User = None, id:int = None):
+
+def create_log(sio, endpoint: str, computer_id: int, user: models.User = None, id: int = None):
     if not user:
-        user = database.session.query(models.User).filter(models.User.id == id).first().serialize()
-        
+        user = (
+            database.session.query(models.User)
+            .filter(models.User.id == id)
+            .first()
+            .serialize()
+        )
+
     log = models.Log(user_id=user.id, endpoint=endpoint, computer_id=computer_id)
     database.session.add(log)
     database.session.commit()
 
-    sio.emit('logs', f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}")
+    sio.emit(
+        'logs',
+        f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}",
+    )
 
-def create_log_for_users(sio, endpoint:str, computer_id: int, users:List[models.User] = [], ids:List[str] = []):
+
+def create_log_for_users(
+    sio, endpoint: str, computer_id: int, users: List[models.User] = [], ids: List[str] = []
+):
     for user in users:
-            create_log(sio, user, endpoint, computer_id)
+        create_log(sio, user, endpoint, computer_id)
 
     for user_id in ids:
-        user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
+        user = (
+            database.session.query(models.User)
+            .filter(models.User.id == user_id)
+            .first()
+            .serialize()
+        )
         create_log(sio, user, endpoint, computer_id)

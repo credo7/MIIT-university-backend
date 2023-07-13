@@ -3,7 +3,8 @@ from transliterate import translit
 import random
 import string
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
 def hash(password: str):
@@ -19,7 +20,9 @@ def create_username(first_name, last_name, surname, group_name):
     last_name_en = translit(last_name, 'ru', reversed=True)[:2]
     surname_en = translit(surname, 'ru', reversed=True)[:2]
     group_name_en = translit(group_name, 'ru', reversed=True)
-    username_without_spaces = str.lower(first_name_en + last_name_en + surname_en + group_name_en).replace(" ", "")
+    username_without_spaces = str.lower(
+        first_name_en + last_name_en + surname_en + group_name_en
+    ).replace(' ', "")
 
     return username_without_spaces
 
@@ -30,5 +33,12 @@ def generate_password(length=8):
     return password
 
 
-if __name__ == "__main__":
-    print(create_username(first_name="Антон", last_name="Водкин", surname="Игоревич", group_name="УЭЦ-241 189"))
+if __name__ == '__main__':
+    print(
+        create_username(
+            first_name='Антон',
+            last_name='Водкин',
+            surname='Игоревич',
+            group_name='УЭЦ-241 189',
+        )
+    )
