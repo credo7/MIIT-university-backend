@@ -1,3 +1,5 @@
+import json
+
 from sqlalchemy import (
     Column,
     Integer,
@@ -260,7 +262,7 @@ class PracticeTwoVariantBet(Base):
             'tons': self.tons,
             'start_point_id': self.start_point_id,
             'end_point_id': self.end_point_id,
-            'answer': self.answer,
+            'answer': json.loads(self.answer),
         }
 
     @staticmethod

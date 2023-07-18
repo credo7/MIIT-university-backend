@@ -111,9 +111,17 @@ def start_events(sid, computers):
         new_event = create_event(
             sio=sio, session_id=events_session.id, computer=computer, users=users
         )
-        sio.emit('logs', f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}')
+        sio.emit(
+            'logs',
+            f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}',
+        )
         emit_computer_event(
-            sio=sio, computer=computer, event_id=new_event.id, variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant
+            sio=sio,
+            computer=computer,
+            event_id=new_event.id,
+            variant=new_event.practice_one_variant
+            if new_event.type == 1
+            else new_event.practice_two_variant,
         )
     # except Exception as e:
     #     sio.emit('errors', str(e))
@@ -143,9 +151,7 @@ def checkpoint(sid, checkpoint_data: CheckpointData):
     )
 
     if checkpoint_data['step'] == settings.pr1_last_step_number:
-        finish_event(
-            sid=sid, sio=sio, session=session, event_id=checkpoint_data['event_id']
-        )
+        finish_event(sid=sid, sio=sio, session=session, event_id=checkpoint_data['event_id'])
 
     sio.emit('events_status', computers_status)
     # except Exception as e:

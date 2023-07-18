@@ -120,7 +120,7 @@ def get_random_incoterms(num: int = 9):
     return random.sample(list(models.Incoterms), num)
 
 
-def practice_two(variant:models.PracticeTwoVariant):
+def practice_two(variant: models.PracticeTwoVariant):
     bets = models.PracticeTwoVariantBet.to_json_list(variant.bets)
 
     unique_bets_by_to_and_from_fields = []
@@ -132,13 +132,26 @@ def practice_two(variant:models.PracticeTwoVariant):
             unique_pairs.add(pair)
             unique_bets_by_to_and_from_fields.append(bet)
 
+    containers_two_description = '\n'.join(
+        [
+            f'{bet["from"]} - {bet["to"]} {bet["tons"]} т/месяц'
+            for bet in unique_bets_by_to_and_from_fields
+        ]
+    )
+
+    containers_two_description = (
+        f'На основании изучения рынка и заключённых договоров на поставку продукции '
+        f'сформированы {len(unique_bets_by_to_and_from_fields)} новых цепей поставок '
+        f'продукции ежемесячно при разных условиях Инкотермс:\n' + containers_two_description
+    )
+
     for bet in unique_bets_by_to_and_from_fields:
         tons = bet['tons']
         package_tons = variant.package_tons
         bet[
             'forty_containers_count'
         ] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
-        bet['route'] = f'{bet["from"]} - {bet["to"]}'
+        bet['route '] = f'{bet["from"]} - {bet["to"]}'
 
     containers = models.Container.to_json_list(database.session.query(models.Container).all())
 
@@ -172,11 +185,21 @@ def practice_two(variant:models.PracticeTwoVariant):
             }
         )
 
+        routes_table = [{
+            "route": f'{bet["from"]} - {bet["to"]}',
+            "destination_route": f'{bet["from"]} - {bet["to"]} через {bet["through"]}',
+            "delivery_route": ' - '.join(database.session.query(models.Point).filter(models.Point.id == point_id).first().name for point_id in bet['answer'])
+        } for bet in bets]
+
     return {
         'legend': variant.legend,
         'bets': bets,
         'containers_one': container_first_table,
-        'containers_two': unique_bets_by_to_and_from_fields,
+        'containers_two': {
+            'description': containers_two_description,
+            'rows': unique_bets_by_to_and_from_fields,
+        },
+        'routes_table': routes_table,
     }
 
 
@@ -211,10 +234,7 @@ def emit_computer_event(
 
     if computer['type'] == 2:
 
-        sio.emit(
-            f'computer_{computer["id"]}_event',
-            practice_two(variant=variant)
-        )
+        sio.emit(f'computer_{computer["id"]}_event', practice_two(variant=variant))
 
 
 def finish_event(sid, sio, session, event_id):
