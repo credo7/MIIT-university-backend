@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from routers import auth, user, group
+from routers import auth, user, group, test
 from socket_server import start_socket_server
 
 # from logger_middleware import custom_logger_middleware
@@ -26,6 +26,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(group.router)
 app.include_router(user.router)
+app.include_router(test.router)
 
 # app.middleware('http')(custom_logger_middleware)
 

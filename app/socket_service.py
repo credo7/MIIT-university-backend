@@ -1,3 +1,4 @@
+import math
 import random
 from typing import List, Tuple, Optional, Union
 
@@ -7,6 +8,7 @@ import oauth2
 import models
 import database
 import schemas
+from utils import formatting_number as f
 
 
 def validate_tokens(
@@ -33,6 +35,8 @@ def validate_tokens(
 
     if user.role == 'TEACHER':
         session[sid]['is_teacher'] = True
+        session[sid]['ids'] = [user.id]
+        session[sid]['computer_id'] = computer_id
         return True, user, int(computer_id), None, True
 
     user2 = None
@@ -87,7 +91,7 @@ def get_random_variant(type: int):
 
 
 def create_event(sio, session_id, computer, users):
-    variant = get_random_variant()
+    variant = get_random_variant(type=computer['type'])
 
     if not variant:
         sio.emit('errors', 'No random variant found')
@@ -98,7 +102,8 @@ def create_event(sio, session_id, computer, users):
         computer_id=computer['id'],
         type=computer['type'],
         mode=computer['mode'],
-        variant_id=variant.id,
+        variant_one_id=variant.id if computer['type'] == 1 else None,
+        variant_two_id=variant.id if computer['type'] == 2 else None,
         user_1_id=users[0]['id'],
         user_2_id=users[1]['id'] if len(users) > 1 else None,
     )
@@ -111,8 +116,68 @@ def get_all_bets():
     return database.session.query(models.Bet).all()
 
 
-def get_random_incoterms():
-    return random.sample(list(models.Incoterms), 9)
+def get_random_incoterms(num: int = 9):
+    return random.sample(list(models.Incoterms), num)
+
+
+def practice_two(variant:models.PracticeTwoVariant):
+    bets = models.PracticeTwoVariantBet.to_json_list(variant.bets)
+
+    unique_bets_by_to_and_from_fields = []
+    unique_pairs = set()
+
+    for bet in bets:
+        pair = (bet['from'], bet['to'])
+        if pair not in unique_pairs:
+            unique_pairs.add(pair)
+            unique_bets_by_to_and_from_fields.append(bet)
+
+    for bet in unique_bets_by_to_and_from_fields:
+        tons = bet['tons']
+        package_tons = variant.package_tons
+        bet[
+            'forty_containers_count'
+        ] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
+        bet['route'] = f'{bet["from"]} - {bet["to"]}'
+
+    containers = models.Container.to_json_list(database.session.query(models.Container).all())
+
+    container_first_table = []
+
+    for c in containers:
+        length = c['length']
+        width = c['width']
+        height = c['height']
+        loading_volume = length * width * height
+        package_length = variant.package_length
+        package_width = variant.package_width
+        package_height = variant.package_height
+        transport_package_volume = package_length * package_width * package_height
+        packages_in_container = math.ceil(
+            math.floor(length / package_length)
+            * math.floor(width / package_width)
+            * math.floor(height / package_height)
+        )
+        size = c['size']
+        payload_capacity = c['payload_capacity']
+
+        container_first_table.append(
+            {
+                'type': f'{size}-футовый контейнер {length}м*{width}м*{height}м (Д*Ш*В), грузоподъёмность {payload_capacity}т',
+                'loading_volume': f'{length}*{width}*{height}={f(loading_volume)}',
+                'transport_package_volume': f'{package_length}*{package_width}*{package_height}={f(transport_package_volume)}',
+                'packages_in_container': f'({length}/{package_length})*({width}/{package_width})*({height}/{package_height})={packages_in_container}',
+                'capacity_utilization_rate': f'{f(packages_in_container)}*{f(transport_package_volume)}/{f(loading_volume)}={f(packages_in_container * transport_package_volume / loading_volume)}',
+                'payload_utilization_rate': f'{packages_in_container}*{package_tons}/{payload_capacity}={f(packages_in_container * package_tons / payload_capacity)}',
+            }
+        )
+
+    return {
+        'legend': variant.legend,
+        'bets': bets,
+        'containers_one': container_first_table,
+        'containers_two': unique_bets_by_to_and_from_fields,
+    }
 
 
 def emit_computer_event(
@@ -121,6 +186,8 @@ def emit_computer_event(
     event_id,
     variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
 ):
+    sio.emit('errors', str(variant))
+
     if computer['type'] == 1:
         all_bets = get_all_bets()
         random_incoterms = get_random_incoterms()
@@ -143,19 +210,10 @@ def emit_computer_event(
         )
 
     if computer['type'] == 2:
-        containers = database.session.query(models.Containers).all()
 
         sio.emit(
             f'computer_{computer["id"]}_event',
-            {
-                'event_id': event_id,
-                'computer_id': computer['id'],
-                'mode': computer['mode'],
-                'type': computer['type'],
-                'legend': variant.legend,
-                'rows': models.PracticeTwoVariantRow.to_json_list(variant.rows),
-                'containers': models.Container.to_json_list(containers),
-            },
+            practice_two(variant=variant)
         )
 
 
@@ -237,14 +295,8 @@ def create_users_checkpoints(
 
 
 def create_log(sio, endpoint: str, computer_id: int, user: models.User = None, id: int = None):
-    if not user:
-        user = (
-            database.session.query(models.User)
-            .filter(models.User.id == id)
-            .first()
-            .serialize()
-        )
-
+    if not user and id is not None:
+        user = database.session.query(models.User).filter(models.User.id == id).first()
     log = models.Log(user_id=user.id, endpoint=endpoint, computer_id=computer_id)
     database.session.add(log)
     database.session.commit()
@@ -259,13 +311,5 @@ def create_log_for_users(
     sio, endpoint: str, computer_id: int, users: List[models.User] = [], ids: List[str] = []
 ):
     for user in users:
-        create_log(sio, user, endpoint, computer_id)
-
-    for user_id in ids:
-        user = (
-            database.session.query(models.User)
-            .filter(models.User.id == user_id)
-            .first()
-            .serialize()
-        )
-        create_log(sio, user, endpoint, computer_id)
+        if user is not None:
+            create_log(sio=sio, endpoint=endpoint, computer_id=computer_id, user=user)

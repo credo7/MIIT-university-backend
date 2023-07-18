@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from datetime import datetime
 from sqlalchemy.orm import relationship, validates
-from sqlalchemy.sql.sqltypes import Numeric
+from sqlalchemy.sql.sqltypes import Numeric, Float
 import enum
 
 from database import Base, engine
@@ -46,6 +46,12 @@ class BetRole(str, enum.Enum):
     SELLER = 'SELLER'
     BUYER = 'BUYER'
     ALL = 'ALL'
+
+
+class PointType(str, enum.Enum):
+    TERMINAL = 'TERMINAL'
+    PORT = 'PORT'
+    COUNTRY = 'COUNTRY'
 
 
 class User(Base):
@@ -199,24 +205,62 @@ class PracticeOneVariant(Base):
     test = relationship('Test', back_populates='practice_one_variants')
 
 
-class PracticeTwoVariantRow(Base):
-    __tablename__ = 'practice_two_varian_row'
+class Point(Base):
+    __tablename__ = 'point'
 
     id = Column(Integer, primary_key=True)
-    supply_chain = Column(String, nullable=False)
-    destination_route = Column(String, nullable=False)
-    third_party_logistics_1 = Column(Numeric, nullable=False)
-    third_party_logistics_2 = Column(Numeric, nullable=False)
-    third_party_logistics_3 = Column(Numeric, nullable=False)
+    type = Column(String, Enum(PointType), nullable=False)
+    name = Column(String, nullable=False)
+
+
+class Route(Base):
+    __tablename__ = 'route'
+
+    id = Column(Integer, primary_key=True)
+    from_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    to_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    days = Column(Integer, nullable=False)
+
+
+class Country(Base):
+    __tablename__ = 'country'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+class PracticeTwoVariantBet(Base):
+    __tablename__ = 'practice_two_variant_bet'
+
+    id = Column(Integer, primary_key=True)
     variant_id = Column(Integer, ForeignKey('practice_two_variant.id'))
+    from_country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
+    to_country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
+    transit_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    start_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    end_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    tons = Column(Integer, nullable=False)
+    third_party_logistics_1 = Column(Integer, nullable=True)
+    third_party_logistics_2 = Column(Integer, nullable=True)
+    third_party_logistics_3 = Column(Integer, nullable=True)
+    answer = Column(String, nullable=False)
+
+    from_country = relationship('Country', foreign_keys=[from_country_id])
+    to_country = relationship('Country', foreign_keys=[to_country_id])
+    transit_point = relationship('Point', foreign_keys=[transit_point_id])
 
     def to_json(self):
         return {
-            'supply_chain': self.supply_chain,
-            'destination_route': self.destination_route,
+            'from': self.from_country.name,
+            'to': self.to_country.name,
+            'through': self.transit_point.name,
             '3PL1': self.third_party_logistics_1,
             '3PL2': self.third_party_logistics_2,
             '3PL3': self.third_party_logistics_3,
+            'tons': self.tons,
+            'start_point_id': self.start_point_id,
+            'end_point_id': self.end_point_id,
+            'answer': self.answer,
         }
 
     @staticmethod
@@ -228,26 +272,24 @@ class Container(Base):
     __tablename__ = 'container'
 
     id = Column(Integer, primary_key=True)
-    type = Column(String, nullable=False)
-    container_loading_volume = Column(String, nullable=False)
-    transport_package_volume = Column(String, nullable=False)
-    package_number = Column(String, nullable=False)
-    capacity_ratio = Column(String, nullable=False)
-    payload_utilization = Column(String, nullable=False)
+    size = Column(Integer, nullable=False)
+    length = Column(Float, nullable=False)
+    width = Column(Float, nullable=False)
+    height = Column(Float, nullable=False)
+    payload_capacity = Column(Float, nullable=False)
 
     def to_json(self):
         return {
-            'type': self.type,
-            'container_loading_volume': self.container_loading_volume,
-            'transport_package_volume': self.transport_package,
-            'package_number': self.package_number,
-            'capacity_ratio': self.capacity_ratio,
-            'payload_utilization': self.payload_utilization,
+            'size': self.size,
+            'length': self.length,
+            'width': self.width,
+            'height': self.height,
+            'payload_capacity': self.payload_capacity,
         }
 
     @staticmethod
     def to_json_list(containers):
-        [container.to_json for container in containers]
+        return [container.to_json() for container in containers]
 
 
 class PracticeTwoVariant(Base):
@@ -255,9 +297,12 @@ class PracticeTwoVariant(Base):
 
     id = Column(Integer, primary_key=True)
     legend = Column(String, nullable=False)
-    container_calculation_text = Column(String, nullable=False)
+    package_length = Column(Float, nullable=False)
+    package_width = Column(Float, nullable=False)
+    package_height = Column(Float, nullable=False)
+    package_tons = Column(Float, nullable=False)
 
-    rows = relationship('PracticeTwoVariantRow', backref='variant')
+    bets = relationship('PracticeTwoVariantBet')
 
 
 class Session(Base):
@@ -276,7 +321,8 @@ class Event(Base):
     session_id = Column(ForeignKey(Session.id), nullable=False)
     type = Column(Integer, nullable=False)
     mode = Column(Enum(EventMode), nullable=False)
-    variant_id = Column(Integer)
+    variant_one_id = Column(Integer, ForeignKey(PracticeOneVariant.id), nullable=True)
+    variant_two_id = Column(Integer, ForeignKey(PracticeTwoVariant.id), nullable=True)
     computer_id = Column(Integer, nullable=False)
     user_1_id = Column(Integer, ForeignKey(User.id), nullable=False)
     user_2_id = Column(Integer, ForeignKey(User.id), nullable=True)
@@ -284,23 +330,17 @@ class Event(Base):
     created_at = Column(DateTime, default=datetime.utcnow())
 
     session = relationship('Session', back_populates='events')
-    variant = relationship('Variant', foreign_keys=[variant_id])
+    practice_one_variant = relationship(PracticeOneVariant)
+    practice_two_variant = relationship(PracticeTwoVariant)
 
     __table_args__ = (CheckConstraint('type >= 1 AND type <= 3', name='check_valid_values'),)
 
-    @validates('variant_id')
-    def validate_variant_id(self, key, variant_id):
-        if self.type == 1 and variant_id is not None:
-            assert isinstance(variant_id, int), 'Invalid variant_id for type 1'
-            assert (
-                PracticeOneVariant.query.get(variant_id) is not None
-            ), 'Invalid variant_id for type 1'
-        elif self.type == 2 and variant_id is not None:
-            assert isinstance(variant_id, int), 'Invalid variant_id for type 2'
-            assert (
-                PracticeTwoVariant.query.get(variant_id) is not None
-            ), 'Invalid variant_id for type 2'
-        return variant_id
+    @property
+    def variant(self):
+        if type == 1:
+            return self.practice_one_variant
+        if type == 2:
+            return self.practice_two_variant
 
 
 class PracticeOneStep(Base):

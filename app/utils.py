@@ -33,12 +33,23 @@ def generate_password(length=8):
     return password
 
 
-if __name__ == '__main__':
-    print(
-        create_username(
-            first_name='Антон',
-            last_name='Водкин',
-            surname='Игоревич',
-            group_name='УЭЦ-241 189',
-        )
-    )
+def formatting_number(num):
+    """Formats a number without trailing zeros at the end.
+        
+        Examples:
+
+        >>> f(3)
+        '3'
+
+        >>> f(3.456412)
+        '3.45'
+
+        >>> f(3.1)
+        '3.1'
+        """
+    if num * 10 % 1 != 0:
+        return f'{num:.2f}'
+    elif num % 1 != 0:
+        return f'{num:.1f}'
+    else:
+        return f'{num:.0f}'
