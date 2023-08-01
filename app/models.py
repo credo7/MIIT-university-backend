@@ -1,22 +1,11 @@
-import json
-
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    ForeignKey,
-    Enum,
-    DateTime,
-    Boolean,
-    UniqueConstraint,
-    CheckConstraint,
-)
-from datetime import datetime
-from sqlalchemy.orm import relationship, validates
-from sqlalchemy.sql.sqltypes import Numeric, Float
 import enum
+import json
+from datetime import datetime
 
 from database import Base, engine
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.sqltypes import Float, Numeric
 
 
 class UserRole(str, enum.Enum):
@@ -28,6 +17,12 @@ class EventMode(str, enum.Enum):
     CLASS = 'CLASS'
     CONTROL = 'CONTROL'
     WORKOUT = 'WORKOUT'
+
+
+class RiskType(str, enum.Enum):
+    TERMINAL = 'TERMINAL'
+    PORT = 'PORT'
+    ALL = 'ALL'
 
 
 class Incoterms(str, enum.Enum):
@@ -78,8 +73,23 @@ class User(Base):
             'group_name': self.student.group.name,
             'first_name': self.first_name,
             'surname': self.surname,
-            'lastname': self.last_name,
+            'last_name': self.last_name,
         }
+
+
+class Risk(Base):
+    __tablename__ = 'risk'
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(String, nullable=False)
+    type = Column(Enum(RiskType), nullable=False)
+
+    def to_json(self):
+        return {'name': self.name, 'type': self.type}
+
+    @staticmethod
+    def to_json_list(risks):
+        return [risk.to_json() for risk in risks]
 
 
 class Student(Base):
@@ -223,6 +233,11 @@ class Route(Base):
     to_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
     days = Column(Integer, nullable=False)
 
+    __table_args__ = (UniqueConstraint('from_point_id', 'to_point_id'),)
+
+    def __str__(self):
+        return f'from_point_id: {self.from_point_id}\nto_point_id: {self.to_point_id}\ndays: {self.days}'
+
 
 class Country(Base):
     __tablename__ = 'country'
@@ -251,6 +266,8 @@ class PracticeTwoVariantBet(Base):
     to_country = relationship('Country', foreign_keys=[to_country_id])
     transit_point = relationship('Point', foreign_keys=[transit_point_id])
 
+    variant = relationship('PracticeTwoVariant')
+
     def to_json(self):
         return {
             'from': self.from_country.name,
@@ -263,6 +280,7 @@ class PracticeTwoVariantBet(Base):
             'start_point_id': self.start_point_id,
             'end_point_id': self.end_point_id,
             'answer': json.loads(self.answer),
+            'package_tons': self.variant.package_tons,
         }
 
     @staticmethod
@@ -304,7 +322,7 @@ class PracticeTwoVariant(Base):
     package_height = Column(Float, nullable=False)
     package_tons = Column(Float, nullable=False)
 
-    bets = relationship('PracticeTwoVariantBet')
+    bets = relationship('PracticeTwoVariantBet', back_populates='variant')
 
 
 class Session(Base):

@@ -1,8 +1,8 @@
-from passlib.context import CryptContext
-from transliterate import translit
 import random
 import string
 
+from passlib.context import CryptContext
+from transliterate import translit
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -20,9 +20,7 @@ def create_username(first_name, last_name, surname, group_name):
     last_name_en = translit(last_name, 'ru', reversed=True)[:2]
     surname_en = translit(surname, 'ru', reversed=True)[:2]
     group_name_en = translit(group_name, 'ru', reversed=True)
-    username_without_spaces = str.lower(
-        first_name_en + last_name_en + surname_en + group_name_en
-    ).replace(' ', "")
+    username_without_spaces = str.lower(first_name_en + last_name_en + surname_en + group_name_en).replace(' ', "")
 
     return username_without_spaces
 

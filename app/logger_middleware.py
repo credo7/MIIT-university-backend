@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session
-from fastapi import Request, Response
+from time import time
 
 import database
 import models
-from database import get_db
-from telegram_bot import TelegramBot
 import oauth2
-from time import time
+from database import get_db
+from fastapi import Request, Response
+from sqlalchemy.orm import Session
+from telegram_bot import TelegramBot
 
 
 class CustomLogger:
@@ -69,9 +69,7 @@ async def custom_logger_middleware(request: Request, call_next):
     token, computer_id = None, None
     if auth_header and auth_header.startswith('Bearer '):
         bearer_token = auth_header.split('Bearer ')[1]
-        token = oauth2.verify_access_token(
-            bearer_token, credentials_exception=None, raise_on_error=False
-        )
+        token = oauth2.verify_access_token(bearer_token, credentials_exception=None, raise_on_error=False)
     computer_id = request.headers.get('X-Computer-ID')
     await CustomLogger(tg=True).log(
         user_id=token.id if token else None,

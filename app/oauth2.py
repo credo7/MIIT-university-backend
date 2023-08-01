@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
 
-from fastapi import Depends, status, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from sqlalchemy.orm import Session
-
-from database import get_db
 import database
 import models
 import schemas
 from config import settings
+from database import get_db
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
@@ -20,18 +19,14 @@ def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
     to_encode.update({'exp': expire})
 
-    encoded_jwt = jwt.encode(
-        to_encode, settings.access_token_secret_key, algorithm=settings.algorithm
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.access_token_secret_key, algorithm=settings.algorithm)
 
     return encoded_jwt
 
 
 def verify_access_token(token: str, credentials_exception, raise_on_error=True):
     try:
-        payload = jwt.decode(
-            token, settings.access_token_secret_key, algorithms=[settings.algorithm]
-        )
+        payload = jwt.decode(token, settings.access_token_secret_key, algorithms=[settings.algorithm])
 
         id: str = payload.get('user_id')
 
@@ -49,9 +44,7 @@ def verify_access_token(token: str, credentials_exception, raise_on_error=True):
     return token_data
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme), raise_on_error=True, db: Session = Depends(get_db)
-):
+def get_current_user(token: str = Depends(oauth2_scheme), raise_on_error=True, db: Session = Depends(get_db)):
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,9 +66,7 @@ def is_teacher_or_error(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail='User not found')
 
     if user.role != models.UserRole.TEACHER:
-        raise HTTPException(
-            status_code=403, detail='Only teacher authorized to access this endpoint'
-        )
+        raise HTTPException(status_code=403, detail='Only teacher authorized to access this endpoint')
 
     return user
 
@@ -86,9 +77,7 @@ def get_current_user_socket(token: str):
     try:
         if 'Bearer' in token:
             token = token.split('Bearer ')[1]
-        token = verify_access_token(
-            token=token, credentials_exception=None, raise_on_error=False
-        )
+        token = verify_access_token(token=token, credentials_exception=None, raise_on_error=False)
 
         user = database.session.query(models.User).filter(models.User.id == token.id).first()
 

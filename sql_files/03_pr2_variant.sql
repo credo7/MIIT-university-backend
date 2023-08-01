@@ -24,8 +24,8 @@ INSERT INTO point (id, type, name) VALUES (1, 'COUNTRY', 'Россия'),
 (14, 'TERMINAL', 'Брест (Белоруссия)'),
 (15, 'TERMINAL', 'Наушки (Монголия)'),
 (16, 'TERMINAL', 'Достык (Казахстан)'),
-(17, 'TERMINAL', 'Восточный (Россия)'),
-(18, 'TERMINAL', 'Владивосток (Россия)');
+(17, 'PORT', 'Восточный (Россия)'),
+(18, 'PORT', 'Владивосток (Россия)');
 
 INSERT INTO route (from_point_id, to_point_id, days) VALUES
 (3, 2, 10),
@@ -35,9 +35,9 @@ INSERT INTO route (from_point_id, to_point_id, days) VALUES
 (10, 12, 30);
 
 INSERT INTO practice_two_variant_bet (variant_id, from_country_id, to_country_id, transit_point_id, start_point_id, end_point_id, tons, third_party_logistics_1, third_party_logistics_2, third_party_logistics_3, answer) VALUES 
-(1, 1, 2, 1, 2, 11, 800, 4500, 4800, NULL, '[3, 13, 14, 2]'),
-(1, 1, 2, 4, 3, 2, 800, NULL, 4600, 4800, '[3, 15, 14, 2]'),
-(1, 1, 2, 5, 3, 2, 800, 4500, NULL, 4600, '[3, 16, 14, 2]'),
+(1, 1, 2, 1, 2, 11, 800, 4500, 4800, NULL, '[2, 13, 14, 11]'),
+(1, 1, 2, 4, 2, 11, 800, NULL, 4600, 4800, '[2, 15, 14, 11]'),
+(1, 1, 2, 5, 2, 11, 800, 4500, NULL, 4600, '[2, 16, 14, 11]'),
 (1, 3, 4, 6, 7, 8, 400, 5000, 4800, 4900, '[7, 17, 14, 8]'),
 (1, 3, 5, 6, 7, 9, 500, 5000, 4900, 5000, '[7,17, 14, 9]'),
 (1, 6, 2, 6, 10,11,500, 4800, 4700, 4800, '[10, 18, 14, 11]'),

@@ -1,5 +1,4 @@
 import requests
-
 from custom_socket import CustomSocketIO
 
 api_url = 'http://95.163.236.35:3001'
@@ -7,9 +6,7 @@ socket_url = 'http://95.163.236.35:3002'
 
 
 def login(username: str, password: str):
-    response = requests.post(
-        f'{api_url}/auth/login', data={'username': username, 'password': password}
-    )
+    response = requests.post(f'{api_url}/auth/login', data={'username': username, 'password': password})
     return response.json().get('access_token') if response.content else None
 
 
@@ -31,9 +28,7 @@ fake_events = [
 
 socket_url = 'http://localhost:3002'
 # student_sio = CustomSocketIO(socket_url=socket_url, headers=custom_headers(token=student_token, computer_id=1), computer_id=1)
-teacher_sio = CustomSocketIO(
-    socket_url=socket_url, headers=custom_headers(token=teacher_token, computer_id=2)
-)
+teacher_sio = CustomSocketIO(socket_url=socket_url, headers=custom_headers(token=teacher_token, computer_id=2))
 
 # student_sio.start()
 teacher_sio.start()

@@ -1,7 +1,8 @@
-from datetime import datetime
-from pydantic import BaseModel, constr
-from typing import Optional
 import enum
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, constr
 
 
 class UserRole(str, enum.Enum):

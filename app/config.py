@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str
     telegram_chat_id: int
     pr1_last_step_number: int
+    pr2_last_step_number: int
 
     class Config:
         env_file = '.env'

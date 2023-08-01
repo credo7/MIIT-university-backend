@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import models, schemas, utils, database, oauth2
+from app import database, models, oauth2, schemas, utils
 
 router = APIRouter(tags=['Users'], prefix='/users')
 
@@ -32,14 +32,10 @@ def edit(
 
 
 @router.patch(
-    '/change-password/{user_id}',
-    status_code=status.HTTP_200_OK,
-    response_model=schemas.UserChangePassword,
+    '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserChangePassword,
 )
 def change_password(
-    user_id: int,
-    current_user: models.User = Depends(oauth2.get_current_user),
-    db: Session = Depends(database.get_db),
+    user_id: int, current_user: models.User = Depends(oauth2.get_current_user), db: Session = Depends(database.get_db),
 ):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
 

@@ -1,13 +1,13 @@
+import json
 import math
 import random
-from typing import List, Tuple, Optional, Union
+from typing import List, Optional, Tuple, Union
 
-from sqlalchemy.sql.expression import func
-
-import oauth2
-import models
 import database
+import models
+import oauth2
 import schemas
+from sqlalchemy.sql.expression import func
 from utils import formatting_number as f
 
 
@@ -81,13 +81,9 @@ def create_events_session():
 
 def get_random_variant(type: int):
     if type == 1:
-        return (
-            database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
-        )
+        return database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
     if type == 2:
-        return (
-            database.session.query(models.PracticeTwoVariant).order_by(func.random()).first()
-        )
+        return database.session.query(models.PracticeTwoVariant).order_by(func.random()).first()
 
 
 def create_event(sio, session_id, computer, users):
@@ -120,7 +116,95 @@ def get_random_incoterms(num: int = 9):
     return random.sample(list(models.Incoterms), num)
 
 
-def practice_two(variant: models.PracticeTwoVariant):
+def get_random_days_options(days: int):
+    s = set([days])
+    for _ in range(15):
+        num = random.randint(days - 20, days + 30)
+        if num > 1:
+            s.add(num)
+    return list(s)
+
+
+def get_random_bets_options(bets: list):
+    s = set(bets)
+    for _ in range(15):
+        num = random.randint(bets[0] / 100 - 20, bets[0] / 100 + 40)
+        if num > 5:
+            s.add(num * 100)
+    return list(s)
+
+
+def find_option(PL_name, variant_num, bets_calculations):
+    stack = []
+    for val in bets_calculations.values():
+        count = 0
+        last_row = None
+        for dic in val:
+            variant_num
+            if PL_name in dic['full_route_name']:
+                count += 1
+                if variant_num == count:
+                    stack.append(
+                        {'route_number': dic['route_number'], 'amount': dic.get('containers_num', 1) * dic['bet']}
+                    )
+                    break
+                last_row = {'route_number': dic['route_number'], 'amount': dic.get('containers_num', 1) * dic['bet']}
+        if count < variant_num:
+            stack.append(last_row)
+
+    amount = f(sum(route['amount'] for route in stack) / 1000)
+    route_numbers = [str(route['route_number']) for route in stack]
+
+    return f"{amount}: {'-'.join(route_numbers)}"
+
+
+def find_optimal_option(bets_calculations, variant_num):
+    stack = []
+    for val in bets_calculations.values():
+        curr_minimal_num = float('inf')
+        curr_minimal = None
+        for dic in val:
+            if curr_minimal_num > dic['bet']:
+                curr_minimal_num = dic['bet']
+                curr_minimal = {
+                    'route_number': dic['route_number'],
+                    'amount': dic.get('containers_num', 1) * dic['bet'],
+                }
+            if variant_num == 2 and curr_minimal_num == dic['bet']:
+                curr_minimal = {
+                    'route_number': dic['route_number'],
+                    'amount': dic.get('containers_num', 1) * dic['bet'],
+                }
+        stack.append(curr_minimal)
+
+    amount = f(sum(route['amount'] for route in stack) / 1000)
+    route_numbers = [str(route['route_number']) for route in stack]
+
+    return f"{amount}: {'-'.join(route_numbers)}"
+
+
+def overall_calculations(bets_calculations):
+    optimal_solution1 = find_optimal_option(bets_calculations=bets_calculations, variant_num=1)
+    optimal_solution2 = find_optimal_option(bets_calculations=bets_calculations, variant_num=2)
+
+    PL1_variant1 = find_option(PL_name='PL1', variant_num=1, bets_calculations=bets_calculations)
+    PL1_variant2 = find_option(PL_name='PL1', variant_num=2, bets_calculations=bets_calculations)
+
+    PL2_variant1 = find_option(PL_name='PL2', variant_num=1, bets_calculations=bets_calculations)
+    PL2_variant2 = find_option(PL_name='PL2', variant_num=2, bets_calculations=bets_calculations)
+
+    PL3_variant1 = find_option(PL_name='PL3', variant_num=1, bets_calculations=bets_calculations)
+    PL3_variant2 = find_option(PL_name='PL3', variant_num=2, bets_calculations=bets_calculations)
+
+    return {
+        '3PL1': {'first': PL1_variant1, 'second': PL1_variant2},
+        '3PL2': {'first': PL2_variant1, 'second': PL2_variant2},
+        '3PL3': {'first': PL3_variant1, 'second': PL3_variant2},
+        'optimal': {'first': optimal_solution1, 'second': optimal_solution2},
+    }
+
+
+def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id: int, event_mode, event_type: int):
     bets = models.PracticeTwoVariantBet.to_json_list(variant.bets)
 
     unique_bets_by_to_and_from_fields = []
@@ -133,10 +217,7 @@ def practice_two(variant: models.PracticeTwoVariant):
             unique_bets_by_to_and_from_fields.append(bet)
 
     containers_two_description = '\n'.join(
-        [
-            f'{bet["from"]} - {bet["to"]} {bet["tons"]} т/месяц'
-            for bet in unique_bets_by_to_and_from_fields
-        ]
+        [f'{bet["from"]} - {bet["to"]} {bet["tons"]} т/месяц' for bet in unique_bets_by_to_and_from_fields]
     )
 
     containers_two_description = (
@@ -148,9 +229,7 @@ def practice_two(variant: models.PracticeTwoVariant):
     for bet in unique_bets_by_to_and_from_fields:
         tons = bet['tons']
         package_tons = variant.package_tons
-        bet[
-            'forty_containers_count'
-        ] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
+        bet['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
         bet['route '] = f'{bet["from"]} - {bet["to"]}'
 
     containers = models.Container.to_json_list(database.session.query(models.Container).all())
@@ -185,29 +264,144 @@ def practice_two(variant: models.PracticeTwoVariant):
             }
         )
 
-        routes_table = [{
-            "route": f'{bet["from"]} - {bet["to"]}',
-            "destination_route": f'{bet["from"]} - {bet["to"]} через {bet["through"]}',
-            "delivery_route": ' - '.join(database.session.query(models.Point).filter(models.Point.id == point_id).first().name for point_id in bet['answer'])
-        } for bet in bets]
+        routes_table = [
+            {
+                'route': f'{bet["from"]} - {bet["to"]}',
+                'destination_route': f'{bet["from"]} - {bet["to"]} через {bet["through"]}',
+                'full_route': ' - '.join(
+                    database.session.query(models.Point).filter(models.Point.id == point_id).first().name
+                    for point_id in bet['answer']
+                ),
+            }
+            for bet in bets
+        ]
+
+        bets_days_risks = []
+
+        for bet in bets:
+            answer: list = bet['answer']
+
+            days = 0
+
+            for i in range(len(answer) - 1):
+                route = (
+                    database.session.query(models.Route)
+                    .filter(models.Route.from_point_id == answer[i], models.Route.to_point_id == answer[i + 1],)
+                    .first()
+                )
+                days += route.days
+
+            third_party_bets = [
+                bet.get('3PL1', None),
+                bet.get('3PL2', None),
+                bet.get('3PL3', None),
+            ]
+
+            third_party_bets = [bet for bet in third_party_bets if bet]
+
+            points_types = set(['ALL'])
+            for point_id in answer:
+                point = database.session.query(models.Point).filter(models.Point.id == point_id).first()
+                points_types.add(point.type)
+
+            all_risks = models.Risk.to_json_list(database.session.query(models.Risk).all())
+            risks_answer = [risk['name'] for risk in all_risks if risk['type'] in points_types]
+            all_risks = [risk['name'] for risk in all_risks]
+
+            bets_days_risks.append(
+                {
+                    'full_route': ' - '.join(
+                        database.session.query(models.Point).filter(models.Point.id == point_id).first().name
+                        for point_id in bet['answer']
+                    ),
+                    'days': {'answer': days, 'all_options': get_random_days_options(days)},
+                    'bets': {'answer': third_party_bets, 'all_options': get_random_bets_options(third_party_bets),},
+                    'risks': {'answer': risks_answer, 'all_options': all_risks},
+                }
+            )
+
+            countries_route_dict = {}
+            route_number = 1
+            country_route_name_count = {}
+
+            for bet in bets:
+                route_name = f"{bet['from']} - {bet['to']}"
+                if route_name not in country_route_name_count:
+                    country_route_name_count[route_name] = [{}, {}, {}]
+
+                PL1, PL2, PL3 = bet['3PL1'], bet['3PL2'], bet['3PL3']
+                containers_num = math.ceil(bet['tons'] / (40 * bet['package_tons']))
+
+                PLS = []
+
+                if PL1:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL1',
+                            'bet': PL1,
+                            'amount': f'{PL1}*{containers_num}={PL1 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
+                    )
+
+                    route_number += 1
+                if PL2:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL2',
+                            'bet': PL2,
+                            'amount': f'{PL2}*{containers_num}={PL2 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
+                    )
+
+                    route_number += 1
+                if PL3:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL3',
+                            'bet': PL3,
+                            'amount': f'{PL3}*{containers_num}={PL3 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
+                    )
+
+                    route_number += 1
+
+                PLS[0]['full_route_name'] = (
+                    f"{bet['from']} - {bet['to']} через {bet['through']} " + PLS[0]['full_route_name']
+                )
+
+                PLS = [PL for PL in PLS if PL]
+
+                if route_name not in countries_route_dict:
+                    countries_route_dict[route_name] = PLS
+                else:
+                    countries_route_dict[route_name].extend(PLS)
+
+        overall = overall_calculations(bets_calculations=countries_route_dict)
 
     return {
+        'event_id': event_id,
+        'computer_id': computer_id,
+        'mode': event_mode,
+        'type': event_type,
         'legend': variant.legend,
         'bets': bets,
         'containers_one': container_first_table,
-        'containers_two': {
-            'description': containers_two_description,
-            'rows': unique_bets_by_to_and_from_fields,
-        },
+        'containers_two': {'description': containers_two_description, 'rows': unique_bets_by_to_and_from_fields,},
         'routes_table': routes_table,
+        'bets_days_risks': bets_days_risks,
+        'bets_calculations': countries_route_dict,
+        'overall_calculations': overall,
     }
 
 
 def emit_computer_event(
-    sio,
-    computer,
-    event_id,
-    variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
+    sio, computer, event_id, variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
 ):
     sio.emit('errors', str(variant))
 
@@ -234,7 +428,21 @@ def emit_computer_event(
 
     if computer['type'] == 2:
 
-        sio.emit(f'computer_{computer["id"]}_event', practice_two(variant=variant))
+        sio.emit(
+            f'computer_{computer["id"]}_event',
+            practice_two(
+                variant=variant,
+                event_id=event_id,
+                computer_id=computer['id'],
+                event_mode=computer['mode'],
+                event_type=computer['type'],
+            ),
+        )
+
+
+def get_pr_type_by_event_id(event_id: int):
+    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
+    return event.type if event else None
 
 
 def finish_event(sid, sio, session, event_id):
@@ -246,13 +454,8 @@ def finish_event(sid, sio, session, event_id):
     users_result = []
     for user_id in users_id:
         result = (
-            database.session.query(
-                func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails)
-            )
-            .filter(
-                models.EventCheckpoint.event_id == event_id,
-                models.EventCheckpoint.user_id == user_id,
-            )
+            database.session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
+            .filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id,)
             .first()
         )
 
@@ -273,16 +476,12 @@ def finish_event(sid, sio, session, event_id):
 
 
 def create_checkpoint(event_id, user_id, step_id, points, fails):
-    checkpoint = models.EventCheckpoint(
-        event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails
-    )
+    checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails)
     database.session.add(checkpoint)
     database.session.commit()
 
 
-def create_users_checkpoints(
-    sio, sid, session, checkpoint_data: schemas.CheckpointData, computers_status
-):
+def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.CheckpointData, computers_status):
     users = []
 
     sio.emit('logs', checkpoint_data)
@@ -296,12 +495,7 @@ def create_users_checkpoints(
             fails=checkpoint_data['fails'],
         )
 
-        user = (
-            database.session.query(models.User)
-            .filter(models.User.id == user_id)
-            .first()
-            .serialize()
-        )
+        user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
         users.append(user)
 
         step_name = (
@@ -322,14 +516,11 @@ def create_log(sio, endpoint: str, computer_id: int, user: models.User = None, i
     database.session.commit()
 
     sio.emit(
-        'logs',
-        f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}",
+        'logs', f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}",
     )
 
 
-def create_log_for_users(
-    sio, endpoint: str, computer_id: int, users: List[models.User] = [], ids: List[str] = []
-):
+def create_log_for_users(sio, endpoint: str, computer_id: int, users: List[models.User] = [], ids: List[str] = []):
     for user in users:
         if user is not None:
             create_log(sio=sio, endpoint=endpoint, computer_id=computer_id, user=user)

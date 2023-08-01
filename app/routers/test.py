@@ -1,12 +1,10 @@
 import math
 
-from fastapi import APIRouter
-from sqlalchemy.sql.expression import func
-
 import database
 import models
+from fastapi import APIRouter
+from sqlalchemy.sql.expression import func
 from utils import formatting_number as f
-
 
 router = APIRouter(tags=['test'], prefix='/test')
 
@@ -28,9 +26,7 @@ def practice_two():
     for bet in unique_bets_by_to_and_from_fields:
         tons = bet['tons']
         package_tons = variant.package_tons
-        bet[
-            'forty_containers_count'
-        ] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
+        bet['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
         bet['route'] = f'{bet["from"]} - {bet["to"]}'
 
     containers = models.Container.to_json_list(database.session.query(models.Container).all())

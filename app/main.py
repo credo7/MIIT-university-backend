@@ -1,26 +1,20 @@
 import multiprocessing as mp
 
 import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-
-from routers import auth, user, group, test
-from socket_server import start_socket_server
 
 # from logger_middleware import custom_logger_middleware
 from config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers import auth, group, test, user
+from socket_server import start_socket_server
 
 app = FastAPI()
 
 origins = ['*']
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*'],
+    CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=['*'], allow_headers=['*'],
 )
 
 app.include_router(auth.router)

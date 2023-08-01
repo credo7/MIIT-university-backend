@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
 from typing import List
 
-from app import models, schemas, oauth2, database
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
+
+from app import database, models, oauth2, schemas
 
 router = APIRouter(tags=['Groups'], prefix='/groups')
 
