@@ -79,7 +79,7 @@ def handle_disconnect(sid):
 
 @sio.on('start_events')
 def start_events(sid, computers):
-    try:
+    # try:
         global computers_status, connected_computers
         if not is_valid_teacher_session(sid=sid, session=session):
             sio.disconnect(sid)
@@ -107,9 +107,9 @@ def start_events(sid, computers):
                 event_id=new_event.id,
                 variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
             )
-    except Exception as e:
-        sio.emit('errors', str(e))
-        sio.disconnect(sid)
+    # except Exception as e:
+    #     sio.emit('errors', str(e))
+    #     sio.disconnect(sid)
 
 
 @sio.on('event_checkpoint')

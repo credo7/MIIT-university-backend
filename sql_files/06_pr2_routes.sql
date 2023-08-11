@@ -11,5 +11,6 @@ INSERT INTO route (from_point_id, to_point_id, days) VALUES
 (14, 9, 10),
 (10, 18, 11),
 (18, 14, 13),
+(16, 14, 14),
 (14,12,15)
 ON CONFLICT DO NOTHING;

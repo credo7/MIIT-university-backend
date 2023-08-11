@@ -112,8 +112,13 @@ def get_all_bets():
     return database.session.query(models.Bet).all()
 
 
-def get_random_incoterms(num: int = 9):
-    return random.sample(list(models.Incoterms), num)
+def get_random_incoterm_groups():
+    """Returns chosen incoterms and 3 incoterm groups divided by 3"""
+    incoterms = [incoterm.value for incoterm in random.sample(list(models.Incoterms), 9)]
+
+    incoterm_groups = [incoterms[i:i + 3] for i in range(0, len(incoterms), 3)]
+
+    return incoterms, incoterm_groups
 
 
 def get_random_days_options(days: int):
@@ -140,7 +145,6 @@ def find_option(PL_name, variant_num, bets_calculations):
         count = 0
         last_row = None
         for dic in val:
-            variant_num
             if PL_name in dic['full_route_name']:
                 count += 1
                 if variant_num == count:
@@ -407,7 +411,49 @@ def emit_computer_event(
 
     if computer['type'] == 1:
         all_bets = get_all_bets()
-        random_incoterms = get_random_incoterms()
+        random_incoterms, incoterm_groups = get_random_incoterm_groups()
+
+        bets = models.Bet.to_json_list(all_bets)
+
+        buyer_tables = []
+        seller_tables = []
+        for incoterms_group in incoterm_groups:
+            buyer_table = []
+            seller_table = []
+            for bet in bets:
+                buyer_dict = {}
+                seller_dict = {}
+                for bet_inctoterm in bet['incoterms']:
+                    if bet_inctoterm['name'] in incoterms_group and bet_inctoterm['role'] != 'SELLER':
+                        buyer_dict[bet_inctoterm['name']] = bet['rate']
+                    if bet_inctoterm['name'] in incoterms_group and bet_inctoterm['role'] != 'BUYER':
+                        seller_dict[bet_inctoterm['name']] = bet['rate']
+                if buyer_dict:
+                    buyer_table.append({"name": bet['name'], "price": bet['rate'], **buyer_dict})
+                if seller_dict:
+                    seller_table.append({"name": bet['name'], "price": bet['rate'], **seller_dict})
+            buyer_tables.append(buyer_table)
+            seller_tables.append(seller_table)
+
+        buyer_totals = []
+        seller_totals = []
+
+        for i in range(len(buyer_tables)):
+            total = {incoterm: variant.product_price for incoterm in incoterm_groups[i]}
+            for bet in buyer_tables[i]:
+                for key, value in bet.items():
+                    if key in total:
+                        total[key] = f(float(total[key]) + float(value))
+            buyer_totals.append(total)
+
+        for i in range(len(seller_tables)):
+            total = {incoterm: buyer_totals[i][incoterm] for incoterm in incoterm_groups[i]}
+            for bet in seller_tables[i]:
+                for key, value in bet.items():
+                    if key in total:
+                        total[key] = f(float(total[key]) + float(value))
+            seller_totals.append(total)
+
 
         sio.emit(
             f'computer_{computer["id"]}_event',
@@ -416,7 +462,20 @@ def emit_computer_event(
                 'computer_id': computer['id'],
                 'mode': computer['mode'],
                 'type': computer['type'],
-                'description': variant.description,
+                'legend': variant.legend,
+                'product_price': variant.product_price,
+                'buyer_table_1_total': buyer_totals[0],
+                'buyer_table_2_total': buyer_totals[1],
+                'buyer_table_3_total': buyer_totals[2],
+                'seller_table_1_total': seller_totals[0],
+                'seller_table_2_total': seller_totals[1],
+                'seller_table_3_total': seller_totals[2],
+                'buyer_table_1': buyer_tables[0],
+                'buyer_table_2': buyer_tables[1],
+                'buyer_table_3': buyer_tables[2],
+                'seller_table_1': seller_tables[0],
+                'seller_table_2': seller_tables[1],
+                'seller_table_3': seller_tables[2],
                 'right_logist': variant.right_logist,
                 'wrong_logist1': variant.wrong_logist1,
                 'wrong_logist2': variant.wrong_logist2,

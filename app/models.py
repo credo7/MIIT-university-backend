@@ -208,7 +208,8 @@ class PracticeOneVariant(Base):
     __tablename__ = 'practice_one_variant'
 
     id = Column(Integer, primary_key=True)
-    description = Column(String, nullable=False)
+    legend = Column(String, nullable=False)
+    product_price = Column(Integer, nullable=False)
     right_logist = Column(String, nullable=False)
     wrong_logist1 = Column(String, nullable=False)
     wrong_logist2 = Column(String, nullable=False)
