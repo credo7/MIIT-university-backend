@@ -45,9 +45,11 @@ def formatting_number(num):
         >>> f(3.1)
         '3.1'
         """
-    if num * 10 % 1 != 0:
-        return f'{num:.2f}'
-    elif num % 1 != 0:
-        return f'{num:.1f}'
+
+    rounded_num = round(num, 2)
+    if rounded_num.is_integer() or rounded_num * 100 % 100 == 0:
+        return f'{rounded_num:.0f}'
+    elif rounded_num * 100 % 10 == 0:
+        return f'{rounded_num:.1f}'
     else:
-        return f'{num:.0f}'
+        return f'{rounded_num:.2f}'

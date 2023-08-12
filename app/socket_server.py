@@ -80,36 +80,38 @@ def handle_disconnect(sid):
 @sio.on('start_events')
 def start_events(sid, computers):
     # try:
-        global computers_status, connected_computers
-        if not is_valid_teacher_session(sid=sid, session=session):
-            sio.disconnect(sid)
-            return
+    global computers_status, connected_computers
+    if not is_valid_teacher_session(sid=sid, session=session):
+        sio.disconnect(sid)
+        return
 
-        events_session = create_events_session()
-        computers_status = {}
+    events_session = create_events_session()
+    computers_status = {}
 
-        create_log(
-            sio=sio, endpoint='create_event', computer_id=session[sid]['computer_id'], id=session[sid]['ids'][0],
+    create_log(
+        sio=sio, endpoint='create_event', computer_id=session[sid]['computer_id'], id=session[sid]['ids'][0],
+    )
+
+    for computer in computers:
+        sio.emit('logs', computer)
+        users = connected_computers[int(computer['id'])]
+
+        new_event = create_event(sio=sio, session_id=events_session.id, computer=computer, users=users)
+        sio.emit(
+            'logs',
+            f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}',
+        )
+        emit_computer_event(
+            sio=sio,
+            computer=computer,
+            event_id=new_event.id,
+            variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
         )
 
-        for computer in computers:
-            sio.emit('logs', computer)
-            users = connected_computers[int(computer['id'])]
 
-            new_event = create_event(sio=sio, session_id=events_session.id, computer=computer, users=users)
-            sio.emit(
-                'logs',
-                f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}',
-            )
-            emit_computer_event(
-                sio=sio,
-                computer=computer,
-                event_id=new_event.id,
-                variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
-            )
-    # except Exception as e:
-    #     sio.emit('errors', str(e))
-    #     sio.disconnect(sid)
+# except Exception as e:
+#     sio.emit('errors', str(e))
+#     sio.disconnect(sid)
 
 
 @sio.on('event_checkpoint')

@@ -116,7 +116,7 @@ def get_random_incoterm_groups():
     """Returns chosen incoterms and 3 incoterm groups divided by 3"""
     incoterms = [incoterm.value for incoterm in random.sample(list(models.Incoterms), 9)]
 
-    incoterm_groups = [incoterms[i:i + 3] for i in range(0, len(incoterms), 3)]
+    incoterm_groups = [incoterms[i : i + 3] for i in range(0, len(incoterms), 3)]
 
     return incoterms, incoterm_groups
 
@@ -429,9 +429,9 @@ def emit_computer_event(
                     if bet_inctoterm['name'] in incoterms_group and bet_inctoterm['role'] != 'BUYER':
                         seller_dict[bet_inctoterm['name']] = bet['rate']
                 if buyer_dict:
-                    buyer_table.append({"name": bet['name'], "price": bet['rate'], **buyer_dict})
+                    buyer_table.append({'name': bet['name'], 'price': bet['rate'], **buyer_dict})
                 if seller_dict:
-                    seller_table.append({"name": bet['name'], "price": bet['rate'], **seller_dict})
+                    seller_table.append({'name': bet['name'], 'price': bet['rate'], **seller_dict})
             buyer_tables.append(buyer_table)
             seller_tables.append(seller_table)
 
@@ -454,6 +454,29 @@ def emit_computer_event(
                         total[key] = f(float(total[key]) + float(value))
             seller_totals.append(total)
 
+        delivery_prices = []
+        for i in range(len(seller_totals)):
+            delivery_price = {}
+            for key in seller_totals[i].keys():
+                delivery_price[key] = f(float(seller_totals[i][key]) - float(buyer_totals[i][key]))
+            delivery_prices.append(delivery_price)
+
+        options = [
+            {'contract_price': buyer_totals[i], 'delivery_price': delivery_prices[i], 'total': seller_totals[i]}
+            for i in range(3)
+        ]
+
+        min_option_total = float('inf')
+        for option in options:
+            curr_option_total = sum([float(num) for num in option['total'].values()])
+            if curr_option_total < min_option_total:
+                min_option_total = curr_option_total
+
+        for i in range(len(options)):
+            if sum([float(num) for num in options[i]['total'].values()]) == min_option_total:
+                options[i]['is_correct'] = True
+            else:
+                options[i]['is_correct'] = False
 
         sio.emit(
             f'computer_{computer["id"]}_event',
@@ -464,21 +487,28 @@ def emit_computer_event(
                 'type': computer['type'],
                 'legend': variant.legend,
                 'product_price': variant.product_price,
-                'buyer_table_1_total': buyer_totals[0],
-                'buyer_table_2_total': buyer_totals[1],
-                'buyer_table_3_total': buyer_totals[2],
-                'seller_table_1_total': seller_totals[0],
-                'seller_table_2_total': seller_totals[1],
-                'seller_table_3_total': seller_totals[2],
-                'buyer_table_1': buyer_tables[0],
-                'buyer_table_2': buyer_tables[1],
-                'buyer_table_3': buyer_tables[2],
-                'seller_table_1': seller_tables[0],
-                'seller_table_2': seller_tables[1],
-                'seller_table_3': seller_tables[2],
-                'right_logist': variant.right_logist,
-                'wrong_logist1': variant.wrong_logist1,
-                'wrong_logist2': variant.wrong_logist2,
+                'buyer_table_1': {'rows': buyer_tables[0], 'total': buyer_totals[0]},
+                'buyer_table_2': {'rows': buyer_tables[1], 'total': buyer_totals[1]},
+                'buyer_table_3': {'rows': buyer_tables[2], 'total': buyer_totals[2]},
+                'seller_table_1': {
+                    'rows': seller_tables[0],
+                    'contract_price': buyer_totals[0],
+                    'delivery_price': delivery_prices[0],
+                    'total': seller_totals[0],
+                },
+                'seller_table_2': {
+                    'rows': seller_tables[1],
+                    'contract_price': buyer_totals[1],
+                    'delivery_price': delivery_prices[1],
+                    'total': seller_totals[1],
+                },
+                'seller_table_3': {
+                    'rows': seller_tables[2],
+                    'contract_price': buyer_totals[2],
+                    'delivery_price': delivery_prices[2],
+                    'total': seller_totals[2],
+                },
+                'options': options,
                 'test': variant.test.to_json(),
                 'random_incoterms': random_incoterms,
                 'all_bets': models.Bet.to_json_list(all_bets),
