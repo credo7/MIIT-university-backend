@@ -1,12 +1,11 @@
 import multiprocessing as mp
 
 import uvicorn
-
-# from logger_middleware import custom_logger_middleware
-from config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, group, test, user
+
+from core.config import settings
+from api import auth, group, user
 from socket_server import start_socket_server
 
 app = FastAPI()
@@ -20,9 +19,6 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(group.router)
 app.include_router(user.router)
-app.include_router(test.router)
-
-# app.middleware('http')(custom_logger_middleware)
 
 
 @app.get('/')

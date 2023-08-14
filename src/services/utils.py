@@ -1,8 +1,11 @@
 import random
 import string
+import time
 
 from passlib.context import CryptContext
 from transliterate import translit
+import psycopg2
+from psycopg2 import OperationalError
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 

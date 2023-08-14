@@ -1,14 +1,15 @@
 from datetime import datetime, timedelta
 
-import database
-import models
-import schemas
-from config import settings
-from database import get_db
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+
+import schemas
+from core.config import settings
+from db.postgres import get_db
+from db.postgres import session as session_db
+from models import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
@@ -54,18 +55,18 @@ def get_current_user(token: str = Depends(oauth2_scheme), raise_on_error=True, d
 
     token = verify_access_token(token, credentials_exception, raise_on_error=raise_on_error)
 
-    user = db.query(models.User).filter(models.User.id == token.id).first()
+    user = db.query(User).filter(User.id == token.id).first()
 
     return user
 
 
 def is_teacher_or_error(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
 
-    if user.role != models.UserRole.TEACHER:
+    if user.role != UserRole.TEACHER:
         raise HTTPException(status_code=403, detail='Only teacher authorized to access this endpoint')
 
     return user
@@ -79,7 +80,7 @@ def get_current_user_socket(token: str):
             token = token.split('Bearer ')[1]
         token = verify_access_token(token=token, credentials_exception=None, raise_on_error=False)
 
-        user = database.session.query(models.User).filter(models.User.id == token.id).first()
+        user = session_db.query(User).filter(User.id == token.id).first()
 
         return user
 

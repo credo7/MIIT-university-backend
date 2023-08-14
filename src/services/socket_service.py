@@ -1,14 +1,14 @@
-import json
 import math
 import random
 from typing import List, Optional, Tuple, Union
 
-import database
-import models
-import oauth2
-import schemas
 from sqlalchemy.sql.expression import func
-from utils import formatting_number as f
+
+import models
+import schemas
+from db.postgres import session as db_session
+from services import oauth2
+from services.utils import formatting_number as f
 
 
 def validate_tokens(
@@ -23,7 +23,7 @@ def validate_tokens(
 
     user = oauth2.get_current_user_socket(first_token)
     if not user:
-        print("User wasn't found", flush=True)
+        print("models.User wasn't found", flush=True)
         return False, None, None, None, None
 
     computer_id = environ.get('HTTP_COMPUTER_ID')
@@ -74,16 +74,16 @@ def is_valid_teacher_session(sid, session):
 
 def create_events_session():
     events_session = models.Session()
-    database.session.add(events_session)
-    database.session.commit()
+    db_session.add(events_session)
+    db_session.commit()
     return events_session
 
 
 def get_random_variant(type: int):
     if type == 1:
-        return database.session.query(models.PracticeOneVariant).order_by(func.random()).first()
+        return db_session.query(models.PracticeOneVariant).order_by(func.random()).first()
     if type == 2:
-        return database.session.query(models.PracticeTwoVariant).order_by(func.random()).first()
+        return db_session.query(models.PracticeTwoVariant).order_by(func.random()).first()
 
 
 def create_event(sio, session_id, computer, users):
@@ -103,13 +103,13 @@ def create_event(sio, session_id, computer, users):
         user_1_id=users[0]['id'],
         user_2_id=users[1]['id'] if len(users) > 1 else None,
     )
-    database.session.add(new_event)
-    database.session.commit()
+    db_session.add(new_event)
+    db_session.commit()
     return new_event
 
 
 def get_all_bets():
-    return database.session.query(models.Bet).all()
+    return db_session.query(models.Bet).all()
 
 
 def get_random_incoterm_groups():
@@ -236,7 +236,7 @@ def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id:
         bet['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
         bet['route '] = f'{bet["from"]} - {bet["to"]}'
 
-    containers = models.Container.to_json_list(database.session.query(models.Container).all())
+    containers = models.Container.to_json_list(db_session.query(models.Container).all())
 
     container_first_table = []
 
@@ -273,7 +273,7 @@ def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id:
                 'route': f'{bet["from"]} - {bet["to"]}',
                 'destination_route': f'{bet["from"]} - {bet["to"]} через {bet["through"]}',
                 'full_route': ' - '.join(
-                    database.session.query(models.Point).filter(models.Point.id == point_id).first().name
+                    db_session.query(models.Point).filter(models.Point.id == point_id).first().name
                     for point_id in bet['answer']
                 ),
             }
@@ -289,7 +289,7 @@ def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id:
 
             for i in range(len(answer) - 1):
                 route = (
-                    database.session.query(models.Route)
+                    db_session.query(models.Route)
                     .filter(models.Route.from_point_id == answer[i], models.Route.to_point_id == answer[i + 1],)
                     .first()
                 )
@@ -305,17 +305,17 @@ def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id:
 
             points_types = set(['ALL'])
             for point_id in answer:
-                point = database.session.query(models.Point).filter(models.Point.id == point_id).first()
+                point = db_session.query(models.Point).filter(models.Point.id == point_id).first()
                 points_types.add(point.type)
 
-            all_risks = models.Risk.to_json_list(database.session.query(models.Risk).all())
+            all_risks = models.Risk.to_json_list(db_session.query(models.Risk).all())
             risks_answer = [risk['name'] for risk in all_risks if risk['type'] in points_types]
             all_risks = [risk['name'] for risk in all_risks]
 
             bets_days_risks.append(
                 {
                     'full_route': ' - '.join(
-                        database.session.query(models.Point).filter(models.Point.id == point_id).first().name
+                        db_session.query(models.Point).filter(models.Point.id == point_id).first().name
                         for point_id in bet['answer']
                     ),
                     'days': {'answer': days, 'all_options': get_random_days_options(days)},
@@ -530,25 +530,25 @@ def emit_computer_event(
 
 
 def get_pr_type_by_event_id(event_id: int):
-    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
+    event = db_session.query(models.Event).filter(models.Event.id == event_id).first()
     return event.type if event else None
 
 
 def finish_event(sid, sio, session, event_id):
     computer_id = session[sid]['computer_id']
     users_id = session[sid]['ids']
-    event = database.session.query(models.Event).filter(models.Event.id == event_id).first()
+    event = db_session.query(models.Event).filter(models.Event.id == event_id).first()
     event.is_finished = True
-    database.session.commit()
+    db_session.commit()
     users_result = []
     for user_id in users_id:
         result = (
-            database.session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
+            db_session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
             .filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id,)
             .first()
         )
 
-        user = database.session.query(models.User).filter(models.User.id == user_id).first()
+        user = db_session.query(models.User).filter(models.User.id == user_id).first()
 
         users_result.append(
             {
@@ -566,8 +566,8 @@ def finish_event(sid, sio, session, event_id):
 
 def create_checkpoint(event_id, user_id, step_id, points, fails):
     checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails)
-    database.session.add(checkpoint)
-    database.session.commit()
+    db_session.add(checkpoint)
+    db_session.commit()
 
 
 def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.CheckpointData, computers_status):
@@ -584,11 +584,11 @@ def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.Checkpo
             fails=checkpoint_data['fails'],
         )
 
-        user = database.session.query(models.User).filter(models.User.id == user_id).first().serialize()
+        user = db_session.query(models.User).filter(models.User.id == user_id).first().serialize()
         users.append(user)
 
         step_name = (
-            database.session.query(models.PracticeOneStep)
+            db_session.query(models.PracticeOneStep)
             .filter(models.PracticeOneStep.id == checkpoint_data['step'])
             .first()
             .name
@@ -599,17 +599,19 @@ def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.Checkpo
 
 def create_log(sio, endpoint: str, computer_id: int, user: models.User = None, id: int = None):
     if not user and id is not None:
-        user = database.session.query(models.User).filter(models.User.id == id).first()
+        user = db_session.query(models.User).filter(models.User.id == id).first()
     log = models.Log(user_id=user.id, endpoint=endpoint, computer_id=computer_id)
-    database.session.add(log)
-    database.session.commit()
+    db_session.add(log)
+    db_session.commit()
 
     sio.emit(
         'logs', f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log.created_at}",
     )
 
 
-def create_log_for_users(sio, endpoint: str, computer_id: int, users: List[models.User] = [], ids: List[str] = []):
+def create_log_for_users(
+    sio, endpoint: str, computer_id: int, users: List[models.User] = [],
+):
     for user in users:
         if user is not None:
             create_log(sio=sio, endpoint=endpoint, computer_id=computer_id, user=user)

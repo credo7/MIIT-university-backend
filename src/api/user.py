@@ -1,27 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app import database, models, oauth2, schemas, utils
+import schemas
+from db.postgres import get_db
+from models import User
+from services import oauth2, utils
 
 router = APIRouter(tags=['Users'], prefix='/users')
 
 
 @router.patch('/edit', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 def edit(
-    user: schemas.UserEdit,
-    current_user: models.User = Depends(oauth2.get_current_user),
-    db: Session = Depends(database.get_db),
+    user: schemas.UserEdit, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db),
 ):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
 
-    user_from_db = db.query(models.User).filter(models.User.id == user.id).first()
+    user_from_db = db.query(User).filter(User.id == user.id).first()
 
     if not user_from_db:
         raise HTTPException(status_code=404, detail='User not found')
 
     user_data = {k: v for k, v in vars(user).items() if v is not None}
 
-    db.query(models.User).filter(models.User.id == user.id).update(user_data)
+    db.query(User).filter(User.id == user.id).update(user_data)
     db.commit()
     db.refresh(user_from_db)
 
@@ -35,11 +36,11 @@ def edit(
     '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserChangePassword,
 )
 def change_password(
-    user_id: int, current_user: models.User = Depends(oauth2.get_current_user), db: Session = Depends(database.get_db),
+    user_id: int, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db),
 ):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
 
-    user_from_db = db.query(models.User).filter(models.User.id == user_id).first()
+    user_from_db = db.query(User).filter(User.id == user_id).first()
 
     if not user_from_db:
         raise HTTPException(status_code=404, detail='User not found')
@@ -56,8 +57,8 @@ def change_password(
 
 
 @router.get('/{username}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
-def get_user(username: str, db: Session = Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.username == username).first()
+def get_user(username: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
 
     if not user:
         raise HTTPException(status_code=404, detail='User not found')

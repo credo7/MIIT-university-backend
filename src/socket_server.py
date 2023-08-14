@@ -1,8 +1,9 @@
 import eventlet
 import socketio
-from config import settings
+
+from core.config import settings
 from schemas import CheckpointData
-from socket_service import (
+from services.socket_service import (
     create_event,
     create_events_session,
     create_log,
@@ -11,10 +12,10 @@ from socket_service import (
     emit_computer_event,
     emit_connected_computers,
     finish_event,
+    get_pr_type_by_event_id,
     is_valid_teacher_session,
     update_session,
     validate_tokens,
-    get_pr_type_by_event_id,
 )
 
 sio = socketio.Server(cors_allowed_origins='*')

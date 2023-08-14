@@ -24,6 +24,6 @@ services:
     container_name: api
     env_file:
       - .env
-    command: bash -c "sleep 7 && python3 app/main.py"
+    command: bash -c "sleep 7 && python3 src/wait_for_postgres.py && python3 src/main.py"
     depends_on:
       - db

@@ -1,21 +1,21 @@
-import database
-import models
-import oauth2
-import schemas
-import utils
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+
+import schemas
+from db.postgres import get_db
+from models import Group, Student, User
+from services import oauth2, utils
 
 router = APIRouter(tags=['Authentication'], prefix='/auth',)
 
 
 @router.post('/register', status_code=status.HTTP_201_CREATED, response_model=schemas.RegistrationToken)
-def register(user: schemas.UserCreateBody, db: Session = Depends(database.get_db)):
+def register(user: schemas.UserCreateBody, db: Session = Depends(get_db)):
     if user.role == 'TEACHER':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Only students can be created')
 
-    group = db.query(models.Group).filter(models.Group.id == user.group_id).first()
+    group = db.query(Group).filter(Group.id == user.group_id).first()
 
     if not group:
         raise HTTPException(
@@ -28,20 +28,20 @@ def register(user: schemas.UserCreateBody, db: Session = Depends(database.get_db
         first_name=user.first_name, last_name=user.last_name, surname=user.surname, group_name=group.name,
     )
 
-    candidate = db.query(models.User).filter(models.User.username == username).first()
+    candidate = db.query(User).filter(User.username == username).first()
 
     if candidate:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=f'User with username {username} already exists',
         )
 
-    new_user = models.User(
+    new_user = User(
         username=username,
         password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
         surname=user.surname,
-        student=models.Student(group_id=user.group_id),
+        student=Student(group_id=user.group_id),
         role=user.role,
     )
 
@@ -56,9 +56,9 @@ def register(user: schemas.UserCreateBody, db: Session = Depends(database.get_db
 
 @router.post('/login', response_model=schemas.Token)
 def login(
-    user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db),
+    user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db),
 ):
-    user = db.query(models.User).filter(models.User.username == user_credentials.username).first()
+    user = db.query(User).filter(User.username == user_credentials.username).first()
 
     if not user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')

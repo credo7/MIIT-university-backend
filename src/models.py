@@ -2,10 +2,11 @@ import enum
 import json
 from datetime import datetime
 
-from database import Base, engine
 from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Float, Numeric
+
+from db.postgres import Base, engine
 
 
 class UserRole(str, enum.Enum):
