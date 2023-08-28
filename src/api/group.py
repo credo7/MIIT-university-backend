@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
 import schemas
@@ -15,14 +15,16 @@ router = APIRouter(tags=['Groups'], prefix='/groups')
 def create(
     group: schemas.GroupCreate, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db),
 ):
+    try:
+        oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
 
-    oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
-
-    new_group = Group(**group.dict())
-    db.add(new_group)
-    db.commit()
-    db.refresh(new_group)
-    return new_group
+        new_group = Group(**group.dict())
+        db.add(new_group)
+        db.commit()
+        db.refresh(new_group)
+        return new_group
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])

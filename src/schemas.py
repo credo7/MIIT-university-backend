@@ -1,9 +1,8 @@
 import enum
 from datetime import datetime
 from typing import Optional
-from dataclasses import dataclass
 
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, conint
 
 
 class UserRole(str, enum.Enum):
@@ -82,22 +81,21 @@ class UserChangePassword(BaseModel):
     password: str
 
 
-@dataclass
-class CheckpointData:
+class CheckpointData(BaseModel):
     event_id: int
-    step: int
-    points: int
-    fails: int
+    step: conint(ge=0)
+    points: conint(ge=0)
+    fails: conint(ge=0)
 
-    def __post_init__(self):
-        if not isinstance(self.event_id, int) or self.event_id <= 0:
-            raise ValueError("Invalid event_id")
 
-        if not isinstance(self.step, int) or self.step <= 0:
-            raise ValueError("Invalid step")
+class EventMode(str, enum.Enum):
+    CLASS = "CLASS"
+    CONTROL = "CONTROL"
+    WORKOUT = "WORKOUT"
 
-        if not isinstance(self.points, list) or not all(isinstance(p, int) for p in self.points):
-            raise ValueError("Invalid points")
 
-        if not isinstance(self.fails, int) or self.fails < 0:
-            raise ValueError("Invalid fails")
+class StartEventComputer(BaseModel):
+    id: int
+    type: int
+    mode: EventMode
+

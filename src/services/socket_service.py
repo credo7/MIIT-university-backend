@@ -47,6 +47,11 @@ def validate_tokens_or_raise(
     return False, int(computer_id), user, user2
 
 
+def raise_if_not_valid_start_events_input(computers):
+    for computer in computers:
+        schemas.StartEventComputer(**computer)
+
+
 def update_connected_computers_and_session(sid, session, connected_computers, user1, user2, computer_id: int):
     connected_computers[computer_id] = [user1.serialize()]
     user_ids = [user1.id]

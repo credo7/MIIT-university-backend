@@ -15,12 +15,12 @@ from services.socket_service import (
     update_connected_computers_and_session,
     validate_tokens_or_raise,
     raise_if_not_valid_teacher,
-    get_last_step_number
+    get_last_step_number,
+    raise_if_not_valid_start_events_input
 )
 
 sio = socketio.Server(cors_allowed_origins='*')
 app = socketio.WSGIApp(sio, static_files={'/': {'content_type': 'text/html', 'filename': 'index.html'}})
-
 
 connected_computers = {}
 session = {}
@@ -29,79 +29,78 @@ computers_status = {}
 
 @sio.on('connect')
 def handle_connect(sid, environ):
-    # try:
-    is_teacher, computer_id, user1, user2 = validate_tokens_or_raise(environ=environ, session=session, sid=sid)
+    try:
+        is_teacher, computer_id, user1, user2 = validate_tokens_or_raise(environ=environ, session=session, sid=sid)
 
-    create_log_for_users(sio=sio, users=[user1, user2], endpoint='connection', computer_id=computer_id)
+        create_log_for_users(sio=sio, users=[user1, user2], endpoint='connection', computer_id=computer_id)
 
-    if not is_teacher:
-        update_connected_computers_and_session(
-            sid=sid,
-            session=session,
-            connected_computers=connected_computers,
-            user1=user1,
-            user2=user2,
-            computer_id=computer_id,
-        )
+        if not is_teacher:
+            update_connected_computers_and_session(
+                sid=sid,
+                session=session,
+                connected_computers=connected_computers,
+                user1=user1,
+                user2=user2,
+                computer_id=computer_id,
+            )
 
-    sio.emit('connected_computers', connected_computers)
-    # except Exception as e:
-    #     sio.emit('errors', str(e))
-    #     sio.disconnect(sid)
+        sio.emit('connected_computers', connected_computers)
+    except Exception as e:
+        sio.emit('errors', str(e))
+        sio.disconnect(sid)
 
 
 @sio.on('disconnect')
 def handle_disconnect(sid):
-    # try:
-    if sid not in session or 'ids' not in session[sid]:
-        sio.emit('logs', 'Client without session was disconnected')
-        return
+    try:
+        if sid not in session or 'ids' not in session[sid]:
+            sio.emit('logs', 'Client without session was disconnected')
+            return
 
-    create_log_for_users(
-        sio=sio, endpoint='disconnect', computer_id=session[sid]['computer_id'], users_ids=session[sid]['ids'],
-    )
+        create_log_for_users(
+            sio=sio, endpoint='disconnect', computer_id=session[sid]['computer_id'], users_ids=session[sid]['ids'],
+        )
 
-    if not session[sid]['is_teacher']:
-        del connected_computers[session[sid]['computer_id']]
+        if 'is_teacher' not in session[sid]:
+            del connected_computers[session[sid]['computer_id']]
 
-    sio.emit('connected_computers', connected_computers)
-    # except Exception as e:
-    #     sio.emit('errors', str(e))
-    #     sio.disconnect(sid)
+        sio.emit('connected_computers', connected_computers)
+    except Exception as e:
+        sio.emit('errors', str(e))
+        sio.disconnect(sid)
 
 
 @sio.on('start_events')
 def start_events(sid, computers):
-    # try:
-    global computers_status, connected_computers
-    raise_if_not_valid_teacher(sid=sid, session=session, extra_text='start_events endpoint')
+    try:
+        global computers_status, connected_computers
+        raise_if_not_valid_start_events_input(computers)
+        raise_if_not_valid_teacher(sid=sid, session=session, extra_text='start_events endpoint')
 
-    events_session = create_events_session()
-    computers_status = {}
+        events_session = create_events_session()
+        computers_status = {}
 
-    create_log(
-        sio=sio, endpoint='create_event', computer_id=session[sid]['computer_id'], id=session[sid]['ids'][0],
-    )
-
-    for computer in computers:
-        users = connected_computers[int(computer['id'])]
-
-        new_event = create_event(sio=sio, session_id=events_session.id, computer=computer, users=users)
-        sio.emit(
-            'logs',
-            f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}',
-        )
-        emit_computer_event(
-            sio=sio,
-            computer=computer,
-            event_id=new_event.id,
-            variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
+        create_log(
+            sio=sio, endpoint='create_event', computer_id=session[sid]['computer_id'], id=session[sid]['ids'][0],
         )
 
+        for computer in computers:
+            users = connected_computers[int(computer['id'])]
 
-# except Exception as e:
-#     sio.emit('errors', str(e))
-#     sio.disconnect(sid)
+            new_event = create_event(sio=sio, session_id=events_session.id, computer=computer, users=users)
+            sio.emit(
+                'logs',
+                f'new_event_pr1 is {new_event.practice_one_variant}, new_event_pr2 is {new_event.practice_two_variant}',
+            )
+            emit_computer_event(
+                sio=sio,
+                computer=computer,
+                event_id=new_event.id,
+                variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
+            )
+    except Exception as e:
+        sio.emit('errors', str(e))
+        sio.disconnect(sid)
 
 
 @sio.on('event_checkpoint')
