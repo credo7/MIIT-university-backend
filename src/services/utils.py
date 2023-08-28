@@ -21,7 +21,9 @@ def verify(plain_password, hashed_password):
 def create_username(first_name, last_name, surname, group_name):
     first_name_en = translit(first_name, 'ru', reversed=True)[:2]
     last_name_en = translit(last_name, 'ru', reversed=True)[:2]
-    surname_en = translit(surname, 'ru', reversed=True)[:2]
+    surname_en = ''
+    if surname:
+        surname_en = translit(surname, 'ru', reversed=True)[:2]
     group_name_en = translit(group_name, 'ru', reversed=True)
     username_without_spaces = str.lower(first_name_en + last_name_en + surname_en + group_name_en).replace(' ', "")
 

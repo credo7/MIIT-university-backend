@@ -11,25 +11,24 @@ from services import oauth2
 from services.utils import formatting_number as f
 
 
-def validate_tokens(
+def validate_tokens_or_raise(
     environ, session, sid
-) -> Tuple[bool, Optional[models.User], Optional[int], Optional[models.User], Optional[bool]]:
+) -> Tuple[bool, Optional[int], Optional[models.User], Optional[models.User]]:
+    """Function checks if computer id is set, if user is Teacher, if tokens are valid or raise an Exception."""
+
     first_token = environ.get('HTTP_AUTHORIZATION')
     second_token = environ.get('HTTP_AUTHORIZATION_TWO')
 
     if not first_token or first_token == second_token:
-        print("First token wasn't provided or tokens are the same", flush=True)
-        return False, None, None, None, None
+        raise Exception("First token wasn't provided or tokens are the same")
 
     user = oauth2.get_current_user_socket(first_token)
     if not user:
-        print("models.User wasn't found", flush=True)
-        return False, None, None, None, None
+        raise Exception("User wasn't found")
 
     computer_id = environ.get('HTTP_COMPUTER_ID')
     if not computer_id:
-        print("Computer id wasn't provided", flush=True)
-        return False, None, None, None, None
+        raise Exception("Computer id wasn't provided")
 
     session.setdefault(sid, {})
 
@@ -37,22 +36,21 @@ def validate_tokens(
         session[sid]['is_teacher'] = True
         session[sid]['ids'] = [user.id]
         session[sid]['computer_id'] = computer_id
-        return True, user, int(computer_id), None, True
+        return True, int(computer_id), user, None
 
     user2 = None
     if second_token:
         user2 = oauth2.get_current_user_socket(second_token)
         if not user2:
-            print('Second authorization token is not correct', flush=True)
-            return False, None, None, None, None
+            raise Exception('Second authorization token is not correct')
 
-    return True, user, int(computer_id), user2, False
+    return False, int(computer_id), user, user2
 
 
-def update_session(sid, session, connected_computers, user, user2, computer_id: int):
-    connected_computers[computer_id] = [user.serialize()]
-    user_ids = [user.id]
-    user_usernames = [user.username]
+def update_connected_computers_and_session(sid, session, connected_computers, user1, user2, computer_id: int):
+    connected_computers[computer_id] = [user1.serialize()]
+    user_ids = [user1.id]
+    user_usernames = [user1.username]
 
     if user2:
         connected_computers[computer_id].append(user2.serialize())
@@ -64,12 +62,13 @@ def update_session(sid, session, connected_computers, user, user2, computer_id: 
     session[sid]['computer_id'] = computer_id
 
 
-def emit_connected_computers(sio, connected_computers):
-    sio.emit('connected_computers', connected_computers)
-
-
 def is_valid_teacher_session(sid, session):
     return sid in session and 'is_teacher' in session[sid]
+
+
+def raise_if_not_valid_teacher(sid, session, extra_text):
+    if not (sid in session and 'is_teacher' in session[sid]):
+        raise Exception('Not valid teacher ' + extra_text)
 
 
 def create_events_session():
@@ -404,11 +403,16 @@ def practice_two(variant: models.PracticeTwoVariant, event_id: int, computer_id:
     }
 
 
+def get_last_step_number(pr_type: int):
+    if pr_type == 1:
+        return db_session.query(models.PracticeOneStep).count()
+    elif pr_type == 2:
+        return db_session.query(models.PracticeTwoStep).count()
+
+
 def emit_computer_event(
     sio, computer, event_id, variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
 ):
-    sio.emit('errors', str(variant))
-
     if computer['type'] == 1:
         all_bets = get_all_bets()
         random_incoterms, incoterm_groups = get_random_incoterm_groups()
@@ -610,8 +614,15 @@ def create_log(sio, endpoint: str, computer_id: int, user: models.User = None, i
 
 
 def create_log_for_users(
-    sio, endpoint: str, computer_id: int, users: List[models.User] = [],
+    sio, endpoint: str, computer_id: int, users_ids: Optional[List[int]] = None, users: Optional[List[models.User]] = None
 ):
+    if users is None:
+        users = []
+
+        for user_id in users_ids:
+            user = db_session.query(models.User).filter(models.User.id == user_id).first()
+            users.append(user)
+
     for user in users:
         if user is not None:
             create_log(sio=sio, endpoint=endpoint, computer_id=computer_id, user=user)

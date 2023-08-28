@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime
 from typing import Optional
+from dataclasses import dataclass
 
 from pydantic import BaseModel, constr
 
@@ -18,7 +19,10 @@ class UserBase(BaseModel):
 
 
 class UserCreateBody(UserBase):
+    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
+    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     password: constr(min_length=8, max_length=35)
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
     group_id: int
 
 
@@ -78,9 +82,22 @@ class UserChangePassword(BaseModel):
     password: str
 
 
+@dataclass
 class CheckpointData:
-    def __init__(self, event_id: int, step: int, points, fails: int):
-        self.event_id = event_id
-        self.points = points
-        self.fails = fails
-        self.step = step
+    event_id: int
+    step: int
+    points: int
+    fails: int
+
+    def __post_init__(self):
+        if not isinstance(self.event_id, int) or self.event_id <= 0:
+            raise ValueError("Invalid event_id")
+
+        if not isinstance(self.step, int) or self.step <= 0:
+            raise ValueError("Invalid step")
+
+        if not isinstance(self.points, list) or not all(isinstance(p, int) for p in self.points):
+            raise ValueError("Invalid points")
+
+        if not isinstance(self.fails, int) or self.fails < 0:
+            raise ValueError("Invalid fails")

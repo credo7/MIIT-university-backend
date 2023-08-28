@@ -10,7 +10,7 @@ def wait_for_postgres(db_url: str, retry_interval: int = 5, max_retries: int = 1
     while True:
         try:
             connection = psycopg2.connect(db_url)
-            print('Connection successful! PostgreSQL is loaded.')
+            print(f'Connection successful after {retry_interval * retries} seconds! PostgreSQL is loaded.')
             connection.close()
             return
         except OperationalError:

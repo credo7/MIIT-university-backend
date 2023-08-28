@@ -3,10 +3,11 @@ import json
 from datetime import datetime
 
 from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Float, Numeric
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-from db.postgres import Base, engine
+Base = declarative_base()
 
 
 class UserRole(str, enum.Enum):
@@ -395,8 +396,7 @@ class EventCheckpoint(Base):
     pr1_step = relationship('PracticeOneStep')
     pr2_step = relationship('PracticeTwoStep')
 
-    __table_args__ = (UniqueConstraint('event_id', 'pr1_step_id', 'user_id'),
-                      UniqueConstraint('event_id', 'pr2_step_id', 'user_id'),)
-
-
-Base.metadata.create_all(bind=engine)
+    __table_args__ = (
+        UniqueConstraint('event_id', 'pr1_step_id', 'user_id'),
+        UniqueConstraint('event_id', 'pr2_step_id', 'user_id'),
+    )
