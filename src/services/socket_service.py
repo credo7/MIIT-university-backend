@@ -26,6 +26,9 @@ def validate_tokens_or_raise(
     if not user:
         raise Exception("User wasn't found")
 
+    if not user.approved:
+        raise Exception("User wasn't approved")
+
     computer_id = environ.get('HTTP_COMPUTER_ID')
     if not computer_id:
         raise Exception("Computer id wasn't provided")
@@ -43,6 +46,8 @@ def validate_tokens_or_raise(
         user2 = oauth2.get_current_user_socket(second_token)
         if not user2:
             raise Exception('Second authorization token is not correct')
+        if not user2.approved:
+            raise Exception("Second user wasn't approved")
 
     return False, int(computer_id), user, user2
 

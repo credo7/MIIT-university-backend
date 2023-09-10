@@ -1,9 +1,11 @@
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 import schemas
 from db.postgres import get_db
-from models import User
+from models import User, Student
 from services import oauth2, utils
 
 router = APIRouter(tags=['Users'], prefix='/users')
@@ -35,6 +37,41 @@ def edit(
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
 
 
+@router.post('approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)
+def approve_user(
+        user_id: int, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)
+):
+    oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
+    try:
+        user_from_db = db.query(User).filter(User.id == user_id).first()
+
+        if not user_from_db:
+            raise HTTPException(status_code=404, detail='User not found')
+
+        user_from_db.approved = True
+        db.commit()
+
+        return {'message': 'ok!'}
+    except Exception as e:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+
+
+@router.get('/unapproved', status_code=status.HTTP_200_OK, response_model=List[schemas.UserToApprove])
+def get_unapproved_users(group_id: int = None, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
+    try:
+        query = db.query(User).filter(User.approved == False)
+        if group_id:
+            query = query.join(User.student)
+            query = query.filter(Student.group_id == group_id)
+
+        unapproved_users = query.all()
+        t = [user.serialize() for user in unapproved_users]
+        return [user.serialize() for user in unapproved_users]
+    except Exception as e:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+
+
 @router.patch(
     '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserChangePassword,
 )
@@ -52,7 +89,6 @@ def change_password(
 
         hash_password = utils.hash(new_password)
 
-        print(user_from_db.password)
         user_from_db.password = hash_password
         db.commit()
 
@@ -73,5 +109,24 @@ def get_user(username: str, db: Session = Depends(get_db)):
         user_out.group_id = user.student.group_id
 
         return user_out
+    except Exception as e:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+
+
+@router.delete('/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)
+def delete_user(
+    user_id: int, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db),
+):
+    oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
+    try:
+        user_to_delete = db.query(User).filter(User.id == user_id).first()
+
+        if not user_to_delete:
+            raise HTTPException(status_code=404, detail='User not found')
+
+        db.delete(user_to_delete)
+        db.commit()
+
+        return {"message": "ok!"}
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")

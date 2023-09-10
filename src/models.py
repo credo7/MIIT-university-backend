@@ -60,10 +60,11 @@ class User(Base):
     password = Column(String, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    surname = Column(String, nullable=False)
+    surname = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow())
     role = Column(Enum(UserRole), default=UserRole.STUDENT)
+    approved = Column(Boolean, default=False)
 
     student = relationship('Student', uselist=False, back_populates='user')
     logs = relationship('Log', back_populates='user')
@@ -73,8 +74,8 @@ class User(Base):
             'id': self.id,
             'group_name': self.student.group.name,
             'first_name': self.first_name,
-            'surname': self.surname,
             'last_name': self.last_name,
+            'surname': self.surname,
         }
 
 

@@ -77,6 +77,18 @@ class UserEdit(BaseModel):
     username: Optional[str]
 
 
+class ResponseMessage(BaseModel):
+    message: str
+
+
+class UserToApprove(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    surname: Optional[str]
+    group_name: str
+
+
 class UserChangePassword(BaseModel):
     password: str
 

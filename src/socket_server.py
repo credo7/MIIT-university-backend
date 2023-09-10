@@ -103,6 +103,21 @@ def start_events(sid, computers):
         sio.disconnect(sid)
 
 
+@sio.on('raise_hand')
+def raise_hand_notification(sid, _):
+    try:
+        if sid not in session or 'ids' not in session[sid]:
+            sio.disconnect(sid)
+            return
+
+        requester_computer_id = session[sid]['computer_id']
+
+        sio.emit("help_notification", {"computer_id": requester_computer_id})
+    except Exception as e:
+        sio.emit('errors', str(e))
+        sio.disconnect(sid)
+
+
 @sio.on('event_checkpoint')
 def checkpoint(sid, checkpoint_data: CheckpointData):
     try:
