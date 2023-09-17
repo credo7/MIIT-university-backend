@@ -78,6 +78,17 @@ class User(Base):
             'surname': self.surname,
         }
 
+    def to_user_out(self):
+        return {
+            'id': self.id,
+            'group_name': self.student.group.name,
+            'group_id': self.student.group.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'surname': self.surname,
+            'approved': self.approved
+        }
+
 
 class Risk(Base):
     __tablename__ = 'risk'

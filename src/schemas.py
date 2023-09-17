@@ -31,9 +31,14 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
-    username: str
-    created_at: datetime
-    updated_at: datetime
+    # username: str
+    first_name: str
+    last_name: str
+    surname: Optional[str]
+    # created_at: datetime
+    # updated_at: datetime
+    approved: bool
+    group_name: Optional[str] = None
     group_id: Optional[int] = None
 
     class Config:
