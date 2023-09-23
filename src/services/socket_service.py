@@ -57,6 +57,22 @@ def raise_if_not_valid_start_events_input(computers):
         schemas.StartEventComputer(**computer)
 
 
+def raise_if_not_all_computers_connected(computers, connected_computers):
+        for computer in computers:
+            if computer['id'] not in connected_computers:
+                raise Exception(f'Компьютер с номером {computer["id"]} не подключен')
+
+
+def get_start_computers_status(computers, connected_computers):
+    computers_status = {}
+
+    for computer in computers:
+        users = connected_computers[computer['id']]
+        computers_status[computer['id']] = {"step_name": "start", "users": users, "step_id": 0}
+
+    return computers_status
+
+
 def update_connected_computers_and_session(sid, session, connected_computers, user1, user2, computer_id: int):
     connected_computers[computer_id] = [user1.serialize()]
     user_ids = [user1.id]
@@ -80,6 +96,17 @@ def raise_if_not_valid_teacher(sid, session, extra_text):
     if not (sid in session and 'is_teacher' in session[sid]):
         raise Exception('Not valid teacher ' + extra_text)
 
+
+def raise_if_computers_already_started(computers, connected_computers):
+    for computer in computers:
+        computer_num = int(computer['id'])
+        if computer_num in connected_computers:
+            raise Exception(f'Computer with number {computer_num} is already started')
+
+
+def raise_if_user_already_started(computers, connected_computers):
+    # TODO!
+    ...
 
 def create_events_session():
     events_session = models.Session()
@@ -578,7 +605,7 @@ def finish_event(sid, sio, session, event_id):
     sio.emit(f'computer_{computer_id}_results', users_result)
 
 
-def create_checkpoint(event_id, user_id, step_id, points, fails):
+def create_checkpoint_to_db(event_id, user_id, step_id, points, fails):
     checkpoint = models.EventCheckpoint(event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails)
     db_session.add(checkpoint)
     db_session.commit()
@@ -590,12 +617,12 @@ def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.Checkpo
     sio.emit('logs', checkpoint_data)
 
     for user_id in session[sid]['ids']:
-        create_checkpoint(
-            event_id=checkpoint_data['event_id'],
+        create_checkpoint_to_db(
+            event_id=checkpoint_data.event_id,
             user_id=user_id,
-            step_id=checkpoint_data['step'],
-            points=checkpoint_data['points'],
-            fails=checkpoint_data['fails'],
+            step_id=checkpoint_data.step,
+            points=checkpoint_data.points,
+            fails=checkpoint_data.fails,
         )
 
         user = db_session.query(models.User).filter(models.User.id == user_id).first().serialize()
@@ -603,7 +630,7 @@ def create_users_checkpoints(sio, sid, session, checkpoint_data: schemas.Checkpo
 
         step_name = (
             db_session.query(models.PracticeOneStep)
-            .filter(models.PracticeOneStep.id == checkpoint_data['step'])
+            .filter(models.PracticeOneStep.id == checkpoint_data.step)
             .first()
             .name
         )
