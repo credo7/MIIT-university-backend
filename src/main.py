@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api import auth, group, user
 from socket_server import SocketServer
+from db.postgres import session as db_session
 
 app = FastAPI()
 
@@ -31,7 +32,7 @@ def start_fastapi_server():
 
 
 if __name__ == '__main__':
-    socket_server = SocketServer(logger=True)
+    socket_server = SocketServer(logger=True, db_session=db_session)
 
     socket_process = mp.Process(target=socket_server.run)
     # socket_process = mp.Process(target=start_socket_server)
