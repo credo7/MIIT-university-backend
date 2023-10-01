@@ -6,6 +6,7 @@ import eventlet
 import socketio
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy.sql.expression import func
+from sqlalchemy import desc
 
 import models
 import schemas
@@ -36,6 +37,11 @@ class SocketServer:
         self._sio.on('raise_hand', self._raise_hand)
         self._sio.on('event_checkpoint', self._event_checkpoint)
         self._sio.on('logs', self._logs)
+        self._sio.on('join_to_session', self._join_to_session)
+        self._sio.on('_get_connected_users_without_session', self._get_connected_users_without_session)
+        self._sio.on('where_am_i', self._where_am_i)
+        self._sio.on('wait', self._wait)
+        self._sio.on('finish_current_session', self._finish_current_session)
 
     def run(self):
         eventlet.wsgi.server(eventlet.listen(('0.0.0.0', settings.socket_port)), self._app)
@@ -79,6 +85,7 @@ class SocketServer:
     def _start_events(self, sid, computers):
         try:
             self.__raise_if_not_valid_input_start_events(sid, computers)
+            # TODO Добавить проверку, что прошлые events завершены, либо завершить их
             self._events_session = self.__create_events_session()
 
             self._logger.log(
@@ -95,8 +102,65 @@ class SocketServer:
             self._sio.emit('errors', str(e))
             self._sio.disconnect(sid)
 
+    def _finish_current_session(self, sid, _msg):
+        if not self._events_session:
+            raise Exception("Current session was not found!")
+
+        result = []
+        for event in self._events_session.event:
+            users_results = self.__finish_event_and_emit_results(sid=sid, event_id=event.id)
+            result.extend(users_results)
+
+        self._sio.emit("users_results", result)
+
     def _start_late_events(self, sid, computers):
+        """Добавляем новый пк уже к созданной сессии ( Для опоздавшего, заходящего с нового ПК )"""
+
         self.__raise_if_not_valid_input_start_late_events(sid, computers)
+        self.__create_and_emit_events(computers)
+        self.__update_computers_status(computers, is_joining=True)
+
+    def _wait(self, sid, message):
+        wait_reason = message.get('wait_reason', 'Причина не указана')
+        computers_ids = message.get('computers_ids', [])
+
+        self.__raise_if_not_valid_teacher(sid=sid, extra_text='_wait')
+        self.__raise_if_not_all_computers_connected(computers_ids=computers_ids)
+
+        for computer_id in computers_ids:
+            event_wait_point = models.EventWaitTimePoint(
+                event_id=self._computers_status[computer_id]['event_id'], type='START'
+            )
+            self._db_session.add(event_wait_point)
+            self._db_session.commit()
+
+            self._sio.emit(f'computer_{computer_id}_wait', {'type': 'start', 'wait_reason': wait_reason})
+
+    def _where_am_i(self, sid, _msg):
+        if 'computer_id' not in self._session[sid]:
+            raise Exception("Not started yet")
+
+        computer_id = self._session[sid]['computer_id']
+        computer_status = self._computers_status[computer_id]
+        is_on_pause = self.__check_if_computer_on_pause(computer_id)
+
+        self._sio.emit(
+            f'computer_{computer_id}_in', {**computer_status, 'is_on_pause': is_on_pause}
+        )
+
+    def _get_connected_users_without_session(self, _sid, _msg):
+        connected_users_without_session = []
+
+        for computer in self._connected_computers:
+            if computer['id'] not in self._computers_status:
+                connected_users_without_session.extend(self._connected_computers[computer['id']])
+
+        self._sio.emit('connected_users_without_session', connected_users_without_session)
+
+    def _join_to_event(self, sid, join_info: schemas.JoinData):
+        self.__raise_if_not_valid_input_join_to_session(sid, join_info.computer_id)
+        user = self._db_session.query(models.User).filter(models.User.id == join_info.user_id)
+        self._connected_computers[join_info.computer_id]['users'].append(user.serialize())
 
     def _raise_hand(self, sid, _):
         try:
@@ -113,25 +177,16 @@ class SocketServer:
 
     def _event_checkpoint(self, sid, checkpoint_data: CheckpointData):
         try:
-            if sid not in self._session or 'ids' not in self._session[sid]:
-                self._sio.disconnect(sid)
-                return
-
-            self.__create_users_checkpoints(sid=sid, checkpoint_data=checkpoint_data)
+            step_id, step_name, event_id = self.__create_users_checkpoints_finish_if_last(
+                sid=sid, checkpoint_data=checkpoint_data
+            )
 
             self._logger.log(
                 sio=self._sio,
-                endpoint=f'checkpoint {checkpoint_data.step}',
+                endpoint=f'checkpoint. step_id = {step_id}, step_name = {step_name}, event_id = {event_id}',
                 computer_id=self._session[sid]['computer_id'],
                 users_ids=self._session[sid]['ids'],
             )
-
-            event_type = self.__get_pr_type_by_event_id(checkpoint_data.event_id)
-
-            last_step_number = self.__get_last_step_number(pr_type=event_type)
-
-            if checkpoint_data.step == last_step_number:
-                self.__finish_event(sid=sid, event_id=checkpoint_data.event_id)
 
             self._sio.emit('events_status', self._computers_status)
         except Exception as e:
@@ -141,14 +196,42 @@ class SocketServer:
     def _logs(self, _sid, message):
         self._sio.emit('logs', message)
 
-    def __finish_event(self, sid, event_id):
+    def __check_if_computer_on_pause(self, computer_id: int):
+        event_id = self._computers_status[computer_id]['event_id']
+
+        last_time_point = (
+            self._db_session.query(models.EventWaitTimePoint.event_id == event_id)
+            .order_by(desc(models.EventWaitTimePoint.created_at))
+            .one()
+        )
+
+        if not last_time_point or last_time_point.type == 'STOP':
+            return False
+
+        return True
+
+    def __get_waited_time(self, event_id: int):
+        wait_time_points = self._db_session.query(models.EventWaitTimePoint).filter(models.Event.id == event_id)
+
+        total = None
+        curr_start_time = None
+
+        for point in wait_time_points:
+            if point.type == 'START':
+                curr_start_time = point.created_at
+            if point.type == 'STOP' and curr_start_time:
+                total += point.created_at - curr_start_time
+
+        return total
+
+    def __finish_event_and_emit_results(self, sid, event_id):
         computer_id = self._session[sid]['computer_id']
-        users_id = self._session[sid]['ids']
+        users_ids = self._session[sid]['ids']
         event = self._db_session.query(models.Event).filter(models.Event.id == event_id).first()
         event.is_finished = True
         self._db_session.commit()
-        users_result = []
-        for user_id in users_id:
+        users_results = []
+        for user_id in users_ids:
             result = (
                 self._db_session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
                 .filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id,)
@@ -157,24 +240,37 @@ class SocketServer:
 
             user = self._db_session.query(models.User).filter(models.User.id == user_id).first()
 
-            users_result.append(
+            users_results.append(
                 {
                     'id': user_id,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
+                    'surname': user.surname,
                     'group_name': user.student.group.name,
                     'points': result[0],
                     'fails': result[1],
                 }
             )
 
-        self._sio.emit(f'computer_{computer_id}_results', users_result)
+        self._sio.emit(f'computer_{computer_id}_results', users_results)
 
-    def __get_last_step_number(self, pr_type: int):
+        return users_results
+
+    def __get_last_step_number(self, event_id: int):
+        pr_type = self.__get_pr_type_by_event_id(event_id)
         if pr_type == 1:
             return self._db_session.query(models.PracticeOneStep).count()
         elif pr_type == 2:
             return self._db_session.query(models.PracticeTwoStep).count()
+
+    def __get_previous_step_id(self, event_id: int):
+        step = (
+            self._db_session.query(models.EventCheckpoint)
+            .order_by(desc(models.EventCheckpoint.created_at))
+            .filter(models.EventCheckpoint.event_id == event_id)
+            .first()
+        )
+        return step.id if step else 0
 
     def __get_pr_type_by_event_id(self, event_id: int):
         event = self._db_session.query(models.Event).filter(models.Event.id == event_id).first()
@@ -187,31 +283,52 @@ class SocketServer:
         self._db_session.add(checkpoint)
         self._db_session.commit()
 
-    def __create_users_checkpoints(self, sid, checkpoint_data: schemas.CheckpointData):
-        users = []
+    def __create_users_checkpoints_finish_if_last(self, sid, checkpoint_data: schemas.CheckpointData):
+        computer_id = self._session[sid]['computer_id']
+        event_id = self._computers_status[computer_id]['event_id']
+        curr_step = self.__get_step(event_id=event_id)
 
-        self._sio.emit('logs', checkpoint_data)
+        if checkpoint_data.step_id != curr_step.id:
+            raise Exception(f"Current step_id should be : {curr_step.id}, but you sent {checkpoint_data.step_id}")
 
-        for user_id in self._session[sid]['ids']:
+        users_ids = self._session[sid]['ids']
+        last_step_id = self.__get_last_step_number(event_id)
+
+        if len(users_ids) == 1 or curr_step.role in ['ALL', 'BUYER']:
             self.__create_checkpoint_to_db(
-                event_id=checkpoint_data.event_id,
-                user_id=user_id,
-                step_id=checkpoint_data.step,
+                event_id=event_id,
+                user_id=users_ids[0],
+                step_id=curr_step.id,
                 points=checkpoint_data.points,
                 fails=checkpoint_data.fails,
             )
 
-            user = self._db_session.query(models.User).filter(models.User.id == user_id).first().serialize()
-            users.append(user)
-
-            step_name = (
-                self._db_session.query(models.PracticeOneStep)
-                .filter(models.PracticeOneStep.id == checkpoint_data.step)
-                .first()
-                .name
+        if len(users_ids) == 1 or curr_step.role in ['ALL', 'SELLER']:
+            self.__create_checkpoint_to_db(
+                event_id=event_id,
+                user_id=users_ids[1] if len(users_ids) > 1 else users_ids[0],
+                step_id=curr_step.id,
+                points=checkpoint_data.points,
+                fails=checkpoint_data.fails,
             )
-            computer_id = self._session[sid]['computer_id']
-            self._computers_status[computer_id] = {'step_name': step_name, 'users': users}
+
+        if curr_step.id == last_step_id:
+            _ = self.__finish_event_and_emit_results(sid=sid, event_id=event_id)
+
+        self._computers_status[computer_id]['step_name'] = curr_step.name
+        self._computers_status[computer_id]['step_id'] = curr_step.id
+        self._computers_status[computer_id]['role'] = curr_step.role
+
+        return curr_step.id, curr_step.name, event_id
+
+    def __get_step(self, event_id: int):
+        event_type = self.__get_pr_type_by_event_id(event_id)
+        step_id = self.__get_previous_step_id(event_id) + 1
+
+        if event_type == 1:
+            return self._db_session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == step_id)
+        if event_type == 2:
+            return self._db_session.query(models.PracticeTwoStep).filter(models.PracticeTwoStep.id == step_id)
 
     def __remove_from_connected_computers(self, sid):
         if 'is_teacher' not in self._session[sid]:
@@ -277,12 +394,19 @@ class SocketServer:
         self._db_session.commit()
         return events_session
 
-    def __update_computers_status(self, computers):
-        self._computers_status = {}
+    def __update_computers_status(self, computers, is_joining: bool = False):
+        # Если случай с опоздавшим, то оставляем все как есть
+        if not is_joining:
+            self._computers_status = {}
 
         for computer in computers:
             users = self._connected_computers[computer['id']]
-            self._computers_status[computer['id']] = {'step_name': 'start', 'users': users, 'step_id': 0}
+            self._computers_status[computer['id']] = {
+                'step_name': 'start',
+                'users': users,
+                'step_id': 0,
+                'event_id': computer['event_id'],
+            }
 
     def __create_and_emit_events(self, computers):
         for computer in computers:
@@ -295,6 +419,8 @@ class SocketServer:
                 event_id=new_event.id,
                 variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
             )
+
+            computer['event_id'] = new_event.id
 
     def __create_event(self, sio, computer, users):
         variant = self.__get_random_variant(type=computer['type'])
@@ -749,20 +875,40 @@ class SocketServer:
         self.__raise_if_not_valid_teacher(sid=sid, extra_text='start_events endpoint')
 
     def __raise_if_not_valid_input_start_late_events(self, sid, computers):
-        self.__raise_if_not_valid_teacher(sid=sid, extra_text='start_events endpoint')
+        self.__raise_if_not_valid_teacher(sid=sid, extra_text='start_late_events endpoint')
         self.__raise_if_not_valid_start_events_input(computers)
         self.__raise_if_not_all_computers_connected(computers)
         self.__raise_if_computers_already_started(computers=computers)
+
+    def __raise_if_not_valid_input_join_to_session(self, sid, computer_id):
+        self.__raise_if_not_valid_teacher(sid=sid, extra_text='join_to_session endpoint')
+        self.__raise_if_computer_not_connected_or_busy(computer_id)
 
     @staticmethod
     def __raise_if_not_valid_start_events_input(computers):
         for computer in computers:
             schemas.StartEventComputer(**computer)
 
-    def __raise_if_not_all_computers_connected(self, computers):
-        for computer in computers:
-            if computer['id'] not in self._connected_computers:
-                raise Exception(f'Компьютер с номером {computer["id"]} не подключен')
+    def __raise_if_computer_not_connected_or_busy(self, computer_id):
+            if computer_id not in self._connected_computers:
+                raise Exception(f'Computer with id {computer_id} is not connected')
+
+            users = self._connected_computers[computer_id]
+            if len(users) > 1:
+                raise Exception(f"Maxumum spots are busy on computer with number {computer_id}")
+
+    def __raise_if_not_all_computers_connected(self, computers=None, computers_ids=None):
+        if computers is None and computers_ids is None:
+            raise Exception('Not valid parameters in __raise_if_not_all_computers_connected')
+
+        if computers_ids:
+            for computer_id in computers_ids:
+                if computer_id not in self._connected_computers:
+                    raise Exception(f'Компьютер с номером {computer_id} не подключен')
+        else:
+            for computer in computers:
+                if computer['id'] not in self._connected_computers:
+                    raise Exception(f'Компьютер с номером {computer["id"]} не подключен')
 
     def __raise_if_not_valid_teacher(self, sid, extra_text):
         if not (sid in self._session and 'is_teacher' in self._session[sid]):

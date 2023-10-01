@@ -99,20 +99,24 @@ class UserChangePassword(BaseModel):
 
 
 class CheckpointData(BaseModel):
-    event_id: int
-    step: conint(ge=0)
+    # event_id: int
+    step_id: conint(ge=0)
     points: conint(ge=0)
     fails: conint(ge=0)
 
 
+class JoinData(BaseModel):
+    computer_id: conint(ge=0)
+    user_id: conint(ge=0)
+
+
 class EventMode(str, enum.Enum):
-    CLASS = "CLASS"
-    CONTROL = "CONTROL"
-    WORKOUT = "WORKOUT"
+    CLASS = 'CLASS'
+    CONTROL = 'CONTROL'
+    WORKOUT = 'WORKOUT'
 
 
 class StartEventComputer(BaseModel):
     id: int
     type: int
     mode: EventMode
-

@@ -35,7 +35,6 @@ if __name__ == '__main__':
     socket_server = SocketServer(logger=True, db_session=db_session)
 
     socket_process = mp.Process(target=socket_server.run)
-    # socket_process = mp.Process(target=start_socket_server)
     socket_process.start()
 
     fastapi_process = mp.Process(target=start_fastapi_server)

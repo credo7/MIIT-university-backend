@@ -6,4 +6,13 @@ INSERT INTO practice_one_step (id, name, role) values
 (5, 'BUYER_TABLE_3', 'BUYER'),
 (6, 'SELLER_TABLE_3', 'SELLER'),
 (7, 'RIGHT_OPTION', 'ALL'),
-(8, 'TESTS', 'ALL');
+(8, 'TESTS_1', 'ALL'),
+(9, 'TESTS_2', 'ALL'),
+(10, 'TESTS_3', 'ALL'),
+(11, 'TESTS_4', 'ALL'),
+(12, 'TESTS_5', 'ALL'),
+(13, 'TESTS_6', 'ALL'),
+(14, 'TESTS_7', 'ALL'),
+(15, 'TESTS_8', 'ALL'),
+(16, 'TESTS_9', 'ALL'),
+(17, 'TESTS_10', 'ALL');

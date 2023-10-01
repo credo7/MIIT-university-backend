@@ -12,18 +12,18 @@ class ActionsLogger:
         self._errors_emit_logs = errors_emit_logs
 
     def log(
-            self,
-            sio,
-            endpoint: str,
-            computer_id: int,
-            users_ids: Optional[List[int]] = None,
-            users: Optional[List[models.User]] = None,
-            logs_to_db: bool = True,
-            emit_logs: bool = True
+        self,
+        sio,
+        endpoint: str,
+        computer_id: int,
+        users_ids: Optional[List[int]] = None,
+        users: Optional[List[models.User]] = None,
+        logs_to_db: bool = True,
+        emit_logs: bool = True,
     ):
         if not users:
             if not users_ids:
-                raise Exception("ActionLogger.create -> нет users_ids и users")
+                raise Exception('ActionLogger.create -> нет users_ids и users')
             else:
                 for user_id in users_ids:
                     user = db_session.query(models.User).filter(models.User.id == user_id).first()
@@ -36,7 +36,9 @@ class ActionsLogger:
                     log_from_db = self._add_log_to_db(endpoint=endpoint, computer_id=computer_id, user=user)
 
                 if emit_logs and self._emit_logs:
-                    self._emit_log(sio=sio, endpoint=endpoint, log_from_db=log_from_db, computer_id=computer_id, user=user)
+                    self._emit_log(
+                        sio=sio, endpoint=endpoint, log_from_db=log_from_db, computer_id=computer_id, user=user
+                    )
 
     @staticmethod
     def _add_log_to_db(endpoint: str, computer_id: int, user: models.User = None) -> models.Log:
@@ -48,7 +50,6 @@ class ActionsLogger:
     @staticmethod
     def _emit_log(sio, endpoint: str, log_from_db: Optional[models.Log], computer_id: int, user: models.User = None):
         sio.emit(
-            'logs', f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log_from_db.created_at or time.time()}",
+            'logs',
+            f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log_from_db.created_at or time.time()}",
         )
-
-

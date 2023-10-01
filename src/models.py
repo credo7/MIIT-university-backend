@@ -14,6 +14,11 @@ class UserRole(str, enum.Enum):
     STUDENT = 'STUDENT'
 
 
+class WaitTimePointType(str, enum.Enum):
+    START = 'START'
+    STOP = 'STOP'
+
+
 class EventMode(str, enum.Enum):
     CLASS = 'CLASS'
     CONTROL = 'CONTROL'
@@ -86,7 +91,7 @@ class User(Base):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'surname': self.surname,
-            'approved': self.approved
+            'approved': self.approved,
         }
 
 
@@ -348,6 +353,15 @@ class Session(Base):
     events = relationship('Event', back_populates='session')
 
 
+class EventWaitTimePoint(Base):
+    __tablename__ = 'wait_time_points'
+
+    id = Column(Integer, primary_key=True)
+    event_id = Column(Integer, ForeignKey('Event.id'), nullable=False)
+    type = Column(Enum(WaitTimePointType), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow())
+
+
 class Event(Base):
     __tablename__ = 'event'
 
@@ -366,6 +380,7 @@ class Event(Base):
     session = relationship('Session', back_populates='events')
     practice_one_variant = relationship(PracticeOneVariant)
     practice_two_variant = relationship(PracticeTwoVariant)
+    wait_time_points = relationship(EventWaitTimePoint)
 
     __table_args__ = (CheckConstraint('type >= 1 AND type <= 3', name='check_valid_values'),)
 
@@ -407,8 +422,10 @@ class EventCheckpoint(Base):
     pr1_step = relationship('PracticeOneStep')
     pr2_step = relationship('PracticeTwoStep')
 
-    __table_args__ = (UniqueConstraint('event_id', 'pr1_step_id', 'user_id'),
-                      UniqueConstraint('event_id', 'pr2_step_id', 'user_id'),)
+    __table_args__ = (
+        UniqueConstraint('event_id', 'pr1_step_id', 'user_id'),
+        UniqueConstraint('event_id', 'pr2_step_id', 'user_id'),
+    )
 
 
 Base.metadata.create_all(bind=engine)

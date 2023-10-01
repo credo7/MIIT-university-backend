@@ -13,8 +13,8 @@ router = APIRouter(tags=['Users'], prefix='/users')
 
 @router.get('', status_code=status.HTTP_200_OK, response_model=List[schemas.UserOut])
 def get_users(
-    search: str = Query(None, description="Search by first name, last name, or surname"),
-    group_id: int = Query(None, description="Filter by group ID"),
+    search: str = Query(None, description='Search by first name, last name, or surname'),
+    group_id: int = Query(None, description='Filter by group ID'),
     _current_user: User = Depends(oauth2.get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -23,7 +23,7 @@ def get_users(
 
         return [user.to_user_out() for user in found_users]
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.patch('/edit', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -49,13 +49,11 @@ def edit(
 
         return user_out
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.post('approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)
-def approve_user(
-        user_id: int, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)
-):
+def approve_user(user_id: int, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
     try:
         user_from_db = db.query(User).filter(User.id == user_id).first()
@@ -68,11 +66,13 @@ def approve_user(
 
         return {'message': 'ok!'}
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get('/unapproved', status_code=status.HTTP_200_OK, response_model=List[schemas.UserToApprove])
-def get_unapproved_users(group_id: int = None, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+def get_unapproved_users(
+    group_id: int = None, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db)
+):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
     try:
         query = db.query(User).filter(User.approved == False)
@@ -83,7 +83,7 @@ def get_unapproved_users(group_id: int = None, current_user: User = Depends(oaut
         unapproved_users = query.all()
         return [user.serialize() for user in unapproved_users]
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.patch(
@@ -108,7 +108,7 @@ def change_password(
 
         return {'password': new_password}
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get('/{username}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -124,7 +124,7 @@ def get_user(username: str, db: Session = Depends(get_db)):
 
         return user_out
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.delete('/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)
@@ -141,6 +141,6 @@ def delete_user(
         db.delete(user_to_delete)
         db.commit()
 
-        return {"message": "ok!"}
+        return {'message': 'ok!'}
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{str(e)}")
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
