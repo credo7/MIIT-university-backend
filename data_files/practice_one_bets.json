@@ -1,0 +1,106 @@
+[
+  {
+    "name": "Экспортная упаковка",
+    "rate": 1.6,
+    "incoterms": {
+      "buyer": [],
+      "seller": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Складские / погрузочные расходы в пункте отправки груза",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW"],
+      "seller": ["FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Перевозка до промежуточного пункта отправки груза",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW"],
+      "seller": ["FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Экспортные формальности",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW"],
+      "seller": ["FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Расходы первичного терминала отправки груза",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS"],
+      "seller": ["FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Погрузка на транспортное средство экспортера",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS"],
+      "seller": ["FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Морской / воздушный фрахт (основной способ перевозки",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB"],
+      "seller": ["CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Расходы экспедитора в пункте назначения",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF"],
+      "seller": ["DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Складские / погрузочные расходы в пункте назначения",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP"],
+      "seller": ["DDP"]
+    }
+  },
+  {
+    "name": "Составление документов по безопасности перевозимого груза",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP"],
+      "seller": ["DDP"]
+    }
+  },
+  {
+    "name": "Таможенные формальности",
+    "rate": 1.8,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP"],
+      "seller": ["DDP"]
+    }
+  },
+  {
+    "name": "Таможенные пошлины и налоги на вывоз груза",
+    "rate": 2.3,
+    "incoterms": {
+      "buyer": ["EXW"],
+      "seller": ["FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+    }
+  },
+  {
+    "name": "Таможенные пошлины и налоги на ввоз груза",
+    "rate": 2.3,
+    "incoterms": {
+      "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP"],
+      "seller": ["DDP"]
+    }
+  }
+]

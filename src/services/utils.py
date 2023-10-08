@@ -1,60 +1,89 @@
 import random
 import string
+import json
+from bson import json_util, ObjectId
+
 from typing import Optional
 
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from transliterate import translit
+from db.mongo import get_db, Database
 
-from models import User, Student
+from db.mongo import CollectionNames
+
+# from models import User, Student
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-def search_users_with_group_id(db: Session, search: Optional[str], group_id: Optional[int]):
-    query = db.query(User)
-
+def search_users_with_group_id(
+    db: Database, search: Optional[str], group_id: Optional[str]
+):
+    filter = {}
     if search:
         names = search.split()
 
-        if names and len(names) < 3:
+        if len(names) == 1:
+            # Search by either first name or last name
+            filter = {
+                "$or": [
+                    {"first_name": {"$regex": names[0]}},
+                    {"last_name": {"$regex": names[0]}},
+                    {"surname": {"$regex": names[0]}},
+                ]
+            }
 
-            if len(names) == 1:
-                # Search by either first name or last name
-                query = query.filter(
-                    User.first_name.ilike(f'%{names[0]}%')
-                    | User.last_name.ilike(f'%{names[0]}%')
-                    | User.surname.ilike(f'%{names[0]}%')
-                )
+        elif len(names) == 2:
+            # Search by both first name and last name
+            filter = {
+                "$or": [
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[0]}},
+                            {"last_name": {"$regex": names[1]}},
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[1]}},
+                            {"last_name": {"$regex": names[0]}},
+                        ]
+                    },
+                ]
+            }
 
-            elif len(names) == 2:
-                # Search by both first name and last name
-                query = query.filter(
-                    (User.first_name.ilike(f'%{names[0]}%') & User.last_name.ilike(f'{names[1]}%'))
-                    | (User.first_name.ilike(f'%{names[1]}%') & User.last_name.ilike(f'{names[0]}%'))
-                )
-
-            elif len(names) == 3:
-                # Search by name, last name and surname
-                query = query.filter(
-                    (
-                        User.first_name.ilike(f'{names[0]}')
-                        & User.last_name.ilike(f'{names[1]}')
-                        & User.surname.ilike(f'{names[2]}%')
-                    )
-                    | (
-                        User.last_name.ilike(f'{names[0]}')
-                        & User.first_name.ilike(f'{names[1]}')
-                        & User.surname.ilike(f'{names[2]}%')
-                    )
-                )
+        elif len(names) == 3:
+            # Search by name, last name and surname
+            filter = {
+                "$or": [
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[0]}},
+                            {"last_name": {"$regex": names[1]}},
+                            {"surname": {"$regex": names[2]}},
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"last_name": {"$regex": names[0]}},
+                            {"first_name": {"$regex": names[1]}},
+                            {"surname": {"$regex": names[2]}},
+                        ]
+                    },
+                ]
+            }
 
     if group_id is not None:
-        # Filter by group ID
-        query = query.join(User.student)
-        query = query.filter(Student.group_id == group_id)
+        try:
+            filter["group_id"] = ObjectId(group_id)
+        except Exception as e:
+            raise Exception(f"Problem with group_id. {str(e)}")
 
-    return query.all()
+    print(f"\nfilter is {filter}\n")
+
+    return db[CollectionNames.USERS.value].find(filter)
+
 
 
 def hash(password: str):

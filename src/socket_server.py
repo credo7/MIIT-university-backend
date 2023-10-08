@@ -1,14 +1,15 @@
 import math
 import random
 from typing import Optional, Dict, Tuple, Union
+from bson import ObjectId
+from datetime import datetime
 
 import eventlet
 import socketio
-from sqlalchemy.orm import Session as DBSession
-from sqlalchemy.sql.expression import func
-from sqlalchemy import desc
+from pymongo.database import Database
+import pymongo
 
-import models
+from db.mongo import get_db, CollectionNames, get_mongo_client
 import schemas
 from core.config import settings
 from schemas import CheckpointData
@@ -17,18 +18,18 @@ from services.actions_logger import ActionsLogger
 
 
 class SocketServer:
-    def __init__(self, db_session: DBSession, logger: bool = False, cors_allowed_origins: Optional[str] = '*'):
+    def __init__(self, logger: bool = False, cors_allowed_origins: Optional[str] = '*'):
         self._sio = socketio.Server(cors_allowed_origins=cors_allowed_origins, logger=logger)
         self._app = socketio.WSGIApp(
             self._sio, static_files={'/': {'content_type': 'text/html', 'filename': 'index.html'}}
         )
         self._logger = ActionsLogger()
-        self._db_session = db_session
+        self._db: Database = get_db()
 
         self._connected_computers = {}
         self._session = {}
         self._computers_status = {}
-        self._events_session = None
+        self._events_session_id = None
 
         self._sio.on('connect', self._connect)
         self._sio.on('disconnect', self._disconnect)
@@ -37,10 +38,10 @@ class SocketServer:
         self._sio.on('raise_hand', self._raise_hand)
         self._sio.on('event_checkpoint', self._event_checkpoint)
         self._sio.on('logs', self._logs)
-        self._sio.on('join_to_session', self._join_to_session)
+        self._sio.on('join_to_session', self._join_to_event)
         self._sio.on('_get_connected_users_without_session', self._get_connected_users_without_session)
         self._sio.on('where_am_i', self._where_am_i)
-        self._sio.on('wait', self._wait)
+        # self._sio.on('wait', self._wait)
         self._sio.on('finish_current_session', self._finish_current_session)
 
     def run(self):
@@ -63,51 +64,54 @@ class SocketServer:
             self._sio.disconnect(sid)
 
     def _disconnect(self, sid):
-        try:
-            if sid not in self._session or 'ids' not in self._session[sid]:
-                self._sio.emit('logs', 'Client without session was disconnected')
-                return
+        # try:
+        if sid not in self._session or 'ids' not in self._session[sid]:
+            self._sio.emit('logs', 'Client without session was disconnected')
+            return
 
-            self._logger.log(
-                sio=self._sio,
-                endpoint='disconnect',
-                computer_id=self._session[sid]['computer_id'],
-                users_ids=self._session[sid]['ids'],
-            )
+        self._logger.log(
+            sio=self._sio,
+            endpoint='disconnect',
+            computer_id=self._session[sid]['computer_id'],
+            users_ids=self._session[sid]['ids'],
+        )
 
-            self.__remove_from_connected_computers(sid)
+        self.__remove_from_connected_computers(sid)
 
-            self._sio.emit('connected_computers', self._connected_computers)
-        except Exception as e:
-            self._sio.emit('errors', str(e))
-            self._sio.disconnect(sid)
+        self._sio.emit('connected_computers', self._connected_computers)
+        # except Exception as e:
+        #     self._sio.emit('errors', str(e))
+        #     self._sio.disconnect(sid)
 
     def _start_events(self, sid, computers):
-        try:
-            self.__raise_if_not_valid_input_start_events(sid, computers)
-            # TODO Добавить проверку, что прошлые events завершены, либо завершить их
-            self._events_session = self.__create_events_session()
+        # try:
+        self.__raise_if_not_valid_input_start_events(sid, computers)
+        # TODO Добавить проверку, что прошлые events завершены, либо завершить их
+        self._events_session_id = self.__create_events_session()
 
-            self._logger.log(
-                sio=self._sio,
-                endpoint='create_event',
-                computer_id=self._session[sid]['computer_id'],
-                users_ids=self._session[sid]['ids'],
-            )
+        self._logger.log(
+            sio=self._sio,
+            endpoint='create_event',
+            computer_id=self._session[sid]['computer_id'],
+            users_ids=self._session[sid]['ids'],
+        )
 
-            self.__create_and_emit_events(computers)
+        self.__create_and_emit_events(computers)
 
-            self.__update_computers_status(computers)
-        except Exception as e:
-            self._sio.emit('errors', str(e))
-            self._sio.disconnect(sid)
+        self.__update_computers_status(computers)
+        # except Exception as e:
+        #     self._sio.emit('errors', str(e))
+        #     self._sio.disconnect(sid)
 
     def _finish_current_session(self, sid, _msg):
-        if not self._events_session:
+        if not self._events_session_id:
             raise Exception("Current session was not found!")
 
         result = []
-        for event in self._events_session.event:
+        current_events = self._db[CollectionNames.EVENTS.value].find({
+            "session_id" : self._events_session_id
+        })
+        for event in current_events:
             users_results = self.__finish_event_and_emit_results(sid=sid, event_id=event.id)
             result.extend(users_results)
 
@@ -120,21 +124,21 @@ class SocketServer:
         self.__create_and_emit_events(computers)
         self.__update_computers_status(computers, is_joining=True)
 
-    def _wait(self, sid, message):
-        wait_reason = message.get('wait_reason', 'Причина не указана')
-        computers_ids = message.get('computers_ids', [])
-
-        self.__raise_if_not_valid_teacher(sid=sid, extra_text='_wait')
-        self.__raise_if_not_all_computers_connected(computers_ids=computers_ids)
-
-        for computer_id in computers_ids:
-            event_wait_point = models.EventWaitTimePoint(
-                event_id=self._computers_status[computer_id]['event_id'], type='START'
-            )
-            self._db_session.add(event_wait_point)
-            self._db_session.commit()
-
-            self._sio.emit(f'computer_{computer_id}_wait', {'type': 'start', 'wait_reason': wait_reason})
+    # def _wait(self, sid, message):
+    #     wait_reason = message.get('wait_reason', 'Причина не указана')
+    #     computers_ids = message.get('computers_ids', [])
+    #
+    #     self.__raise_if_not_valid_teacher(sid=sid, extra_text='_wait')
+    #     self.__raise_if_not_all_computers_connected(computers_ids=computers_ids)
+    #
+    #     for computer_id in computers_ids:
+    #         event_wait_point = models.EventWaitTimePoint(
+    #             event_id=self._computers_status[computer_id]['event_id'], type='START'
+    #         )
+    #         self._db_session.add(event_wait_point)
+    #         self._db_session.commit()
+    #
+    #         self._sio.emit(f'computer_{computer_id}_wait', {'type': 'start', 'wait_reason': wait_reason})
 
     def _where_am_i(self, sid, _msg):
         if 'computer_id' not in self._session[sid]:
@@ -159,8 +163,8 @@ class SocketServer:
 
     def _join_to_event(self, sid, join_info: schemas.JoinData):
         self.__raise_if_not_valid_input_join_to_session(sid, join_info.computer_id)
-        user = self._db_session.query(models.User).filter(models.User.id == join_info.user_id)
-        self._connected_computers[join_info.computer_id]['users'].append(user.serialize())
+        user = self._db[CollectionNames.USERS.value].find_one({"_id": ObjectId(join_info.user_id)})
+        self._connected_computers[join_info.computer_id]['users'].append(schemas.UserOut.mongo_to_json(user))
 
     def _raise_hand(self, sid, _):
         try:
@@ -196,59 +200,84 @@ class SocketServer:
     def _logs(self, _sid, message):
         self._sio.emit('logs', message)
 
-    def __check_if_computer_on_pause(self, computer_id: int):
-        event_id = self._computers_status[computer_id]['event_id']
+    # def __check_if_computer_on_pause(self, computer_id: int):
+    #     event_id = self._computers_status[computer_id]['event_id']
+    #
+    #     last_time_point = (
+    #         self._db_session.query(models.EventWaitTimePoint.event_id == event_id)
+    #         .order_by(desc(models.EventWaitTimePoint.created_at))
+    #         .one()
+    #     )
+    #
+    #     if not last_time_point or last_time_point.type == 'STOP':
+    #         return False
+    #
+    #     return True
 
-        last_time_point = (
-            self._db_session.query(models.EventWaitTimePoint.event_id == event_id)
-            .order_by(desc(models.EventWaitTimePoint.created_at))
-            .one()
-        )
+    # def __get_waited_time(self, event_id: int):
+    #     wait_time_points = self._db_session.query(models.EventWaitTimePoint).filter(models.Event.id == event_id)
+    #
+    #     total = None
+    #     curr_start_time = None
+    #
+    #     for point in wait_time_points:
+    #         if point.type == 'START':
+    #             curr_start_time = point.created_at
+    #         if point.type == 'STOP' and curr_start_time:
+    #             total += point.created_at - curr_start_time
+    #
+    #     return total
 
-        if not last_time_point or last_time_point.type == 'STOP':
-            return False
-
-        return True
-
-    def __get_waited_time(self, event_id: int):
-        wait_time_points = self._db_session.query(models.EventWaitTimePoint).filter(models.Event.id == event_id)
-
-        total = None
-        curr_start_time = None
-
-        for point in wait_time_points:
-            if point.type == 'START':
-                curr_start_time = point.created_at
-            if point.type == 'STOP' and curr_start_time:
-                total += point.created_at - curr_start_time
-
-        return total
+    def __create_events_session(self):
+        session_id = str(self._db[CollectionNames.EVENTS_SESSION.value].insert_one({
+            "created_at": datetime.now()
+        }).inserted_id)
+        return session_id
 
     def __finish_event_and_emit_results(self, sid, event_id):
         computer_id = self._session[sid]['computer_id']
         users_ids = self._session[sid]['ids']
-        event = self._db_session.query(models.Event).filter(models.Event.id == event_id).first()
-        event.is_finished = True
-        self._db_session.commit()
+        self._db[CollectionNames.EVENTS.value].update_one({
+            "_id": ObjectId(event_id)
+        }, {"$set":{"is_finished": True}})
+
         users_results = []
         for user_id in users_ids:
-            result = (
-                self._db_session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
-                .filter(models.EventCheckpoint.event_id == event_id, models.EventCheckpoint.user_id == user_id,)
-                .first()
-            )
+            checkpoints = self._db[CollectionNames.CHECKPOINTS.value].find_one({
+                "event_id": ObjectId(event_id),
+                "user_id": ObjectId(user_id)
+            })
+            result = {"points": 0, "fails": 0}
+            for checkpoint in checkpoints:
+                if checkpoint["points"]:
+                    result["points"] += checkpoint["points"]
+                if checkpoint["fails"]:
+                    result["fails"] += checkpoint["fails"]
 
-            user = self._db_session.query(models.User).filter(models.User.id == user_id).first()
+            event = self._db[CollectionNames.EVENTS.value].find_one({"_id"})
+
+            user_update_operation = {
+                "$inc":{
+                    "points": result["points"]
+                },
+                "$push":{
+                    "completed_pr1_variants" if event["type"] == 1 else "completed_pr2_variants": event["variant_id"]
+                },
+            }
+
+            user = self._db[CollectionNames.USERS.value].find_one_and_update({
+                "_id": ObjectId(user_id)
+            }, user_update_operation)
 
             users_results.append(
                 {
                     'id': user_id,
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'surname': user.surname,
-                    'group_name': user.student.group.name,
-                    'points': result[0],
-                    'fails': result[1],
+                    'first_name': user["first_name"],
+                    'last_name': user["last_name"],
+                    'surname': user["surname"],
+                    'group_name': user["group_name"],
+                    'points': result["points"],
+                    'fails': result["fails"],
                 }
             )
 
@@ -256,45 +285,36 @@ class SocketServer:
 
         return users_results
 
-    def __get_last_step_number(self, event_id: int):
-        pr_type = self.__get_pr_type_by_event_id(event_id)
-        if pr_type == 1:
-            return self._db_session.query(models.PracticeOneStep).count()
-        elif pr_type == 2:
-            return self._db_session.query(models.PracticeTwoStep).count()
-
-    def __get_previous_step_id(self, event_id: int):
-        step = (
-            self._db_session.query(models.EventCheckpoint)
-            .order_by(desc(models.EventCheckpoint.created_at))
-            .filter(models.EventCheckpoint.event_id == event_id)
-            .first()
-        )
-        return step.id if step else 0
-
-    def __get_pr_type_by_event_id(self, event_id: int):
-        event = self._db_session.query(models.Event).filter(models.Event.id == event_id).first()
-        return event.type if event else None
+    def __get_last_step_index(self, event_id: str):
+        event = self._db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+        if event["type"] == 1:
+            return self._db[CollectionNames.PR1_STEPS.value].count_documents({})
+        elif event["type"] == 2:
+            return self._db[CollectionNames.PR2_STEPS.value].count_documents({})
 
     def __create_checkpoint_to_db(self, event_id, user_id, step_id, points, fails):
-        checkpoint = models.EventCheckpoint(
-            event_id=event_id, user_id=user_id, step_id=step_id, points=points, fails=fails
-        )
-        self._db_session.add(checkpoint)
-        self._db_session.commit()
+        checkpoint = {
+            "event_id": event_id,
+            "user_id": user_id,
+            "step_id": step_id,
+            "points": points,
+            "fails": fails
+        }
+
+        self._db[CollectionNames.CHECKPOINTS.value].insert_one(checkpoint)
 
     def __create_users_checkpoints_finish_if_last(self, sid, checkpoint_data: schemas.CheckpointData):
         computer_id = self._session[sid]['computer_id']
         event_id = self._computers_status[computer_id]['event_id']
         curr_step = self.__get_step(event_id=event_id)
 
-        if checkpoint_data.step_id != curr_step.id:
-            raise Exception(f"Current step_id should be : {curr_step.id}, but you sent {checkpoint_data.step_id}")
+        if checkpoint_data.step_index != curr_step["index"]:
+            raise Exception(f"Current step_id should be : {curr_step['index']}, but you sent {checkpoint_data.step_index}")
 
         users_ids = self._session[sid]['ids']
-        last_step_id = self.__get_last_step_number(event_id)
+        last_step_index = self.__get_last_step_index(event_id)
 
-        if len(users_ids) == 1 or curr_step.role in ['ALL', 'BUYER']:
+        if len(users_ids) == 1 or curr_step["role"] in ['ALL', 'BUYER']:
             self.__create_checkpoint_to_db(
                 event_id=event_id,
                 user_id=users_ids[0],
@@ -312,8 +332,8 @@ class SocketServer:
                 fails=checkpoint_data.fails,
             )
 
-        if curr_step.id == last_step_id:
-            _ = self.__finish_event_and_emit_results(sid=sid, event_id=event_id)
+        if curr_step["index"] == last_step_index:
+            self.__finish_event_and_emit_results(sid=sid, event_id=event_id)
 
         self._computers_status[computer_id]['step_name'] = curr_step.name
         self._computers_status[computer_id]['step_id'] = curr_step.id
@@ -321,14 +341,15 @@ class SocketServer:
 
         return curr_step.id, curr_step.name, event_id
 
-    def __get_step(self, event_id: int):
-        event_type = self.__get_pr_type_by_event_id(event_id)
-        step_id = self.__get_previous_step_id(event_id) + 1
+    def __get_step(self, event_id: str):
+        event = self._db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+        checkpoint = self._db[CollectionNames.CHECKPOINTS.value].find_one({"event_id": ObjectId(event_id)}, sort=[("step_index", pymongo.DESCENDING)])
+        step_index = checkpoint["step_index"] + 1
 
-        if event_type == 1:
-            return self._db_session.query(models.PracticeOneStep).filter(models.PracticeOneStep.id == step_id)
-        if event_type == 2:
-            return self._db_session.query(models.PracticeTwoStep).filter(models.PracticeTwoStep.id == step_id)
+        if event["type"] == 1:
+            return self._db[CollectionNames.PR1_STEPS.value].find_one({"index": step_index})
+        if event["type"] == 2:
+            return self._db[CollectionNames.PR2_STEPS.value].find_one({"index": step_index})
 
     def __remove_from_connected_computers(self, sid):
         if 'is_teacher' not in self._session[sid]:
@@ -336,7 +357,7 @@ class SocketServer:
 
     def __validate_tokens_or_raise(
         self, sid, environ
-    ) -> Tuple[bool, Optional[int], Optional[models.User], Optional[models.User]]:
+    ) -> Tuple[bool, Optional[int], Optional[Dict], Optional[Dict]]:
         """Function checks if computer id is set, if user is Teacher, if tokens are valid or raise an Exception."""
 
         first_token = environ.get('HTTP_AUTHORIZATION')
@@ -349,7 +370,7 @@ class SocketServer:
         if not user:
             raise Exception("User wasn't found")
 
-        if not user.approved:
+        if not user["approved"]:
             raise Exception("User wasn't approved")
 
         computer_id = environ.get('HTTP_COMPUTER_ID')
@@ -358,9 +379,9 @@ class SocketServer:
 
         self._session.setdefault(sid, {})
 
-        if user.role == 'TEACHER':
+        if user["role"] == 'TEACHER':
             self._session[sid]['is_teacher'] = True
-            self._session[sid]['ids'] = [user.id]
+            self._session[sid]['ids'] = [user["_id"]]
             self._session[sid]['computer_id'] = computer_id
             return True, int(computer_id), user, None
 
@@ -375,24 +396,18 @@ class SocketServer:
         return False, int(computer_id), user, user2
 
     def __update_connected_computers_and_session(self, sid, user1, user2, computer_id: int):
-        self._connected_computers[computer_id] = [user1.serialize()]
-        user_ids = [user1.id]
-        user_usernames = [user1.username]
+        self._connected_computers[computer_id] = [user1]
+        user_ids = [user1["_id"]]
+        user_usernames = [user1["username"]]
 
         if user2:
-            self._connected_computers[computer_id].append(user2.serialize())
-            user_ids.append(user2.id)
-            user_usernames.append(user2.username)
+            self._connected_computers[computer_id].append(user2)
+            user_ids.append(user2["_id"])
+            user_usernames.append(user2["username"])
 
         self._session[sid]['ids'] = user_ids
         self._session[sid]['usernames'] = user_usernames
         self._session[sid]['computer_id'] = computer_id
-
-    def __create_events_session(self):
-        events_session = models.Session()
-        self._db_session.add(events_session)
-        self._db_session.commit()
-        return events_session
 
     def __update_computers_status(self, computers, is_joining: bool = False):
         # Если случай с опоздавшим, то оставляем все как есть
@@ -416,61 +431,72 @@ class SocketServer:
 
             self.__emit_computer_event(
                 computer=computer,
-                event_id=new_event.id,
-                variant=new_event.practice_one_variant if new_event.type == 1 else new_event.practice_two_variant,
+                event_id=new_event["_id"],
+                variant_id=new_event["variant_id"]
             )
 
-            computer['event_id'] = new_event.id
+            computer['event_id'] = new_event["_id"]
 
     def __create_event(self, sio, computer, users):
-        variant = self.__get_random_variant(type=computer['type'])
+        variant_id = self.__get_random_variant_id(type=computer['type'])
 
-        if not variant:
+        if not variant_id:
             sio.emit('errors', 'No random variant found')
             raise Exception('No random variant found')
 
-        new_event = models.Event(
-            session_id=self._events_session.id,
-            computer_id=computer['id'],
-            type=computer['type'],
-            mode=computer['mode'],
-            variant_one_id=variant.id if computer['type'] == 1 else None,
-            variant_two_id=variant.id if computer['type'] == 2 else None,
-            user_1_id=users[0]['id'],
-            user_2_id=users[1]['id'] if len(users) > 1 else None,
-        )
-        self._db_session.add(new_event)
-        self._db_session.commit()
-        return new_event
+        new_event = {
+            "session_id":self._events_session_id,
+            "computer_id":computer['id'],
+            "type":computer['type'],
+            "mode":computer['mode'],
+            "variant_id": variant_id,
+            "users_ids":[user['_id'] for user in users],
+        }
 
-    def __get_random_variant(self, type: int):
+        response = self._db[CollectionNames.EVENTS.value].insert_one(new_event)
+        return {**new_event, "_id": str(response.inserted_id)}
+
+    def __get_random_variant_id(self, type: int):
         if type == 1:
-            return self._db_session.query(models.PracticeOneVariant).order_by(func.random()).first()
-        if type == 2:
-            return self._db_session.query(models.PracticeTwoVariant).order_by(func.random()).first()
+            response = self._db[CollectionNames.PR1_VARIANTS.value].aggregate([{ '$sample': { 'size': 1 } }])
+        elif type == 2:
+            response = self._db[CollectionNames.PR2_VARIANTS.value].aggregate([{ '$sample': { 'size': 1 } }])
+        else:
+            raise Exception(f"Not correct variant type. {type}")
 
-    def __emit_computer_event(
-        self, computer, event_id, variant: Union[models.PracticeOneVariant, models.PracticeTwoVariant],
-    ):
+        variants = [variant for variant in response]
+
+        return str(variants[0]["_id"]) if variants else []
+
+    def __emit_computer_event(self, computer, event_id, variant_id):
+        variant = self._db[CollectionNames.PR1_VARIANTS.value].find_one({
+            "_id": ObjectId(variant_id)
+        })
+
         if computer['type'] == 1:
             all_bets = self.__get_all_bets()
             random_incoterms, incoterm_groups = self.__get_random_incoterm_groups()
 
-            bets = models.Bet.to_json_list(all_bets)
-
             buyer_tables = []
             seller_tables = []
-            for incoterms_group in incoterm_groups:
+            for i, incoterms_group in enumerate(incoterm_groups):
                 buyer_table = []
                 seller_table = []
-                for bet in bets:
+                for bet in all_bets:
                     buyer_dict = {}
                     seller_dict = {}
-                    for bet_inctoterm in bet['incoterms']:
-                        if bet_inctoterm['name'] in incoterms_group and bet_inctoterm['role'] != 'SELLER':
-                            buyer_dict[bet_inctoterm['name']] = bet['rate']
-                        if bet_inctoterm['name'] in incoterms_group and bet_inctoterm['role'] != 'BUYER':
-                            seller_dict[bet_inctoterm['name']] = bet['rate']
+
+                    buyer_incoterms = bet['incoterms']["buyer"]
+                    seller_incoterms = bet['incoterms']["seller"]
+
+                    for incoterm in buyer_incoterms:
+                        if incoterm in incoterms_group:
+                            buyer_dict[incoterm] = bet["rate"]
+
+                    for incoterm in seller_incoterms:
+                        if incoterm in incoterms_group:
+                            seller_dict[incoterm] = bet["rate"]
+
                     if buyer_dict:
                         buyer_table.append({'name': bet['name'], 'price': bet['rate'], **buyer_dict})
                     if seller_dict:
@@ -482,7 +508,7 @@ class SocketServer:
             seller_totals = []
 
             for i in range(len(buyer_tables)):
-                total = {incoterm: variant.product_price for incoterm in incoterm_groups[i]}
+                total = {incoterm: variant["product_price"] for incoterm in incoterm_groups[i]}
                 for bet in buyer_tables[i]:
                     for key, value in bet.items():
                         if key in total:
@@ -528,8 +554,8 @@ class SocketServer:
                     'computer_id': computer['id'],
                     'mode': computer['mode'],
                     'type': computer['type'],
-                    'legend': variant.legend,
-                    'product_price': variant.product_price,
+                    'legend': variant["legend"],
+                    'product_price': variant["product_price"],
                     'buyer_table_1': {'rows': buyer_tables[0], 'total': buyer_totals[0]},
                     'buyer_table_2': {'rows': buyer_tables[1], 'total': buyer_totals[1]},
                     'buyer_table_3': {'rows': buyer_tables[2], 'total': buyer_totals[2]},
@@ -552,9 +578,9 @@ class SocketServer:
                         'total': seller_totals[2],
                     },
                     'options': options,
-                    'test': variant.test.to_json(),
+                    'test': variant["test"],
                     'random_incoterms': random_incoterms,
-                    'all_bets': models.Bet.to_json_list(all_bets),
+                    'all_bets': all_bets,
                 },
             )
 
@@ -562,7 +588,7 @@ class SocketServer:
             self._sio.emit(
                 f'computer_{computer["id"]}_event',
                 self.__practice_two(
-                    variant=variant,
+                    variant_id=variant_id,
                     event_id=event_id,
                     computer_id=computer['id'],
                     event_mode=computer['mode'],
@@ -571,55 +597,75 @@ class SocketServer:
             )
 
     def __practice_two(
-        self, variant: models.PracticeTwoVariant, event_id: int, computer_id: int, event_mode, event_type: int
+        self, variant_id: str, event_id: int, computer_id: int, event_mode, event_type: int
     ):
-        bets = models.PracticeTwoVariantBet.to_json_list(variant.bets)
+        variant = self._db[CollectionNames.PR2_VARIANTS.value].find_one({"_id": ObjectId(variant_id)})
+        points_codes = []
 
-        unique_bets_by_to_and_from_fields = []
+        for route in variant["routes"]:
+            points_codes.extend([route["start_point_code"], route["transit_point_code"], route["end_point_code"]])
+        points_codes = list(set(points_codes))
+
+        points = self._db[CollectionNames.PR2_POINTS.value].find({
+            "code": {"$in" : points_codes}
+        })
+
+        point_code_point_mapping = {str(point["code"]): point for point in points}
+
+        for route in variant["routes"]:
+            route["start_point_country"] = point_code_point_mapping[route["start_point_code"]]["country"]
+            route["start_point_name"] = point_code_point_mapping[route["start_point_code"]]["name"]
+            route["transit_point_country"] = point_code_point_mapping[route["transit_point_code"]]["country"]
+            route["transit_point_name"] = point_code_point_mapping[route["transit_point_code"]]["name"]
+            route["end_point_country"] = point_code_point_mapping[route["end_point_code"]]["country"]
+            route["end_point_name"] = point_code_point_mapping[route["end_point_code"]]["name"]
+
+        unique_routes_by_to_and_from_fields = []
         unique_pairs = set()
 
-        for bet in bets:
-            pair = (bet['from'], bet['to'])
+        for route in variant["routes"]:
+            pair = (route['start_point_code'], route['end_point_code'])
             if pair not in unique_pairs:
                 unique_pairs.add(pair)
-                unique_bets_by_to_and_from_fields.append(bet)
+                unique_routes_by_to_and_from_fields.append(route)
 
         containers_two_description = '\n'.join(
-            [f'{bet["from"]} - {bet["to"]} {bet["tons"]} т/месяц' for bet in unique_bets_by_to_and_from_fields]
+            [f'{route["start_point_country"]} - {route["end_point_country"]} {route["tons"]} т/месяц' for route in unique_routes_by_to_and_from_fields]
         )
 
         containers_two_description = (
             f'На основании изучения рынка и заключённых договоров на поставку продукции '
-            f'сформированы {len(unique_bets_by_to_and_from_fields)} новых цепей поставок '
+            f'сформированы {len(unique_routes_by_to_and_from_fields)} новых цепей поставок '
             f'продукции ежемесячно при разных условиях Инкотермс:\n' + containers_two_description
         )
 
-        for bet in unique_bets_by_to_and_from_fields:
-            tons = bet['tons']
-            package_tons = variant.package_tons
-            bet['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
-            bet['route '] = f'{bet["from"]} - {bet["to"]}'
+        for route in unique_routes_by_to_and_from_fields:
+            tons = route['tons']
+            package_tons = variant["package_tons"]
+            route['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
+            route['route'] = f'{route["start_point_country"]} - {route["end_point_country"]}'
 
-        containers = models.Container.to_json_list(self._db_session.query(models.Container).all())
+        containers = self._db[CollectionNames.PR2_CONTAINERS.value].find()
 
         container_first_table = []
 
         for c in containers:
+            package_tons = variant["package_tons"]
+            size = c['size']
             length = c['length']
             width = c['width']
             height = c['height']
+            payload_capacity = c['payload_capacity']
             loading_volume = length * width * height
-            package_length = variant.package_length
-            package_width = variant.package_width
-            package_height = variant.package_height
+            package_length = variant["package_length"]
+            package_width = variant["package_width"]
+            package_height = variant["package_height"]
             transport_package_volume = package_length * package_width * package_height
             packages_in_container = math.ceil(
                 math.floor(length / package_length)
                 * math.floor(width / package_width)
                 * math.floor(height / package_height)
             )
-            size = c['size']
-            payload_capacity = c['payload_capacity']
 
             container_first_table.append(
                 {
@@ -632,128 +678,128 @@ class SocketServer:
                 }
             )
 
-            routes_table = [
-                {
-                    'route': f'{bet["from"]} - {bet["to"]}',
-                    'destination_route': f'{bet["from"]} - {bet["to"]} через {bet["through"]}',
-                    'full_route': ' - '.join(
-                        self._db_session.query(models.Point).filter(models.Point.id == point_id).first().name
-                        for point_id in bet['answer']
-                    ),
-                }
-                for bet in bets
+        routes_table = [
+            {
+                'route': f'{route["start_point_country"]} - {route["end_point_country"]}',
+                'destination_route': f'{route["start_point_country"]} - {route["end_point_country"]} через {route["transit_point_country"]}',
+                'full_route': ' - '.join(
+                    point_code_point_mapping[point_code]["name"]
+                    for point_code in route['right_path']
+                ),
+            }
+            for route in variant["routes"]
+        ]
+
+        bets_days_risks = []
+        countries_route_dict = {}
+
+        for route in variant["routes"]:
+            answer = route["right_path"]
+
+            days = 0
+
+            for i in range(len(answer) - 1):
+                route_info = self._db[CollectionNames.PR2_ROUTES.value].find_one({
+                    "from_point_code": answer[i],
+                    "to_point_code": answer[i+1]
+                })
+
+                days += route_info["days"]
+
+            third_party_bets = [
+                route.get('3PL1', None),
+                route.get('3PL2', None),
+                route.get('3PL3', None),
             ]
 
-            bets_days_risks = []
+            third_party_bets = [bet for bet in third_party_bets if bet]
 
-            for bet in bets:
-                answer: list = bet['answer']
+            points_types = {'ALL'}
+            for point_code in answer:
+                point = point_code_point_mapping[point_code]
+                points_types.add(point["type"])
 
-                days = 0
+            all_risks = self._db[CollectionNames.PR2_RISKS.value].find()
+            risks_answer = [risk['name'] for risk in all_risks if risk['type'] in points_types]
+            all_risks = [risk['name'] for risk in all_risks]
 
-                for i in range(len(answer) - 1):
-                    route = (
-                        self._db_session.query(models.Route)
-                        .filter(models.Route.from_point_id == answer[i], models.Route.to_point_id == answer[i + 1],)
-                        .first()
+            bets_days_risks.append(
+                {
+                    'full_route': ' - '.join(
+                        point_code_point_mapping[point_code]["name"]
+                        for point_code in route['right_path']
+                    ),
+                    'days': {'answer': days, 'all_options': self.__get_random_days_options(days)},
+                    'bets': {
+                        'answer': third_party_bets,
+                        'all_options': self.__get_random_bets_options(third_party_bets),
+                    },
+                    'risks': {'answer': risks_answer, 'all_options': all_risks},
+                }
+            )
+
+            route_number = 1
+            country_route_name_count = {}
+
+            for route in variant["routes"]:
+                route_name = f"{route['start_point_country']} - {route['end_point_country']}"
+                if route_name not in country_route_name_count:
+                    country_route_name_count[route_name] = [{}, {}, {}]
+
+                PL1, PL2, PL3 = route["bets"]
+                containers_num = math.ceil(route['tons'] / (40 * route['package_tons']))
+
+                PLS = []
+
+                if PL1:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL1',
+                            'bet': PL1,
+                            'amount': f'{PL1}*{containers_num}={PL1 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
                     )
-                    days += route.days
 
-                third_party_bets = [
-                    bet.get('3PL1', None),
-                    bet.get('3PL2', None),
-                    bet.get('3PL3', None),
-                ]
+                    route_number += 1
+                if PL2:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL2',
+                            'bet': PL2,
+                            'amount': f'{PL2}*{containers_num}={PL2 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
+                    )
 
-                third_party_bets = [bet for bet in third_party_bets if bet]
+                    route_number += 1
+                if PL3:
+                    PLS.append(
+                        {
+                            'full_route_name': '3PL3',
+                            'bet': PL3,
+                            'amount': f'{PL3}*{containers_num}={PL3 * containers_num}',
+                            'containers_num': containers_num,
+                            'route_number': route_number,
+                        }
+                    )
 
-                points_types = set(['ALL'])
-                for point_id in answer:
-                    point = self._db_session.query(models.Point).filter(models.Point.id == point_id).first()
-                    points_types.add(point.type)
+                    route_number += 1
 
-                all_risks = models.Risk.to_json_list(self._db_session.query(models.Risk).all())
-                risks_answer = [risk['name'] for risk in all_risks if risk['type'] in points_types]
-                all_risks = [risk['name'] for risk in all_risks]
-
-                bets_days_risks.append(
-                    {
-                        'full_route': ' - '.join(
-                            self._db_session.query(models.Point).filter(models.Point.id == point_id).first().name
-                            for point_id in bet['answer']
-                        ),
-                        'days': {'answer': days, 'all_options': self.__get_random_days_options(days)},
-                        'bets': {
-                            'answer': third_party_bets,
-                            'all_options': self.__get_random_bets_options(third_party_bets),
-                        },
-                        'risks': {'answer': risks_answer, 'all_options': all_risks},
-                    }
+                PLS[0]['full_route_name'] = (
+                    f"{route['start_point_country']} - {route['end_point_country']} через {route['transit_point_country']} " + PLS[0]['full_route_name']
                 )
 
-                countries_route_dict = {}
-                route_number = 1
-                country_route_name_count = {}
+                PLS = [PL for PL in PLS if PL]
 
-                for bet in bets:
-                    route_name = f"{bet['from']} - {bet['to']}"
-                    if route_name not in country_route_name_count:
-                        country_route_name_count[route_name] = [{}, {}, {}]
+                if route_name not in countries_route_dict:
+                    countries_route_dict[route_name] = PLS
+                else:
+                    countries_route_dict[route_name].extend(PLS)
 
-                    PL1, PL2, PL3 = bet['3PL1'], bet['3PL2'], bet['3PL3']
-                    containers_num = math.ceil(bet['tons'] / (40 * bet['package_tons']))
-
-                    PLS = []
-
-                    if PL1:
-                        PLS.append(
-                            {
-                                'full_route_name': '3PL1',
-                                'bet': PL1,
-                                'amount': f'{PL1}*{containers_num}={PL1 * containers_num}',
-                                'containers_num': containers_num,
-                                'route_number': route_number,
-                            }
-                        )
-
-                        route_number += 1
-                    if PL2:
-                        PLS.append(
-                            {
-                                'full_route_name': '3PL2',
-                                'bet': PL2,
-                                'amount': f'{PL2}*{containers_num}={PL2 * containers_num}',
-                                'containers_num': containers_num,
-                                'route_number': route_number,
-                            }
-                        )
-
-                        route_number += 1
-                    if PL3:
-                        PLS.append(
-                            {
-                                'full_route_name': '3PL3',
-                                'bet': PL3,
-                                'amount': f'{PL3}*{containers_num}={PL3 * containers_num}',
-                                'containers_num': containers_num,
-                                'route_number': route_number,
-                            }
-                        )
-
-                        route_number += 1
-
-                    PLS[0]['full_route_name'] = (
-                        f"{bet['from']} - {bet['to']} через {bet['through']} " + PLS[0]['full_route_name']
-                    )
-
-                    PLS = [PL for PL in PLS if PL]
-
-                    if route_name not in countries_route_dict:
-                        countries_route_dict[route_name] = PLS
-                    else:
-                        countries_route_dict[route_name].extend(PLS)
-
-            overall = self.__overall_calculations(bets_calculations=countries_route_dict)
+        overall = self.__overall_calculations(bets_calculations=countries_route_dict)
 
         return {
             'event_id': event_id,
@@ -761,9 +807,9 @@ class SocketServer:
             'mode': event_mode,
             'type': event_type,
             'legend': variant.legend,
-            'bets': bets,
+            'routes': variant["routes"],
             'containers_one': container_first_table,
-            'containers_two': {'description': containers_two_description, 'rows': unique_bets_by_to_and_from_fields,},
+            'containers_two': {'description': containers_two_description, 'rows': unique_routes_by_to_and_from_fields,},
             'routes_table': routes_table,
             'bets_days_risks': bets_days_risks,
             'bets_calculations': countries_route_dict,
@@ -860,14 +906,14 @@ class SocketServer:
     @staticmethod
     def __get_random_incoterm_groups():
         """Returns chosen incoterms and 3 incoterm groups divided by 3"""
-        incoterms = [incoterm.value for incoterm in random.sample(list(models.Incoterms), 9)]
-
+        all_incoterms = ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+        incoterms = random.sample(all_incoterms, 9)
         incoterm_groups = [incoterms[i : i + 3] for i in range(0, len(incoterms), 3)]
-
         return incoterms, incoterm_groups
 
     def __get_all_bets(self):
-        return self._db_session.query(models.Bet).all()
+        bets = self._db[CollectionNames.PR1_BETS.value].find()
+        return [{**bet, "_id": str(bet["_id"])} for bet in bets]
 
     def __raise_if_not_valid_input_start_events(self, sid, computers):
         self.__raise_if_not_valid_start_events_input(computers)

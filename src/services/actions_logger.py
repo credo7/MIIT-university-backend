@@ -1,8 +1,10 @@
 from typing import Optional, List
 import time
+from bson import ObjectId
+from datetime import datetime
 
-import models
-from db.postgres import session as db_session
+from db.mongo import get_db, CollectionNames
+import schemas
 
 
 class ActionsLogger:
@@ -10,46 +12,40 @@ class ActionsLogger:
         self._logs_to_db = logs_to_db
         self._emit_logs = emit_logs
         self._errors_emit_logs = errors_emit_logs
+        self._db = get_db()
 
     def log(
         self,
         sio,
         endpoint: str,
         computer_id: int,
-        users_ids: Optional[List[int]] = None,
-        users: Optional[List[models.User]] = None,
+        users_ids: Optional[List[str]] = None,
+        users: Optional[List] = None,
         logs_to_db: bool = True,
         emit_logs: bool = True,
     ):
         if not users:
+            users = []
             if not users_ids:
                 raise Exception('ActionLogger.create -> нет users_ids и users')
             else:
                 for user_id in users_ids:
-                    user = db_session.query(models.User).filter(models.User.id == user_id).first()
-                    users.append(user)
+                    user = self._db[CollectionNames.USERS.value].find_one({"_id": ObjectId(user_id)})
+                    users.append(schemas.UserOut.mongo_to_json(user))
 
         for user in users:
             if user is not None:
-                log_from_db = None
                 if logs_to_db and self._logs_to_db:
-                    log_from_db = self._add_log_to_db(endpoint=endpoint, computer_id=computer_id, user=user)
+                    log = {
+                        "user_id": str(user.get("_id")),
+                        "created_at": datetime.now(),
+                        "endpoint": endpoint,
+                        "computer_id": computer_id
+                    }
+                    self._db[CollectionNames.LOGS.value].insert_one(log)
 
                 if emit_logs and self._emit_logs:
-                    self._emit_log(
-                        sio=sio, endpoint=endpoint, log_from_db=log_from_db, computer_id=computer_id, user=user
+                    sio.emit(
+                        'logs',
+                        f"{user.get('username') if user else ''} | {endpoint} | 'computer_id':{computer_id} | {time.time()}",
                     )
-
-    @staticmethod
-    def _add_log_to_db(endpoint: str, computer_id: int, user: models.User = None) -> models.Log:
-        log = models.Log(user_id=user.id, endpoint=endpoint, computer_id=computer_id)
-        db_session.add(log)
-        db_session.commit()
-        return log
-
-    @staticmethod
-    def _emit_log(sio, endpoint: str, log_from_db: Optional[models.Log], computer_id: int, user: models.User = None):
-        sio.emit(
-            'logs',
-            f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log_from_db.created_at or time.time()}",
-        )

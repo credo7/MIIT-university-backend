@@ -1,0 +1,104 @@
+[
+  {
+    "index": 1,
+    "code": "BUYER_TABLE_1",
+    "name": "",
+    "role": "BUYER"
+  },
+  {
+    "index": 2,
+    "code": "SELLER_TABLE_1",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 3,
+    "code": "BUYER_TABLE_2",
+    "name": "BUYER",
+    "role": ""
+  },
+  {
+    "index": 4,
+    "code": "SELLER_TABLE_2",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 5,
+    "code": "BUYER_TABLE_3",
+    "name": "",
+    "role": "BUYER"
+  },
+  {
+    "index": 6,
+    "code": "SELLER_TABLE_3",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 7,
+    "code": "RIGHT_OPTION",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 8,
+    "code": "TESTS_1",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 9,
+    "code": "TESTS_2",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 10,
+    "code": "TESTS_3",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 11,
+    "code": "TESTS_4",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 12,
+    "code": "TESTS_5",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 13,
+    "code": "TESTS_6",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 14,
+    "code": "TESTS_7",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 15,
+    "code": "TESTS_8",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 16,
+    "code": "TESTS_9",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 17,
+    "code": "TESTS_10",
+    "name": "",
+    "role": "ALL"
+  }
+]

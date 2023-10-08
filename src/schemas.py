@@ -22,7 +22,7 @@ class UserCreateBody(UserBase):
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     password: constr(min_length=8, max_length=35)
     surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    group_id: int
+    group_name: str
 
 
 class UserCreate(UserBase):
@@ -30,8 +30,8 @@ class UserCreate(UserBase):
 
 
 class UserOut(UserBase):
-    id: int
-    # username: str
+    id: str
+    username: str
     first_name: str
     last_name: str
     surname: Optional[str]
@@ -39,10 +39,20 @@ class UserOut(UserBase):
     # updated_at: datetime
     approved: bool
     group_name: Optional[str] = None
-    group_id: Optional[int] = None
+    group_id: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    @staticmethod
+    def mongo_to_json(data: dict):
+        return {
+            "id": str(data.get("_id")),
+            "username": data.get("username"),
+            "first_name": data.get("first_name"),
+            "last_name": data.get("last_name"),
+            "surname": data.get("surname"),
+            "approved": data.get("approved"),
+            "group_name": data.get("group_name"),
+            "group_id": str(data.get("group_id"))
+        }
 
 
 class Token(BaseModel):
@@ -74,7 +84,7 @@ class GroupOut(GroupBase):
 
 
 class UserEdit(BaseModel):
-    id: int
+    id: str
     first_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
     last_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
     surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
@@ -86,28 +96,20 @@ class ResponseMessage(BaseModel):
     message: str
 
 
-class UserToApprove(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-    surname: Optional[str]
-    group_name: str
-
-
 class UserChangePassword(BaseModel):
     password: str
 
 
 class CheckpointData(BaseModel):
     # event_id: int
-    step_id: conint(ge=0)
+    step_index: conint(ge=0)
     points: conint(ge=0)
     fails: conint(ge=0)
 
 
 class JoinData(BaseModel):
     computer_id: conint(ge=0)
-    user_id: conint(ge=0)
+    user_id: str
 
 
 class EventMode(str, enum.Enum):
