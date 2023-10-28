@@ -1,6 +1,6 @@
 import math
 import random
-from typing import Optional, Dict, Tuple, Union
+from typing import Optional, Dict, Tuple, Union, List
 
 import eventlet
 import socketio
@@ -48,13 +48,13 @@ class SocketServer:
 
     def _connect(self, sid: str, environ: Dict):
         try:
-            is_teacher, computer_id, user1, user2 = self.__validate_tokens_or_raise(environ=environ, sid=sid)
+            is_teacher, computer_id, users = self.__validate_tokens_or_raise(environ=environ, sid=sid)
 
-            self._logger.log(sio=self._sio, users=[user1, user2], endpoint='connection', computer_id=computer_id)
+            self._logger.log(sio=self._sio, users=users, endpoint='connection', computer_id=computer_id)
 
             if not is_teacher:
                 self.__update_connected_computers_and_session(
-                    sid=sid, user1=user1, user2=user2, computer_id=computer_id,
+                    sid=sid, users=users, computer_id=computer_id,
                 )
 
             self._sio.emit('connected_computers', self._connected_computers)
@@ -336,9 +336,8 @@ class SocketServer:
 
     def __validate_tokens_or_raise(
         self, sid, environ
-    ) -> Tuple[bool, Optional[int], Optional[models.User], Optional[models.User]]:
+    ) -> Tuple[bool, Optional[int], List[models.User]]:
         """Function checks if computer id is set, if user is Teacher, if tokens are valid or raise an Exception."""
-
         first_token = environ.get('HTTP_AUTHORIZATION')
         second_token = environ.get('HTTP_AUTHORIZATION_TWO')
 
@@ -356,33 +355,34 @@ class SocketServer:
         if not computer_id:
             raise Exception("Computer id wasn't provided")
 
+        computer_id = int(computer_id)
         self._session.setdefault(sid, {})
 
         if user.role == 'TEACHER':
             self._session[sid]['is_teacher'] = True
             self._session[sid]['ids'] = [user.id]
             self._session[sid]['computer_id'] = computer_id
-            return True, int(computer_id), user, None
+            return True, computer_id, [user]
 
-        user2 = None
         if second_token:
             user2 = oauth2.get_current_user_socket(second_token)
             if not user2:
                 raise Exception('Second authorization token is not correct')
             if not user2.approved:
                 raise Exception("Second user wasn't approved")
+            return False, computer_id, [user, user2]
 
-        return False, int(computer_id), user, user2
+        return False, computer_id, [user]
 
-    def __update_connected_computers_and_session(self, sid, user1, user2, computer_id: int):
-        self._connected_computers[computer_id] = [user1.serialize()]
-        user_ids = [user1.id]
-        user_usernames = [user1.username]
+    def __update_connected_computers_and_session(self, sid, users: List[models.User], computer_id: int):
+        self._connected_computers[computer_id] = [users[0].serialize()]
+        user_ids = [users[0].id]
+        user_usernames = [users[0].username]
 
-        if user2:
-            self._connected_computers[computer_id].append(user2.serialize())
-            user_ids.append(user2.id)
-            user_usernames.append(user2.username)
+        if len(users) > 1:
+            self._connected_computers[computer_id].append(users[1].serialize())
+            user_ids.append(users[1].id)
+            user_usernames.append(users[1].username)
 
         self._session[sid]['ids'] = user_ids
         self._session[sid]['usernames'] = user_usernames
