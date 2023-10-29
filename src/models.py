@@ -353,15 +353,6 @@ class Session(Base):
     events = relationship('Event', back_populates='session')
 
 
-class EventWaitTimePoint(Base):
-    __tablename__ = 'wait_time_points'
-
-    id = Column(Integer, primary_key=True)
-    event_id = Column(Integer, ForeignKey('Event.id'), nullable=False)
-    type = Column(Enum(WaitTimePointType), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow())
-
-
 class Event(Base):
     __tablename__ = 'event'
 
@@ -380,7 +371,7 @@ class Event(Base):
     session = relationship('Session', back_populates='events')
     practice_one_variant = relationship(PracticeOneVariant)
     practice_two_variant = relationship(PracticeTwoVariant)
-    wait_time_points = relationship(EventWaitTimePoint)
+    wait_time_points = relationship('EventWaitTimePoint', back_populates='events')
 
     __table_args__ = (CheckConstraint('type >= 1 AND type <= 3', name='check_valid_values'),)
 
@@ -390,6 +381,17 @@ class Event(Base):
             return self.practice_one_variant
         if type == 2:
             return self.practice_two_variant
+
+
+class EventWaitTimePoint(Base):
+    __tablename__ = 'wait_time_points'
+
+    id = Column(Integer, primary_key=True)
+    event_id = Column(Integer, ForeignKey(Event.id), nullable=False)
+    type = Column(Enum(WaitTimePointType), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow())
+
+    events = relationship('Event', back_populates='wait_time_points')
 
 
 class PracticeOneStep(Base):

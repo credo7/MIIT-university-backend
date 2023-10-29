@@ -37,7 +37,7 @@ class SocketServer:
         self._sio.on('raise_hand', self._raise_hand)
         self._sio.on('event_checkpoint', self._event_checkpoint)
         self._sio.on('logs', self._logs)
-        self._sio.on('join_to_session', self._join_to_session)
+        # self._sio.on('join_to_session', self._join_to_session)
         self._sio.on('_get_connected_users_without_session', self._get_connected_users_without_session)
         self._sio.on('where_am_i', self._where_am_i)
         self._sio.on('wait', self._wait)
