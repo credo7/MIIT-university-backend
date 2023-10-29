@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 import schemas
 from db.postgres import get_db
-from models import Group, Student, User
+from models import Group, User
 from services import oauth2, utils
 
 router = APIRouter(tags=['Authentication'], prefix='/auth',)
@@ -41,8 +41,8 @@ def register(user: schemas.UserCreateBody, db: Session = Depends(get_db)):
         first_name=user.first_name,
         last_name=user.last_name,
         surname=user.surname,
-        student=Student(group_id=user.group_id),
         role=user.role,
+        group_id=group.id
     )
 
     db.add(new_user)

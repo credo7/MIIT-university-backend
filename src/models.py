@@ -57,8 +57,12 @@ class PointType(str, enum.Enum):
     COUNTRY = 'COUNTRY'
 
 
+def to_json_list(instances):
+    return [instance.to_json() for instance in instances]
+
+
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, nullable=False)
     username = Column(String, nullable=False, unique=True)
@@ -70,20 +74,12 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow())
     role = Column(Enum(UserRole), default=UserRole.STUDENT)
     approved = Column(Boolean, default=False)
+    group_id = Column(Integer, ForeignKey('group.id'))
 
-    student = relationship('Student', uselist=False, back_populates='user')
+    group = relationship('Group', back_populates='users')
     logs = relationship('Log', back_populates='user')
 
-    def serialize(self):
-        return {
-            'id': self.id,
-            'group_name': self.student.group.name,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'surname': self.surname,
-        }
-
-    def to_user_out(self):
+    def to_json(self):
         return {
             'id': self.id,
             'group_name': self.student.group.name,
@@ -96,7 +92,7 @@ class User(Base):
 
 
 class Risk(Base):
-    __tablename__ = 'risk'
+    __tablename__ = 'risks'
 
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
@@ -105,33 +101,18 @@ class Risk(Base):
     def to_json(self):
         return {'name': self.name, 'type': self.type}
 
-    @staticmethod
-    def to_json_list(risks):
-        return [risk.to_json() for risk in risks]
-
-
-class Student(Base):
-    __tablename__ = 'student'
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('user.id'), unique=True)
-    group_id = Column(Integer, ForeignKey('group.id'))
-
-    user = relationship('User', back_populates='student')
-    group = relationship('Group', back_populates='students')
-
 
 class Group(Base):
-    __tablename__ = 'group'
+    __tablename__ = 'groups'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
 
-    students = relationship('Student', back_populates='group')
+    users = relationship('User', back_populates='groups')
 
 
 class Log(Base):
-    __tablename__ = 'log'
+    __tablename__ = 'logs'
 
     id = Column(Integer, primary_key=True, index=True)
     endpoint = Column(String)
@@ -141,25 +122,21 @@ class Log(Base):
     created_at = Column(DateTime, default=datetime.utcnow())
     process_time = Column(Numeric(10, 5), nullable=True)
 
-    user = relationship('User', back_populates='logs', uselist=False)
+    user = relationship('User', back_populates='logs')
 
 
 class BetIncoterm(Base):
-    __tablename__ = 'bet_incoterm'
+    __tablename__ = 'bet_incoterms'
 
     id = Column(Integer, primary_key=True)
     name = Column(Enum(Incoterms), nullable=False)
     role = Column(Enum(BetRole), nullable=False)
     bet_id = Column(Integer, ForeignKey('bet.id'), nullable=False)
 
-    bet = relationship('Bet', back_populates='incoterms')
+    bet = relationship('Bet', back_populates='bet_incoterms')
 
     def to_json(self):
         return {'name': self.name, 'role': self.role}
-
-    @staticmethod
-    def to_json_list(incoterms):
-        return [incoterm.to_json() for incoterm in incoterms]
 
 
 class Bet(Base):
@@ -178,13 +155,9 @@ class Bet(Base):
             'incoterms': BetIncoterm.to_json_list(self.incoterms),
         }
 
-    @staticmethod
-    def to_json_list(bets):
-        return [bet.to_json() for bet in bets]
-
 
 class TestQuestion(Base):
-    __tablename__ = 'test_question'
+    __tablename__ = 'test_questions'
 
     id = Column(Integer, primary_key=True)
     test_id = Column(Integer, ForeignKey('test.id'), nullable=False)
@@ -204,10 +177,6 @@ class TestQuestion(Base):
             'wrong_option2': self.wrong_option2,
             'wrong_option3': self.wrong_option3,
         }
-
-    @staticmethod
-    def to_json_list(test_questions):
-        return [question.to_json() for question in test_questions]
 
 
 class Test(Base):
@@ -302,10 +271,6 @@ class PracticeTwoVariantBet(Base):
             'package_tons': self.variant.package_tons,
         }
 
-    @staticmethod
-    def to_json_list(rows):
-        return [row.to_json() for row in rows]
-
 
 class Container(Base):
     __tablename__ = 'container'
@@ -325,10 +290,6 @@ class Container(Base):
             'height': self.height,
             'payload_capacity': self.payload_capacity,
         }
-
-    @staticmethod
-    def to_json_list(containers):
-        return [container.to_json() for container in containers]
 
 
 class PracticeTwoVariant(Base):

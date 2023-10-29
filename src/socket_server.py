@@ -1,3 +1,4 @@
+import asyncio
 import math
 import random
 from typing import Optional, Dict, Tuple, Union, List
@@ -10,6 +11,7 @@ from sqlalchemy import desc
 
 import models
 import schemas
+from models import to_json_list
 from core.config import settings
 from schemas import CheckpointData
 from services import oauth2
@@ -18,8 +20,8 @@ from services.actions_logger import ActionsLogger
 
 class SocketServer:
     def __init__(self, db_session: DBSession, logger: bool = False, cors_allowed_origins: Optional[str] = '*'):
-        self._sio = socketio.Server(cors_allowed_origins=cors_allowed_origins, logger=logger)
-        self._app = socketio.WSGIApp(
+        self._sio = socketio.AsyncServer(cors_allowed_origins=cors_allowed_origins, logger=logger)
+        self._app = socketio.ASGIApp(
             self._sio, static_files={'/': {'content_type': 'text/html', 'filename': 'index.html'}}
         )
         self._logger = ActionsLogger()
@@ -44,7 +46,7 @@ class SocketServer:
         self._sio.on('finish_current_session', self._finish_current_session)
 
     def run(self):
-        eventlet.wsgi.server(eventlet.listen(('0.0.0.0', settings.socket_port)), self._app)
+        asyncio.run(eventlet.wsgi.server(eventlet.listen(('0.0.0.0', settings.socket_port)), self._app))
 
     def _connect(self, sid: str, environ: Dict):
         try:
@@ -456,7 +458,7 @@ class SocketServer:
             all_bets = self.__get_all_bets()
             random_incoterms, incoterm_groups = self.__get_random_incoterm_groups()
 
-            bets = models.Bet.to_json_list(all_bets)
+            bets = to_json_list(all_bets)
 
             buyer_tables = []
             seller_tables = []
@@ -554,7 +556,7 @@ class SocketServer:
                     'options': options,
                     'test': variant.test.to_json(),
                     'random_incoterms': random_incoterms,
-                    'all_bets': models.Bet.to_json_list(all_bets),
+                    'all_bets': to_json_list(all_bets),
                 },
             )
 
@@ -573,7 +575,7 @@ class SocketServer:
     def __practice_two(
         self, variant: models.PracticeTwoVariant, event_id: int, computer_id: int, event_mode, event_type: int
     ):
-        bets = models.PracticeTwoVariantBet.to_json_list(variant.bets)
+        bets = to_json_list(variant.bets)
 
         unique_bets_by_to_and_from_fields = []
         unique_pairs = set()
@@ -600,7 +602,7 @@ class SocketServer:
             bet['forty_containers_count'] = f'{tons}/(40*{package_tons})={int(tons / 40 * package_tons)}'
             bet['route '] = f'{bet["from"]} - {bet["to"]}'
 
-        containers = models.Container.to_json_list(self._db_session.query(models.Container).all())
+        containers = to_json_list(self._db_session.query(models.Container).all())
 
         container_first_table = []
 
@@ -672,7 +674,7 @@ class SocketServer:
                     point = self._db_session.query(models.Point).filter(models.Point.id == point_id).first()
                     points_types.add(point.type)
 
-                all_risks = models.Risk.to_json_list(self._db_session.query(models.Risk).all())
+                all_risks = to_json_list(self._db_session.query(models.Risk).all())
                 risks_answer = [risk['name'] for risk in all_risks if risk['type'] in points_types]
                 all_risks = [risk['name'] for risk in all_risks]
 

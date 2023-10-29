@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 import schemas
 from db.postgres import get_db
-from models import User, Student
+from models import User, to_json_list
 from services import oauth2, utils
 
 router = APIRouter(tags=['Users'], prefix='/users')
@@ -21,7 +21,7 @@ def get_users(
     try:
         found_users = utils.search_users_with_group_id(db=db, search=search, group_id=group_id)
 
-        return [user.to_user_out() for user in found_users]
+        return to_json_list(found_users)
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
