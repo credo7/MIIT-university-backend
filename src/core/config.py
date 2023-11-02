@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     telegram_chat_id: int
     pr1_last_step_number: int
     pr2_last_step_number: int
+    redis_url: str
 
     class Config:
         env_file = '.env'

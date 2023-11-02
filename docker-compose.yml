@@ -28,9 +28,9 @@ services:
     command: bash -c "sleep 7 && python3 src/wait_for_postgres.py && python3 src/main.py"
     depends_on:
       - db
-#
-#  redis:
-#    image: redis:latest
-#    expose:
-#      - "6379:6379"
-#    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    expose:
+      - "6379:6379"
+    restart: unless-stopped

@@ -94,6 +94,17 @@ class User(Base):
             'approved': self.approved,
         }
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'group_name': self.student.group.name,
+            'group_id': self.student.group.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'surname': self.surname,
+            'approved': self.approved,
+        }
+
 
 class Risk(Base):
     __tablename__ = 'risk'
@@ -239,9 +250,10 @@ class PracticeOneVariant(Base):
 class Point(Base):
     __tablename__ = 'point'
 
-    id = Column(Integer, primary_key=True)
-    type = Column(String, Enum(PointType), nullable=False)
+    id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
+    type = Column(String, Enum(PointType), nullable=False)
+    country = Column(String, nullable=False)
 
 
 class Route(Base):
@@ -258,46 +270,39 @@ class Route(Base):
         return f'from_point_id: {self.from_point_id}\nto_point_id: {self.to_point_id}\ndays: {self.days}'
 
 
-class Country(Base):
-    __tablename__ = 'country'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-
-
 class PracticeTwoVariantBet(Base):
     __tablename__ = 'practice_two_variant_bet'
 
     id = Column(Integer, primary_key=True)
     variant_id = Column(Integer, ForeignKey('practice_two_variant.id'))
-    from_country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
-    to_country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
+    from_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    to_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
     transit_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
-    start_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
-    end_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
     tons = Column(Integer, nullable=False)
     third_party_logistics_1 = Column(Integer, nullable=True)
     third_party_logistics_2 = Column(Integer, nullable=True)
     third_party_logistics_3 = Column(Integer, nullable=True)
     answer = Column(String, nullable=False)
 
-    from_country = relationship('Country', foreign_keys=[from_country_id])
-    to_country = relationship('Country', foreign_keys=[to_country_id])
+    from_point = relationship('Point', foreign_keys=[from_point_id])
+    to_point = relationship('Point', foreign_keys=[to_point_id])
     transit_point = relationship('Point', foreign_keys=[transit_point_id])
 
     variant = relationship('PracticeTwoVariant')
 
+    @property
+    def answer_array(self):
+        return json.loads(self.answer)
+
     def to_json(self):
         return {
-            'from': self.from_country.name,
-            'to': self.to_country.name,
-            'through': self.transit_point.name,
+            'from': self.from_point,
+            'to': self.to_point,
+            'through': self.transit_point,
             '3PL1': self.third_party_logistics_1,
             '3PL2': self.third_party_logistics_2,
             '3PL3': self.third_party_logistics_3,
             'tons': self.tons,
-            'start_point_id': self.start_point_id,
-            'end_point_id': self.end_point_id,
             'answer': json.loads(self.answer),
             'package_tons': self.variant.package_tons,
         }
@@ -377,9 +382,9 @@ class Event(Base):
 
     @property
     def variant(self):
-        if type == 1:
+        if self.type == 1:
             return self.practice_one_variant
-        if type == 2:
+        if self.type == 2:
             return self.practice_two_variant
 
 
