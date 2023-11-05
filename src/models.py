@@ -6,6 +6,7 @@ from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, Foreign
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Float, Numeric
 
+import schemas
 from db.postgres import Base, engine
 
 
@@ -68,11 +69,23 @@ class User(Base):
     surname = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow())
-    role = Column(Enum(UserRole), default=UserRole.STUDENT)
+    role = Column(String, default="STUDENT")
+    # role = Column(Enum(UserRole), default=UserRole.STUDENT)
     approved = Column(Boolean, default=False)
 
     student = relationship('Student', uselist=False, back_populates='user')
     logs = relationship('Log', back_populates='user')
+
+    def user_out(self):
+        schemas.UserOut(
+            id=self.id,
+            first_name=self.first_name,
+            last_name=self.last_name,
+            surname=self.surname,
+            approved=self.approved,
+            group_name=self.student.group.name,
+            group_id=self.student.group.id
+        )
 
     def serialize(self):
         return {
@@ -260,8 +273,8 @@ class Route(Base):
     __tablename__ = 'route'
 
     id = Column(Integer, primary_key=True)
-    from_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
-    to_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    from_point_id = Column(String, ForeignKey('point.id'), nullable=False)
+    to_point_id = Column(String, ForeignKey('point.id'), nullable=False)
     days = Column(Integer, nullable=False)
 
     __table_args__ = (UniqueConstraint('from_point_id', 'to_point_id'),)
@@ -275,9 +288,9 @@ class PracticeTwoVariantBet(Base):
 
     id = Column(Integer, primary_key=True)
     variant_id = Column(Integer, ForeignKey('practice_two_variant.id'))
-    from_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
-    to_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
-    transit_point_id = Column(Integer, ForeignKey('point.id'), nullable=False)
+    from_point_id = Column(String, ForeignKey('point.id'), nullable=False)
+    to_point_id = Column(String, ForeignKey('point.id'), nullable=False)
+    transit_point_id = Column(String, ForeignKey('point.id'), nullable=False)
     tons = Column(Integer, nullable=False)
     third_party_logistics_1 = Column(Integer, nullable=True)
     third_party_logistics_2 = Column(Integer, nullable=True)
@@ -349,20 +362,20 @@ class PracticeTwoVariant(Base):
     bets = relationship('PracticeTwoVariantBet', back_populates='variant')
 
 
-class Session(Base):
-    __tablename__ = 'session'
+class Lesson(Base):
+    __tablename__ = 'lesson'
 
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow())
 
-    events = relationship('Event', back_populates='session')
+    events = relationship('Event', back_populates='lesson')
 
 
 class Event(Base):
     __tablename__ = 'event'
 
     id = Column(Integer, primary_key=True)
-    session_id = Column(ForeignKey(Session.id), nullable=False)
+    lesson_id = Column(ForeignKey(Lesson.id), nullable=False)
     type = Column(Integer, nullable=False)
     mode = Column(Enum(EventMode), nullable=False)
     variant_one_id = Column(Integer, ForeignKey(PracticeOneVariant.id), nullable=True)
@@ -373,7 +386,7 @@ class Event(Base):
     is_finished = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow())
 
-    session = relationship('Session', back_populates='events')
+    lesson = relationship('Lesson', back_populates='events')
     practice_one_variant = relationship(PracticeOneVariant)
     practice_two_variant = relationship(PracticeTwoVariant)
     wait_time_points = relationship('EventWaitTimePoint', back_populates='events')

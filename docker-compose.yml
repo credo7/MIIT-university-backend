@@ -17,15 +17,26 @@ services:
     command: postgres -c stats_temp_directory=/tmp
 
   api:
-    build: .
+    build: ./
     ports:
       - "3001:3001"
-      - "3002:3002"
     restart: always
     container_name: api
     env_file:
       - .env
-    command: bash -c "sleep 7 && python3 src/wait_for_postgres.py && python3 src/main.py"
+    command: bash -c "python3 src/wait_for_postgres.py && cd src && uvicorn main:api_app --host 0.0.0.0 --workers 4 --port 3001"
+    depends_on:
+      - db
+
+  socket:
+    build: ./
+    ports:
+      - "3002:3002"
+    restart: always
+    container_name: socket
+    env_file:
+      - .env
+    command: bash -c "python3 src/wait_for_postgres.py && cd src && uvicorn main:socket_app --host 0.0.0.0 --port 3002"
     depends_on:
       - db
 

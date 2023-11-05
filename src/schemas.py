@@ -1,8 +1,40 @@
 import enum
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any, List
 
 from pydantic import BaseModel, constr, conint
+
+from strenum import StrEnum
+
+
+class WSCommandTypes(StrEnum):
+    SELECT_TYPE = 'SELECT_TYPE'
+    START = 'START'
+
+
+class EventType(enum.IntEnum):
+    PR1 = 1
+    PR2 = 2
+    CONTROL = 3
+
+
+class EventMode(StrEnum):
+    CLASS = "CLASS"
+    EXAM = "EXAM"
+    WORKOUT = "WORKOUT"
+
+
+class ConnectedComputer(BaseModel):
+    users_ids: List[int]
+    event_type: EventType
+    event_mode: EventMode
+    is_connected: bool
+    is_started: bool
+
+
+class WSMessage(BaseModel):
+    type: WSCommandTypes
+    payload: Any
 
 
 class UserRole(str, enum.Enum):
@@ -107,12 +139,6 @@ class CheckpointData(BaseModel):
 class JoinData(BaseModel):
     computer_id: conint(ge=0)
     user_id: conint(ge=0)
-
-
-class EventMode(str, enum.Enum):
-    CLASS = 'CLASS'
-    CONTROL = 'CONTROL'
-    WORKOUT = 'WORKOUT'
 
 
 class StartEventComputer(BaseModel):

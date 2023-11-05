@@ -11,7 +11,7 @@ class ActionsLogger:
         self._emit_logs = emit_logs
         self._errors_emit_logs = errors_emit_logs
 
-    def log(
+    async def log(
         self,
         sio,
         endpoint: str,
@@ -36,7 +36,7 @@ class ActionsLogger:
                     log_from_db = self._add_log_to_db(endpoint=endpoint, computer_id=computer_id, user=user)
 
                 if emit_logs and self._emit_logs:
-                    self._emit_log(
+                    await self._emit_log(
                         sio=sio, endpoint=endpoint, log_from_db=log_from_db, computer_id=computer_id, user=user
                     )
 
@@ -48,8 +48,8 @@ class ActionsLogger:
         return log
 
     @staticmethod
-    def _emit_log(sio, endpoint: str, log_from_db: Optional[models.Log], computer_id: int, user: models.User = None):
-        sio.emit(
+    async def _emit_log(sio, endpoint: str, log_from_db: Optional[models.Log], computer_id: int, user: models.User = None):
+        await sio.emit(
             'logs',
             f"{user.username} | {endpoint} | 'computer_id':{computer_id} | {log_from_db.created_at or time.time()}",
         )
