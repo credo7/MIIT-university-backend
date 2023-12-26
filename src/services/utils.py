@@ -1,60 +1,87 @@
+import copy
 import random
 import string
-from typing import Optional
+import json
+from bson import json_util, ObjectId
+from typing import Optional, List, Any, Union, Dict
 
-from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
 from passlib.context import CryptContext
 from transliterate import translit
 
-from models import User, Student
+from db.mongo import CollectionNames, Database, get_db
+from schemas import UserSearch
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
+db: Database = get_db()
 
-def search_users_with_group_id(db: Session, search: Optional[str], group_id: Optional[int]):
-    query = db.query(User)
 
-    if search:
-        names = search.split()
+def search_users_by_group(
+    user_search: UserSearch
+):
+    filter = {}
+    if user_search.search:
+        names = user_search.search.split()
 
-        if names and len(names) < 3:
+        if len(names) == 1:
+            # Search by either first name or last name
+            filter = {
+                "$or": [
+                    {"first_name": {"$regex": names[0]}},
+                    {"last_name": {"$regex": names[0]}},
+                    {"surname": {"$regex": names[0]}},
+                ]
+            }
 
-            if len(names) == 1:
-                # Search by either first name or last name
-                query = query.filter(
-                    User.first_name.ilike(f'%{names[0]}%')
-                    | User.last_name.ilike(f'%{names[0]}%')
-                    | User.surname.ilike(f'%{names[0]}%')
-                )
+        elif len(names) == 2:
+            # Search by both first name and last name
+            filter = {
+                "$or": [
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[0]}},
+                            {"last_name": {"$regex": names[1]}},
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[1]}},
+                            {"last_name": {"$regex": names[0]}},
+                        ]
+                    },
+                ]
+            }
 
-            elif len(names) == 2:
-                # Search by both first name and last name
-                query = query.filter(
-                    (User.first_name.ilike(f'%{names[0]}%') & User.last_name.ilike(f'{names[1]}%'))
-                    | (User.first_name.ilike(f'%{names[1]}%') & User.last_name.ilike(f'{names[0]}%'))
-                )
+        elif len(names) == 3:
+            # Search by name, last name and surname
+            filter = {
+                "$or": [
+                    {
+                        "$and": [
+                            {"first_name": {"$regex": names[0]}},
+                            {"last_name": {"$regex": names[1]}},
+                            {"surname": {"$regex": names[2]}},
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {"last_name": {"$regex": names[0]}},
+                            {"first_name": {"$regex": names[1]}},
+                            {"surname": {"$regex": names[2]}},
+                        ]
+                    },
+                ]
+            }
 
-            elif len(names) == 3:
-                # Search by name, last name and surname
-                query = query.filter(
-                    (
-                        User.first_name.ilike(f'{names[0]}')
-                        & User.last_name.ilike(f'{names[1]}')
-                        & User.surname.ilike(f'{names[2]}%')
-                    )
-                    | (
-                        User.last_name.ilike(f'{names[0]}')
-                        & User.first_name.ilike(f'{names[1]}')
-                        & User.surname.ilike(f'{names[2]}%')
-                    )
-                )
+    if user_search.group_id is not None:
+        filter["group_id"] = ObjectId(user_search.group_id)
 
-    if group_id is not None:
-        # Filter by group ID
-        query = query.join(User.student)
-        query = query.filter(Student.group_id == group_id)
+    if user_search.group_name is not None:
+        filter["group_name"] = user_search.group_name
 
-    return query.all()
+    return db[CollectionNames.USERS.value].find(filter)
+
 
 
 def hash(password: str):
@@ -105,3 +132,44 @@ def formatting_number(num):
         return f'{rounded_num:.1f}'
     else:
         return f'{rounded_num:.2f}'
+
+
+def change_mongo_instance(obj: Union[List, Dict], exclude: Optional[List[str]] = None):
+    def helper(dictionary: dict):
+        temp_dict = copy.copy(dictionary)
+        if "_id" in temp_dict:
+            temp_dict["id"] = temp_dict.pop("_id")
+        if isinstance(exclude, List):
+            for key in exclude:
+                if key in exclude:
+                    del temp_dict[key]
+        return temp_dict
+
+    if isinstance(obj, List):
+        return [helper(dic) for dic in obj]
+    else:
+        return helper(obj)
+
+
+async def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) -> Any:
+    if isinstance(db_obj, list):
+        pydantic_objects = [pydantic_schema(**obj, id=str(obj["_id"])) for obj in db_obj]
+        if return_dict:
+            return [py_obj.dict() for py_obj in pydantic_objects]
+        else:
+            return pydantic_objects
+    if isinstance(db_obj, dict):
+        pydantic_object = pydantic_schema(**db_obj, id=str(db_obj["_id"]))
+        if return_dict:
+            return pydantic_object.dict()
+        else:
+            return pydantic_object
+    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Некорректный обьект")
+
+
+async def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
+    if isinstance(obj, list):
+        return [str(inserted.inserted_id) for inserted in db[collection_name].insert_many(obj).inserted_ids]
+    else:
+        inserted = db[collection_name].insert_one(obj)
+        return str(inserted.inserted_id)

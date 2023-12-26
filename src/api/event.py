@@ -1,58 +1,49 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from typing import Union
+
+from fastapi import APIRouter
 
 import schemas
-import models
-from db.postgres import get_db
-from services.service_collector import ServiceCollector
+from schemas import PracticeOneVariant
+from db.mongo import get_db
 from services.event import EventService
-from db.shared_state import shared_state
+from db.state import state
 
 router = APIRouter(tags=['Events'], prefix='/events')
 
+event_service = EventService(state, db=get_db())
 
-@router.get('/current-variant/{computer_id}')
-async def get_current_variant(computer_id: int, db: Session = Depends(get_db)):
-    event_service = EventService(db)
-    event = await event_service.get_current_event_by_computer_id(computer_id, shared_state.lesson_id)
-    variant = await event_service.get_variant_by_event(event)
+
+@router.get('/current-variant/{computer_id}', response_model=Union[PracticeOneVariant])
+async def get_current_variant(computer_id: int):
+    variant = await event_service.get_current_event_by_computer_id(computer_id)
     return variant
 
 
 @router.post('/checkpoint')
-def create_checkpoint(checkpoint_dto: schemas.CheckpointData, db: Session = Depends(get_db)):
-    services = ServiceCollector(db)
+async def create_checkpoint(checkpoint_dto: schemas.CheckpointData):
+    event = await event_service.get_current_event_by_computer_id(checkpoint_dto.computer_id)
+    is_last_checkpoint = await event_service.is_last_checkpoint(event)
 
-    event: models.Event = services.event.get_current_event_by_computer_id(services, checkpoint_dto.computer_id)
-    is_last_checkpoint = services.event.is_last_checkpoint(event)
-
-    connected_computers = services.redis.get_connected_computers()
-    users_ids = connected_computers[event.computer_id]
-    users = services.user.get_users_by_ids(users_ids)
-    services.event.create_checkpoints(event, checkpoint_dto, users=users)
+    await event_service.create_checkpoint(event, checkpoint_dto)
 
     results = None
     if is_last_checkpoint:
-        services.event.finish(event)
-        results = services.event.get_results(event=event, users=users)
+        results = await event_service.finish_event(event, checkpoint_dto.computer_id)
 
-    current_step = services.event.get_current_step(event)
-    services.redis.update_progress(event.computer_id, current_step)
+    next_step = None
+    if not results:
+        next_step = await event_service.get_current_step(event)
 
-    return {"next_step": services.event.get_current_step(event, just_check=True)} if not results else results
+    return {"next_step": next_step.dict()} if not results else results
 
 
 @router.get('/current-step/{computer_id}')
-def get_current_step(computer_id: int, db: Session = Depends(get_db)):
-    services = ServiceCollector(db)
-    event: models.Event = services.event.get_current_event_by_computer_id(services, computer_id)
-    current_step = services.event.get_current_step(event)
+async def get_current_step(computer_id: int):
+    event = await event_service.get_current_event_by_computer_id(computer_id)
 
-    results = None
-    if current_step == "results":
-        connected_computers = services.redis.get_connected_computers()
-        users_ids = connected_computers[event.computer_id]
-        users = services.user.get_users_by_ids(users_ids)
-        results = services.event.get_results(event=event, users=users)
+    if event.is_finished:
+        return event.results
 
-    return current_step if not results else results
+    current_step = await event_service.get_current_step(event)
+
+    return current_step

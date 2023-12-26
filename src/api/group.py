@@ -1,33 +1,42 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, status, HTTPException
-from sqlalchemy.orm import Session
+from pymongo.database import Database
 
 import schemas
-from db.postgres import get_db
-from models import Group, User
+from db.mongo import CollectionNames, get_db
 from services import oauth2
+from services.utils import normalize_mongo
 
 router = APIRouter(tags=['Groups'], prefix='/groups')
 
 
 @router.post('/create', status_code=status.HTTP_201_CREATED, response_model=schemas.GroupOut)
-def create(
-    group: schemas.GroupCreate, current_user: User = Depends(oauth2.get_current_user), db: Session = Depends(get_db),
+async def create(
+        group_create: schemas.GroupCreate,
+        current_user: schemas.UserOut = Depends(oauth2.get_current_user),
+        db: Database = Depends(get_db),
 ):
     try:
-        oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
+        oauth2.is_teacher_or_error(user_id=current_user.id)
 
-        new_group = Group(**group.dict())
-        db.add(new_group)
-        db.commit()
-        db.refresh(new_group)
-        return new_group
+        candidate = db[CollectionNames.GROUPS.value].find_one({"name": group_create.name})
+
+        if candidate:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Группа с таким именем уже существует")
+
+        inserted_group = db[CollectionNames.GROUPS.value].insert_one(group_create.dict())
+
+        group_db = db[CollectionNames.GROUPS.value].find_one({"_id": inserted_group.inserted_id})
+        group = await normalize_mongo(group_db, schemas.GroupOut)
+
+        return group
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])
-def get_groups(db: Session = Depends(get_db)):
-    groups = db.query(Group).all()
+async def get_groups(db: Database = Depends(get_db)):
+    groups_db = db[CollectionNames.GROUPS.value].find()
+    groups = await normalize_mongo(groups_db, schemas.GroupOut)
     return groups

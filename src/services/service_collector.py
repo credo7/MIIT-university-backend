@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session as DBSession
 
-from services.event import EventService
+from services.event_old import EventService
 from services.redis2 import RedisService
 from services.user import UserService
 

@@ -1,10 +1,43 @@
 import enum
 from datetime import datetime
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Dict
+from bson import ObjectId
 
 from pydantic import BaseModel, constr, conint
+from pydantic.class_validators import validator
 
 from strenum import StrEnum
+
+
+# TODO: Think about it
+# class CustomBaseModel(BaseModel):
+#     class Config:
+#         json_encoders = {ObjectId: lambda x: str(x)}
+#         alias_generator = lambda string: string.replace("_id", "id")
+#
+#     @validator(pre=True, always=True)
+#     def parse_object_ids(cls, values):
+#         result = {}
+#         for field_name, value in values.items():
+#             if isinstance(value, str) and (field_name == "id" or field_name.endswith("_id")):
+#                 result[field_name] = ObjectId(value)
+#             else:
+#                 result[field_name] = value
+#         return result
+
+
+class Incoterm(StrEnum):
+    EXW = "EXW"
+    FCA = "FCA"
+    CPT = "CPT"
+    CIP = "CIP"
+    DAP = "DAP"
+    DPU = "DPU"
+    DDP = "DDP"
+    FAS = "FAS"
+    FOB = "FOB"
+    CFR = "CFR"
+    CIF = "CIF"
 
 
 class WSCommandTypes(StrEnum):
@@ -24,12 +57,34 @@ class EventMode(StrEnum):
     WORKOUT = "WORKOUT"
 
 
+class GeneralStep(BaseModel):
+    id: int
+    name: str
+
+
+class EventStatus(StrEnum):
+    NOT_STARTED = "NOT_STARTED"
+    STARTED = "STARTED"
+    FINISHED = "FINISHED"
+
+
 class ConnectedComputer(BaseModel):
-    users_ids: List[int]
+    id: int
+    users_ids: List[str]
     event_type: EventType
     event_mode: EventMode
     is_connected: bool
-    is_started: bool
+    status: EventStatus = EventStatus.NOT_STARTED.value
+
+
+class ConnectedComputerEdit(BaseModel):
+    id: int
+    users_ids: Optional[List[str]]
+    event_type: Optional[EventType]
+    event_mode: Optional[EventMode]
+    step: Optional[GeneralStep]
+    is_connected: Optional[bool]
+    status: Optional[EventStatus]
 
 
 class WSMessage(BaseModel):
@@ -42,11 +97,19 @@ class UserRole(str, enum.Enum):
     STUDENT = 'STUDENT'
 
 
+class Lesson(BaseModel):
+    id: Optional[str]
+    group_id: str
+    group_name: str
+    event_mode: Optional[EventMode]
+    event_type: Optional[EventType]
+    created_at: datetime = datetime.now()
+
+
 class UserBase(BaseModel):
     first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     surname: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    role: UserRole = UserRole.STUDENT
 
 
 class UserCreateBody(UserBase):
@@ -54,27 +117,53 @@ class UserCreateBody(UserBase):
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     password: constr(min_length=8, max_length=35)
     surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    group_id: int
+    group_id: str
 
 
-class UserCreate(UserBase):
-    password: constr(min_length=8, max_length=35)
+class UserEventHistory(BaseModel):
+    event_id: str
+    points: int
+    fails: int
+
+
+class UserCreateDB(UserCreateBody):
+    username: str
+    role: UserRole = UserRole.STUDENT
+    group_name: str
+    history: List[UserEventHistory] = []
+
+
+class FullUser(UserCreateDB):
+    id: str
+    approved: bool
 
 
 class UserOut(UserBase):
-    id: int
-    # username: str
+    id: str
     first_name: str
     last_name: str
     surname: Optional[str]
-    # created_at: datetime
-    # updated_at: datetime
     approved: bool
     group_name: Optional[str] = None
     group_id: Optional[int] = None
 
-    class Config:
-        orm_mode = True
+
+class UserEvent(BaseModel):
+    event_type: EventType
+    event_mode: EventMode
+    points: int
+    lesson_id: str
+    created_at: datetime = datetime.now()
+
+
+class UserOutWithEvents(UserOut):
+    events_history: Optional[List[UserEvent]] = []
+
+
+class UserSearch(BaseModel):
+    search: Optional[str]
+    group_id: Optional[str]
+    group_name: Optional[str]
 
 
 class Token(BaseModel):
@@ -82,8 +171,13 @@ class Token(BaseModel):
     token_type: str
 
 
-class RegistrationToken(Token):
+class RegistrationResponse(Token):
     username: str
+    user_info: UserOut
+
+
+class LoginResponse(Token):
+    user_info: UserOutWithEvents
 
 
 class TokenData(BaseModel):
@@ -101,16 +195,114 @@ class GroupCreate(GroupBase):
 class GroupOut(GroupBase):
     id: str
 
-    class Config:
-        orm_mode = True
+
+class PracticeOneBet(BaseModel):
+    name: str
+    rate: int
 
 
-class UserEdit(BaseModel):
+class EventCheckpoint(BaseModel):
+    step_id: int
+    user_ids: List[str]
+    points: int
+    fails: int
+
+
+class EventResult(UserBase):
+    group_name: str
+    username: str
+    fails: int
+    points: int
+
+
+class EventStepResult(BaseModel):
+    step_index: int
+    user_ids: List[str]
+    points: int
+    fails: int
+
+
+class EventInfo(BaseModel):
+    lesson_id: str
+    computer_id: int
+    is_finished: bool = False
+    event_type: EventType
+    event_mode: EventMode
+    created_at: datetime = datetime.now()
+    users_ids: List[str]
+    checkpoints: List[EventCheckpoint] = []
+    steps_results: List[EventStepResult]
+    results: List[EventResult]
+    step_index: int = 1
+
+
+class PracticeOneVariant(EventInfo):
+    legend: str
+    product: str
+    from_country: str
+    to_country: str
+    product_price: int
+    incoterms: List[Incoterm]
+    bets: List[PracticeOneBet]
+
+
+class QuestionOption(BaseModel):
+    value: str
+    is_correct: bool
+
+
+class TestQuestionPR1(BaseModel):
+    question: str
+    options: List[QuestionOption]
+
+
+class StepRole(StrEnum):
+    BUYER = "BUYER"
+    SELLER = "SELLER"
+    ALL = "ALL"
+
+
+class Step(BaseModel):
+    index: int
+    code: str
+    name: str
+    role: StepRole
+
+
+class BetInfoValuePR1(BaseModel):
+    min: int
+    max: int
+    step: int
+
+
+class BetInfoIncotermsRolePR1(BaseModel):
+    buyer: List[Incoterm]
+    seller: List[Incoterm]
+
+
+class BetInfoPR1(BaseModel):
+    name: str
+    value: BetInfoValuePR1
+    incoterms: BetInfoIncotermsRolePR1
+
+
+class PracticeOneInfo(BaseModel):
+    legend_pattern: str
+    all_incoterms: List[str]
+    steps: List[Step]
+    test_questions: List[TestQuestionPR1]
+    bets: List[BetInfoPR1]
+
+
+class UserCredentials(BaseModel):
+    username: str
+    password: str
+
+
+class UserUpdate(UserBase):
     id: int
-    first_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    last_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    group_id: Optional[int]
+    group_id: Optional[str]
+    group_name: Optional[str]
     username: Optional[str]
 
 

@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta
+from bson import ObjectId
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from pymongo.database import Database
 
 import schemas
 from core.config import settings
-from db.postgres import get_db
-from db.postgres import session as session_db
-from models import User, UserRole
+from db.mongo import get_db, CollectionNames
+from services.utils import change_mongo_instance, normalize_mongo
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
@@ -45,7 +45,9 @@ def verify_access_token(token: str, credentials_exception, raise_on_error=True):
     return token_data
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), raise_on_error=True, db: Session = Depends(get_db)):
+def get_current_user(
+        token: str = Depends(oauth2_scheme), raise_on_error=True, db: Database = Depends(get_db)
+) -> schemas.UserOut:
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -55,39 +57,29 @@ def get_current_user(token: str = Depends(oauth2_scheme), raise_on_error=True, d
 
     token = verify_access_token(token, credentials_exception, raise_on_error=raise_on_error)
 
-    user = db.query(User).filter(User.id == token.id).first()
+    # TODO: Check! Maybe token.user_id
+    user = db[CollectionNames.USERS.value].find_one({"_id": ObjectId(token.id)})
 
-    if not user:
-        raise HTTPException(credentials_exception)
-
-    return user
+    return normalize_mongo(user, schemas.UserOut)
 
 
-def is_teacher_or_error(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-
+def is_teacher_or_error(user_id: str, db: Database = Depends(get_db)):
+    user = db[CollectionNames.USERS.value].find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
-
-    if user.role != UserRole.TEACHER:
+    if user["role"] != schemas.UserRole.TEACHER:
         raise HTTPException(status_code=403, detail='Only teacher authorized to access this endpoint')
-
     return user
 
 
-def get_current_user_socket(token: str):
+def get_current_user_socket(token: str, db: Database = get_db()):
     user = None
-
     try:
         if 'Bearer' in token:
             token = token.split('Bearer ')[1]
         token = verify_access_token(token=token, credentials_exception=None, raise_on_error=False)
-
-        user = session_db.query(User).filter(User.id == token.id).first()
-
-        return user
-
+        user = db[CollectionNames.USERS.value].find_one({"_id": ObjectId(token.id)})
+        return {**user, "_id": str(user["_id"])}
     except:
         ...
-
     return user

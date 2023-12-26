@@ -1,0 +1,110 @@
+[
+  {
+    "code": "RUSSIA_TERMINAL_1",
+    "name": "Россия терминал 1",
+    "type": "TERMINAL",
+    "country": "Россия"
+  },
+  {
+    "code": "CHINA_TERMINAL_1",
+    "name": "Чунцин (Китай) терминал 1",
+    "type": "TERMINAL",
+    "country": "Китай"
+  },
+  {
+    "code": "RUSSIA_TERMINAL_2",
+    "name": "Россия терминал 2",
+    "type": "TERMINAL",
+    "country": "Россия"
+  },
+  {
+    "code": "MONGLIA_TERMINAL_1",
+    "name": "Монголия терминал 1",
+    "type": "TERMINAL",
+    "country": "Монголия"
+  },
+  {
+    "code": "KAZAKHSTAN_TERMINAL_1",
+    "name": "Казахстан терминал 1",
+    "type": "TERMINAL",
+    "country": "Казахстан"
+  },
+  {
+    "code": "RUSSIA_PORT_1",
+    "name": "Морской торговый порт России",
+    "type": "PORT",
+    "country": "Россия"
+  },
+  {
+    "code": "JAPAN_TERMINAL_1",
+    "name": "Йокогама (Япония)",
+    "type": "TERMINAL",
+    "country": "Япония"
+  },
+  {
+    "code": "GERMANY_TERMINAL_1",
+    "name": "Гамбург (Германия)",
+    "type": "TERMINAL",
+    "country": "Германия"
+  },
+  {
+    "code": "NETHERLANDS_TERMINAL_1",
+    "name": "Роттердам (Нидерланды)",
+    "type": "TERMINAL",
+    "country": "Нидерланды"
+  },
+  {
+    "code": "KOREA_TERMINAL_1",
+    "name": "Пусан (Корея)",
+    "type": "TERMINAL",
+    "country": "Корея"
+  },
+  {
+    "code": "POLAND_TERMINAL_1",
+    "name": "Варшава (Польша) терминал 1",
+    "type": "TERMINAL",
+    "country": "Польша"
+  },
+  {
+    "code": "CHZECH_TERMINAL_1",
+    "name": "Острава (Чехия)",
+    "type": "TERMINAL",
+    "country": "Чехия"
+  },
+  {
+    "code": "RUSSIA_TERMINAL_3",
+    "name": "Забайкальск (Россия)",
+    "type": "TERMINAL",
+    "country": "Россия"
+  },
+  {
+    "code": "BELORUS_TERMINAL_1",
+    "name": "Брест (Белоруссия)",
+    "type": "TERMINAL",
+    "country": "Белоруссия"
+  },
+  {
+    "code": "MONGLIA_TERMINAL_2",
+    "name": "Наушки (Монголия)",
+    "type": "TERMINAL",
+    "country": "Монголия"
+  },
+  {
+    "code": "KAZAKHSTAN_TERMINAL_2",
+    "name": "Достык (Казахстан)",
+    "type": "TERMINAL",
+    "country": "Казахстан"
+  },
+  {
+    "code": "RUSSIA_PORT_2",
+    "name": "Восточный (Россия)",
+    "type": "PORT",
+    "country": "Россия"
+  },
+  {
+    "code": "RUSSIA_PORT_3",
+    "name": "Владивосток (Россия)",
+    "type": "PORT",
+    "country": "Россия"
+  }
+]
