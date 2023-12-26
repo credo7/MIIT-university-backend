@@ -65,13 +65,16 @@ ws_handlers = {
 @router.websocket("/ws/{computer_id}")
 async def websocket_endpoint(websocket: WebSocket, computer_id: int):
     # TODO: token = websocket.headers.get("HTTP_AUTHORIZATION")
-    await connect_with_broadcast(websocket, computer_id)
-    while True:
-        try:
-            data = await websocket.receive_json()
-            message = WSMessage(**data)
-            await ws_handlers[message.type](computer_id, message.payload)
-        except WebSocketDisconnect:
-            await disconnect(computer_id, {"type": "ERROR", "payload": "Disconnected"})
-        except Exception as err:
-            await disconnect(computer_id, {"type": "ERROR", "payload": str(err)})
+    try:
+        await connect_with_broadcast(websocket, computer_id)
+        while True:
+            try:
+                data = await websocket.receive_json()
+                message = WSMessage(**data)
+                await ws_handlers[message.type](computer_id, message.payload)
+            except WebSocketDisconnect:
+                await disconnect(computer_id, {"type": "ERROR", "payload": "Disconnected"})
+            except Exception as err:
+                await disconnect(computer_id, {"type": "ERROR", "payload": str(err)})
+    except:
+        pass

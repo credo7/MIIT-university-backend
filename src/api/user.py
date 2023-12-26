@@ -145,17 +145,14 @@ async def change_password(
 
 @router.get('/{username}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def get_user(username: str, db: Database = Depends(get_db)):
-    try:
-        user_db = db[CollectionNames.USERS.value].find_one({
-            "username": username
-        })
+    user_db = db[CollectionNames.USERS.value].find_one({
+        "username": username
+    })
 
-        if not user_db:
-            raise HTTPException(status_code=404, detail='User not found')
+    if not user_db:
+        raise HTTPException(status_code=404, detail='User not found')
 
-        return normalize_mongo(user_db, schemas.UserOut, return_dict=True)
-    except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+    return normalize_mongo(user_db, schemas.UserOut, return_dict=True)
 
 
 @router.delete('/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)
@@ -165,12 +162,9 @@ async def delete_user(
         db: Database = Depends(get_db),
 ):
     oauth2.is_teacher_or_error(user_id=current_user.id, db=db)
-    try:
-        deleted = db[CollectionNames.USERS.value].delete_one({'_id': ObjectId(user_id)})
+    deleted = db[CollectionNames.USERS.value].delete_one({'_id': ObjectId(user_id)})
 
-        if deleted.deleted_count < 1:
-            raise HTTPException(status_code=404, detail='Пользователь не найден')
+    if deleted.deleted_count < 1:
+        raise HTTPException(status_code=404, detail='Пользователь не найден')
 
-        return {'message': 'Deleted'}
-    except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+    return {'message': 'Deleted'}

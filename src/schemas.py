@@ -127,6 +127,7 @@ class UserEventHistory(BaseModel):
 
 
 class UserCreateDB(UserCreateBody):
+    password: str
     username: str
     role: UserRole = UserRole.STUDENT
     group_name: str
@@ -143,9 +144,9 @@ class UserOut(UserBase):
     first_name: str
     last_name: str
     surname: Optional[str]
-    approved: bool
+    approved: bool = False
     group_name: Optional[str] = None
-    group_id: Optional[int] = None
+    group_id: Optional[str] = None
 
 
 class UserEvent(BaseModel):

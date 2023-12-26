@@ -1,3 +1,4 @@
+from functools import wraps
 from typing import List
 
 from fastapi import APIRouter, Depends, status, HTTPException
@@ -11,28 +12,38 @@ from services.utils import normalize_mongo
 router = APIRouter(tags=['Groups'], prefix='/groups')
 
 
+# def auth_required(func):
+#     @wraps(func)
+#     async def wrapper(*args, **kwargs):
+#         current_user: schemas.UserOut = kwargs.get("current_user")
+#         await oauth2.is_teacher_or_error(user_id="current_user.id")
+#         print(locals(), flush=True)
+#         raise HTTPException(501, "MINE")
+#         return await func(*args, **kwargs)
+#
+#     return wrapper
+
+
 @router.post('/create', status_code=status.HTTP_201_CREATED, response_model=schemas.GroupOut)
+# @auth_required
 async def create(
         group_create: schemas.GroupCreate,
-        current_user: schemas.UserOut = Depends(oauth2.get_current_user),
+        # current_user: schemas.UserOut = Depends(oauth2.get_current_user),
         db: Database = Depends(get_db),
 ):
-    try:
-        oauth2.is_teacher_or_error(user_id=current_user.id)
+    # oauth2.is_teacher_or_error(user_id=current_user.id)
 
-        candidate = db[CollectionNames.GROUPS.value].find_one({"name": group_create.name})
+    candidate = db[CollectionNames.GROUPS.value].find_one({"name": group_create.name})
 
-        if candidate:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Группа с таким именем уже существует")
+    if candidate:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Группа с таким именем уже существует")
 
-        inserted_group = db[CollectionNames.GROUPS.value].insert_one(group_create.dict())
+    inserted_group = db[CollectionNames.GROUPS.value].insert_one(group_create.dict())
 
-        group_db = db[CollectionNames.GROUPS.value].find_one({"_id": inserted_group.inserted_id})
-        group = await normalize_mongo(group_db, schemas.GroupOut)
+    group_db = db[CollectionNames.GROUPS.value].find_one({"_id": inserted_group.inserted_id})
+    group = await normalize_mongo(group_db, schemas.GroupOut)
 
-        return group
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+    return group
 
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])

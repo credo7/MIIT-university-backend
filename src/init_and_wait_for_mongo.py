@@ -34,15 +34,15 @@ def get_database(retry_interval: int = 5, max_retries: int = 100):
 if __name__ == "__main__":
     db = get_database()
 
-    exist_collections = db.list_collection_names()
-
-    for collection, file_path in files_to_init_map.items():
-        if collection in exist_collections:
-            continue
-        with open(f"data_files/{file_path}", 'r') as file:
-            data = json.load(file)
-            if isinstance(data, List):
-                db[collection].insert_many(data)
-            else:
-                db[collection].insert_one(data)
+    # exist_collections = db.list_collection_names()
+    #
+    # for collection, file_path in files_to_init_map.items():
+    #     if collection in exist_collections:
+    #         continue
+    #     with open(f"../data_files/{file_path}", 'r') as file:
+    #         data = json.load(file)
+    #         if isinstance(data, List):
+    #             db[collection].insert_many(data)
+    #         else:
+    #             db[collection].insert_one(data)
 

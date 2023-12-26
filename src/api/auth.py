@@ -9,7 +9,7 @@ from db.mongo import get_db, CollectionNames
 from services import oauth2, utils
 from services.utils import normalize_mongo
 
-router = APIRouter(tags=['Authentication'], prefix='/auth',)
+router = APIRouter(tags=['Authentication'], prefix='/auth')
 
 
 @router.post('/register', status_code=status.HTTP_201_CREATED, response_model=schemas.RegistrationResponse)
@@ -26,7 +26,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
     hashed_password = utils.hash(user_dto.password)
 
     username = utils.create_username(
-        first_name=user_dto.first_name, last_name=user_dto.last_name, surname=user_dto.surname, group_name=group.name,
+        first_name=user_dto.first_name, last_name=user_dto.last_name, surname=user_dto.surname, group_name=group["name"],
     )
 
     candidate = db[CollectionNames.USERS.value].find_one({
@@ -49,7 +49,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
     )
 
     inserted_user = db[CollectionNames.USERS.value].insert_one(new_user.dict())
-    user_db = db[CollectionNames.USERS.value].find_one({'_id': str(inserted_user.inserted_id)})
+    user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(inserted_user.inserted_id)})
     user = await normalize_mongo(user_db, schemas.UserOut)
 
     access_token = oauth2.create_access_token(data={'user_id': str(inserted_user.inserted_id)})
@@ -68,7 +68,7 @@ async def login(
     if not user_db:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Username not found')
 
-    if not utils.verify(user_credentials.password, user_db.password):
+    if not utils.verify(user_credentials.password, user_db["password"]):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')
 
     user: schemas.UserOutWithEvents = await normalize_mongo(user_db, schemas.UserOutWithEvents)

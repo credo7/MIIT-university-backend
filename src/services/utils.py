@@ -164,7 +164,7 @@ async def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) ->
             return pydantic_object.dict()
         else:
             return pydantic_object
-    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Некорректный обьект")
+    raise Exception(f"Некорректный обьект в normilize_mongo. db_obj={db_obj}")
 
 
 async def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:

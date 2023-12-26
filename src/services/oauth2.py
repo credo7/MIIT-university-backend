@@ -63,7 +63,7 @@ def get_current_user(
     return normalize_mongo(user, schemas.UserOut)
 
 
-def is_teacher_or_error(user_id: str, db: Database = Depends(get_db)):
+async def is_teacher_or_error(user_id: str, db: Database = Depends(get_db)):
     user = db[CollectionNames.USERS.value].find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
@@ -72,7 +72,7 @@ def is_teacher_or_error(user_id: str, db: Database = Depends(get_db)):
     return user
 
 
-def get_current_user_socket(token: str, db: Database = get_db()):
+async def get_current_user_socket(token: str, db: Database = get_db()):
     user = None
     try:
         if 'Bearer' in token:
