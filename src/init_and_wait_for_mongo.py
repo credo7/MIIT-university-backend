@@ -2,11 +2,13 @@ import json, time
 from typing import List
 
 from pymongo import MongoClient
+from pymongo.database import Database
 
 from core.config import settings
+from db.mongo import CollectionNames
 
 files_to_init_map = {
-    "practice_one": "practice_one_info.json",
+    # 'practice_one': 'practice_one_info.json',
     # "practice_one.steps": "practice_one_steps.json",
     # "practice_one.variants": "practice_one_variants.json",
     # "practice_two.containers": "practice_two_containers.json",
@@ -18,7 +20,7 @@ files_to_init_map = {
 }
 
 
-def get_database(retry_interval: int = 5, max_retries: int = 100):
+def get_database(retry_interval: int = 5, max_retries: int = 100) -> Database:
     retries = 0
     while True:
         try:
@@ -31,8 +33,14 @@ def get_database(retry_interval: int = 5, max_retries: int = 100):
             time.sleep(retry_interval)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     db = get_database()
+
+    try:
+        db[CollectionNames.EVENTS.value].create_index([('computer_id', 1), ('lesson_id', 1)], unique=True)
+    except:
+        # already exists
+        pass
 
     # exist_collections = db.list_collection_names()
     #
@@ -45,4 +53,3 @@ if __name__ == "__main__":
     #             db[collection].insert_many(data)
     #         else:
     #             db[collection].insert_one(data)
-

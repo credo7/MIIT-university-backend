@@ -2,7 +2,17 @@ import enum
 import json
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Float, Numeric
 
@@ -69,7 +79,7 @@ class User(Base):
     surname = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow())
     updated_at = Column(DateTime, default=datetime.utcnow())
-    role = Column(String, default="STUDENT")
+    role = Column(String, default='STUDENT')
     # role = Column(Enum(UserRole), default=UserRole.STUDENT)
     approved = Column(Boolean, default=False)
 
@@ -84,7 +94,7 @@ class User(Base):
             surname=self.surname,
             approved=self.approved,
             group_name=self.student.group.name,
-            group_id=self.student.group.id
+            group_id=self.student.group.id,
         )
 
     def serialize(self):

@@ -1,80 +1,67 @@
-from typing import Dict, Any, List, Optional
+import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from handlers.actualize_computer_state import actualize_computer_state
+from handlers.raise_hand import RaiseHand
 from handlers.start_events import StartEvents
-from schemas import WSMessage, WSCommandTypes, ConnectedComputer, ConnectedComputerEdit
-from services.connection_manager import ConnectionManager
+from schemas import (
+    WSMessage,
+    WSCommandTypes,
+)
 from db.mongo import Database, get_db
 from db.state import state
+from services.event import EventService
+from services.oauth2 import extract_ws_info
+from services.ws import connect_with_broadcast, disconnect, broadcast_connected_computers
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=['ws'], prefix='')
-
-manager = ConnectionManager()
 
 db: Database = get_db()
 
 
-async def broadcast_connected_computers():
-    connected_computers = await state.get_connected_computers()
-    dict_connected_computers = [{key: v.dict()} for key, v in connected_computers.items()]
-    await manager.broadcast(dict_connected_computers)
-
-
-async def disconnect(computer_id: int, error: Optional[Dict] = None):
-    await update_computer_status(computer_id, False)
-    await broadcast_connected_computers()
-    if error is not None:
-        await manager.broadcast(error)
-
-
-async def raise_if_users_connected(users_ids: List[str]):
-    """Проверяем студентов на уникальность, может он уже подключен к другому компьютеру"""
-    connected_computers = await state.get_connected_computers()
-    for computer_id, connected_computer in connected_computers.items():
-        for user_id in users_ids:
-            if user_id in connected_computer.users_ids:
-                raise Exception(f"Студент с user_id {user_id} уже подключен за компьтер с номером {computer_id}")
-
-
-async def actualize_computer_state(computer_id: int, payload: Any):
-    connected_computer = ConnectedComputer(**payload, computer_id=computer_id, is_connected=True, is_started=False)
-    await raise_if_users_connected(connected_computer.users_ids)
-    state.add_connected_computer(connected_computer)
-    await broadcast_connected_computers()
-
-
-async def update_computer_status(computer_id: int, is_connected: bool = True):
-    # Если компьютер уже был подключен, то активируем статус коннектед и броадкастим и наоборот
-    await state.edit_connected_computer(ConnectedComputerEdit(id=computer_id, is_connected=is_connected))
-    await broadcast_connected_computers()
-
-
-async def connect_with_broadcast(websocket: WebSocket, computer_id: int):
-    await manager.connect(websocket)
-    await update_computer_status(computer_id)
-
-
 ws_handlers = {
     WSCommandTypes.SELECT_TYPE: actualize_computer_state,
-    WSCommandTypes.START: StartEvents(state, manager, db).run
+    WSCommandTypes.START: StartEvents(state, state.manager, db).run,
+    WSCommandTypes.FINISH: EventService(state, db).finish_current_lesson,
+    WSCommandTypes.RAISE_HAND: RaiseHand(state, db).run,
+    WSCommandTypes.EXIT: state.users_exit,
 }
 
 
-@router.websocket("/ws/{computer_id}")
-async def websocket_endpoint(websocket: WebSocket, computer_id: int):
-    # TODO: token = websocket.headers.get("HTTP_AUTHORIZATION")
+@router.websocket('/ws/{computer_id}')
+async def websocket_endpoint(ws: WebSocket, computer_id: int):
+    is_teacher, users = False, []
     try:
-        await connect_with_broadcast(websocket, computer_id)
-        while True:
-            try:
-                data = await websocket.receive_json()
-                message = WSMessage(**data)
-                await ws_handlers[message.type](computer_id, message.payload)
-            except WebSocketDisconnect:
-                await disconnect(computer_id, {"type": "ERROR", "payload": "Disconnected"})
-            except Exception as err:
-                await disconnect(computer_id, {"type": "ERROR", "payload": str(err)})
-    except:
+        is_teacher, users = await extract_ws_info(ws.headers)
+        await connect_with_broadcast(ws, users, computer_id, is_teacher)
+        await handle_websocket_messages(ws, users, computer_id, is_teacher)
+    except WebSocketDisconnect as exc:
         pass
+    except Exception as exc:
+        logger.error(f'Error {str(exc)} Traceback: {exc}', exc_info=True)
+        await state.manager.safe_broadcast({'error': str(exc)})
+    finally:
+        await disconnect(ws, computer_id, is_teacher, [user.id for user in users])
+        await broadcast_connected_computers()
+
+
+async def handle_websocket_messages(ws, users, computer_id, is_teacher):
+    while True:
+        message = None
+        try:
+            data = await ws.receive_json()
+            message = WSMessage(**data)
+            await ws_handlers[message.type](
+                computer_id=computer_id, payload=message.payload, is_teacher=is_teacher, ws=ws
+            )
+            logger.info(f'ws|cid:{computer_id}|uids:{[user.id for user in users]}|type:{message.type}|succesfully')
+        except WebSocketDisconnect:
+            raise WebSocketDisconnect
+        except Exception as exc:
+            logger.error(
+                f'ws|cid:{computer_id}|uids:{[user.id for user in users]}|type:{message.type}|err={str(exc)}',
+                exc_info=True,
+            )

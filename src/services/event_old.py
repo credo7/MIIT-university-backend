@@ -26,40 +26,46 @@ class EventService:
         is_last_step = self.is_last_checkpoint(event, just_check=True)
 
         if not just_check and is_last_step:
-            return "results"
+            return 'results'
 
         curr_step_id = self.get_last_step_id(event) + 1
 
-        curr_step = self._db_session.query(models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep).filter(
-            (models.PracticeOneStep.id if event.type == 1 else models.PracticeTwoStep.id) == curr_step_id
-        ).first()
+        curr_step = (
+            self._db_session.query(models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep)
+            .filter((models.PracticeOneStep.id if event.type == 1 else models.PracticeTwoStep.id) == curr_step_id)
+            .first()
+        )
 
         if not curr_step:
-            raise Exception("Not curr_step found")
+            raise Exception('Not curr_step found')
 
-        return {"index": curr_step.id, "step_name": curr_step.name}
+        return {'index': curr_step.id, 'step_name': curr_step.name}
 
     def get_results(self, event: models.Event, users: List[models.User]):
-        max_step_id = self._db_session.query(models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep).count()
+        max_step_id = self._db_session.query(
+            models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep
+        ).count()
         results = []
         for user in users:
             result = (
-                self._db_session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails))
+                self._db_session.query(func.sum(models.EventCheckpoint.points), func.sum(models.EventCheckpoint.fails),)
                 .filter(models.EventCheckpoint.event_id == event.id, models.EventCheckpoint.user_id == user.id,)
                 .first()
             )
-            results.append({**user.to_json(), "points": result[0], "fails": result[1], "steps": max_step_id})
+            results.append(
+                {**user.to_json(), 'points': result[0], 'fails': result[1], 'steps': max_step_id,}
+            )
         return results
 
     def create_checkpoints(
-            self, event: models.Event, checkpoint_dto: schemas.CheckpointData, users: List[models.User]
+        self, event: models.Event, checkpoint_dto: schemas.CheckpointData, users: List[models.User],
     ):
         step_id = self.get_last_step_id(event) + 1
         # В ПР1 могут балы получают по ролям, в пр2 одинаково
         if event.type == 1 and len(users) > 1:
-            if self._practice_one_steps_mapping[step_id].role == "BUYER":
+            if self._practice_one_steps_mapping[step_id].role == 'BUYER':
                 users = users[0]
-            elif self._practice_one_steps_mapping[step_id].role == "seller":
+            elif self._practice_one_steps_mapping[step_id].role == 'seller':
                 users = users[1]
         for user in users:
             checkpoint = models.EventCheckpoint(
@@ -68,7 +74,7 @@ class EventService:
                 pr1_step_id=step_id if event.type == 1 else None,
                 pr2_step_id=step_id if event == 2 else None,
                 points=checkpoint_dto.points,
-                fails=checkpoint_dto.fails
+                fails=checkpoint_dto.fails,
             )
             self._db_session.add(checkpoint)
             self._db_session.commit()
@@ -81,13 +87,15 @@ class EventService:
         return step_id or 1
 
     def is_last_checkpoint(self, event: models.Event, just_check: bool = False):
-        max_step_id = self._db_session.query(models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep).count()
+        max_step_id = self._db_session.query(
+            models.PracticeOneStep if event.type == 1 else models.PracticeTwoStep
+        ).count()
 
         last_step_id = self.get_last_step_id(event)
 
         if last_step_id + 1 > max_step_id:
             if not just_check:
-                raise HTTPException(503, f"Step id Limit Exceed. {last_step_id+1}/{max_step_id}")
+                raise HTTPException(503, f'Step id Limit Exceed. {last_step_id+1}/{max_step_id}')
             else:
                 return max_step_id
 
@@ -100,7 +108,9 @@ class EventService:
         self._db_session.commit()
         return lesson
 
-    def create_event(self, event: schemas.StartEventComputer, users: List[models.User], lesson: models.Lesson):
+    def create_event(
+        self, event: schemas.StartEventComputer, users: List[models.User], lesson: models.Lesson,
+    ):
         variant = self._get_random_variant(event.type)
 
         if not variant:
@@ -122,19 +132,23 @@ class EventService:
         return new_event
 
     async def get_current_event_by_computer_id(self, computer_id: int, lesson_id: int) -> models.Event:
-        event = self._db_session.query(models.Event).filter(
-            models.Event.computer_id == computer_id, models.Event.lesson_id == lesson_id
-        ).first()
+        event = (
+            self._db_session.query(models.Event)
+            .filter(models.Event.computer_id == computer_id, models.Event.lesson_id == lesson_id)
+            .first()
+        )
 
         if not event:
-            raise HTTPException(401, "Event was not found!")
+            raise HTTPException(401, 'Event was not found!')
 
         return event
 
     async def get_by_computer_and_session_ids(self, computer_id: int, session_id: int) -> Optional[Type[models.Event]]:
-        event = self._db_session.query(models.Event).filter(
-            models.Event.computer_id == computer_id, models.Event.session_id == session_id
-        ).first()
+        event = (
+            self._db_session.query(models.Event)
+            .filter(models.Event.computer_id == computer_id, models.Event.session_id == session_id)
+            .first()
+        )
 
         return event
 
@@ -150,7 +164,11 @@ class EventService:
         return variant
 
     def _get_random_variant(self, type: int):
-        return self._db_session.query(models.PracticeOneVariant if type == 1 else models.PracticeTwoVariant).order_by(func.random()).first()
+        return (
+            self._db_session.query(models.PracticeOneVariant if type == 1 else models.PracticeTwoVariant)
+            .order_by(func.random())
+            .first()
+        )
 
     async def __get_random_incoterms(self):
         """Returns 3 random incoterms"""
@@ -211,7 +229,7 @@ class EventService:
             delivery_prices.append(delivery_price)
 
         options = [
-            {'contract_price': buyer_totals[i], 'delivery_price': delivery_prices[i], 'total': seller_totals[i]}
+            {'contract_price': buyer_totals[i], 'delivery_price': delivery_prices[i], 'total': seller_totals[i],}
             for i in range(3)
         ]
 
@@ -232,29 +250,29 @@ class EventService:
             'type': event.type,
             'legend': event.variant.legend,
             'product_price': event.variant.product_price,
-            'buyer_table_1': {'rows': buyer_tables[0], 'total': buyer_totals[0], "incoterms": incoterm_groups[0]},
-            'buyer_table_2': {'rows': buyer_tables[1], 'total': buyer_totals[1], "incoterms": incoterm_groups[1]},
-            'buyer_table_3': {'rows': buyer_tables[2], 'total': buyer_totals[2], "incoterms": incoterm_groups[1]},
+            'buyer_table_1': {'rows': buyer_tables[0], 'total': buyer_totals[0], 'incoterms': incoterm_groups[0],},
+            'buyer_table_2': {'rows': buyer_tables[1], 'total': buyer_totals[1], 'incoterms': incoterm_groups[1],},
+            'buyer_table_3': {'rows': buyer_tables[2], 'total': buyer_totals[2], 'incoterms': incoterm_groups[1],},
             'seller_table_1': {
                 'rows': seller_tables[0],
                 'contract_price': buyer_totals[0],
                 'delivery_price': delivery_prices[0],
                 'total': seller_totals[0],
-                "incoterms": incoterm_groups[0]
+                'incoterms': incoterm_groups[0],
             },
             'seller_table_2': {
                 'rows': seller_tables[1],
                 'contract_price': buyer_totals[1],
                 'delivery_price': delivery_prices[1],
                 'total': seller_totals[1],
-                "incoterms": incoterm_groups[1]
+                'incoterms': incoterm_groups[1],
             },
             'seller_table_3': {
                 'rows': seller_tables[2],
                 'contract_price': buyer_totals[2],
                 'delivery_price': delivery_prices[2],
                 'total': seller_totals[2],
-                "incoterms": incoterm_groups[2]
+                'incoterms': incoterm_groups[2],
             },
             'options': options,
             'test': event.variant.test.to_json(),
@@ -272,39 +290,47 @@ class EventService:
 
         for bet in bets:
             answer = json.loads(bet.answer)
-            routes_table.append({
-                "supply_chain": f"{bet.from_point.country} - {bet.to_point.country}",
-                "route": f"{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country}",
-                "route_by_points": " - ".join([self._point_by_point_id_mapping[point_id].name for point_id in answer]),
-                "route_by_points_ids": answer,
-                "transit_contries": "ASK MAKS"
-            })
+            routes_table.append(
+                {
+                    'supply_chain': f'{bet.from_point.country} - {bet.to_point.country}',
+                    'route': f'{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country}',
+                    'route_by_points': ' - '.join(
+                        [self._point_by_point_id_mapping[point_id].name for point_id in answer]
+                    ),
+                    'route_by_points_ids': answer,
+                    'transit_contries': 'ASK MAKS',
+                }
+            )
 
         return routes_table
 
     def _get_days(self, bet: models.PracticeTwoVariantBet):
         correct_day = 0
-        for i in range(len(bet.answer_array)-1):
-            route = self._db_session.query(models.Route).filter(
-                models.Route.from_point_id==bet.answer_array[i],
-                models.Route.to_point_id==bet.answer_array[i+1]
-            ).first()
+        for i in range(len(bet.answer_array) - 1):
+            route = (
+                self._db_session.query(models.Route)
+                .filter(
+                    models.Route.from_point_id == bet.answer_array[i],
+                    models.Route.to_point_id == bet.answer_array[i + 1],
+                )
+                .first()
+            )
 
             correct_day += route.days
 
         incorrect = self._get_random_days_options(correct_day)
 
-        return [{"is_correct": True, "days": correct_day}, *incorrect]
+        return [{'is_correct': True, 'days': correct_day}, *incorrect]
 
     def _get_3PLS(self, bet: models.PracticeTwoVariantBet):
         third_party_bets = [
-                    bet.third_party_logistics_1,
-                    bet.third_party_logistics_2,
-                    bet.third_party_logistics_3
-                ]
+            bet.third_party_logistics_1,
+            bet.third_party_logistics_2,
+            bet.third_party_logistics_3,
+        ]
         third_party_bets = [bet for bet in third_party_bets if bet]
 
-        correct = [{"is_correct": True, "num": PL} for PL in third_party_bets]
+        correct = [{'is_correct': True, 'num': PL} for PL in third_party_bets]
 
         incorrect = self._get_random_3PLS_options(third_party_bets[0])
 
@@ -316,8 +342,10 @@ class EventService:
             point = self._point_by_point_id_mapping[point_id]
             points_types.add(point.type)
 
-        risks_answer = [{"is_correct": True, "name": risk.name} for risk in all_risks if risk.type in points_types]
-        incorrect_risks = [{"is_correct": False, "name": risk.name} for risk in all_risks if risk.type not in points_types]
+        risks_answer = [{'is_correct': True, 'name': risk.name} for risk in all_risks if risk.type in points_types]
+        incorrect_risks = [
+            {'is_correct': False, 'name': risk.name} for risk in all_risks if risk.type not in points_types
+        ]
 
         return [*incorrect_risks, *risks_answer]
 
@@ -326,7 +354,9 @@ class EventService:
         all_risks = self._db_session.query(models.Risk).all()
 
         for bet in bets:
-            full_route_name = " - ".join([self._point_by_point_id_mapping[point_id].name for point_id in bet.answer_array])
+            full_route_name = ' - '.join(
+                [self._point_by_point_id_mapping[point_id].name for point_id in bet.answer_array]
+            )
             days = self._get_days(bet)
             PLS = self._get_3PLS(bet)
             risks = self._get_risks(bet, all_risks)
@@ -335,12 +365,7 @@ class EventService:
             random.shuffle(PLS)
             random.shuffle(risks)
 
-            risks_table.append({
-                "full_route_name": full_route_name,
-                "days": days,
-                "3PLS": PLS,
-                "risks": risks
-            })
+            risks_table.append({'full_route_name': full_route_name, 'days': days, '3PLS': PLS, 'risks': risks})
 
         return risks_table
 
@@ -349,9 +374,13 @@ class EventService:
         route_number = 1
 
         for bet in bets:
-            route_name = f"{bet.from_point.country} - {bet.to_point.country}"
+            route_name = f'{bet.from_point.country} - {bet.to_point.country}'
 
-            PL1, PL2, PL3 = bet.third_party_logistics_1, bet.third_party_logistics_2, bet.third_party_logistics_3
+            PL1, PL2, PL3 = (
+                bet.third_party_logistics_1,
+                bet.third_party_logistics_2,
+                bet.third_party_logistics_3,
+            )
             containers_num = math.ceil(bet.tons / (40 * bet.variant.package_tons))
 
             PLS = []
@@ -363,7 +392,7 @@ class EventService:
                         'route_number': route_number,
                         'bet': PL1,
                         'delivery_price': f'{PL1}*{containers_num}={PL1 * containers_num}',
-                        'containers_num': containers_num
+                        'containers_num': containers_num,
                     }
                 )
 
@@ -375,7 +404,7 @@ class EventService:
                         'route_number': route_number,
                         'bet': PL2,
                         'delivery_price': f'{PL2}*{containers_num}={PL2 * containers_num}',
-                        'containers_num': containers_num
+                        'containers_num': containers_num,
                     }
                 )
 
@@ -387,14 +416,15 @@ class EventService:
                         'route_number': route_number,
                         'bet': PL3,
                         'delivery_price': f'{PL3}*{containers_num}={PL3 * containers_num}',
-                        'containers_num': containers_num
+                        'containers_num': containers_num,
                     }
                 )
 
                 route_number += 1
 
             PLS[0]['full_route_name'] = (
-                    f"{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country} " + PLS[0]['full_route_name']
+                f'{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country} '
+                + PLS[0]['full_route_name']
             )
 
             PLS = [PL for PL in PLS if PL]
@@ -442,39 +472,45 @@ class EventService:
                 unique_bets_by_to_and_from_fields.append(bet)
 
         bets_description = '\n'.join(
-            [f'{bet.from_point.country} - {bet.to_point.country} {bet.tons} т/месяц' for bet in unique_bets_by_to_and_from_fields]
+            [
+                f'{bet.from_point.country} - {bet.to_point.country} {bet.tons} т/месяц'
+                for bet in unique_bets_by_to_and_from_fields
+            ]
         )
 
         description = (
-                f'На основании изучения рынка и заключённых договоров на поставку продукции '
-                f'сформированы {len(unique_bets_by_to_and_from_fields)} новых цепей поставок '
-                f'продукции ежемесячно при разных условиях Инкотермс:\n' + bets_description
+            f'На основании изучения рынка и заключённых договоров на поставку продукции '
+            f'сформированы {len(unique_bets_by_to_and_from_fields)} новых цепей поставок '
+            f'продукции ежемесячно при разных условиях Инкотермс:\n' + bets_description
         )
 
         rows = []
         for bet in unique_bets_by_to_and_from_fields:
             package_tons = event.variant.package_tons
-            rows.append({
-                "supply_chain": f"{bet.from_point.country} - {bet.to_point.country}",
-                "tons": bet.tons,
-                "containers_quantity": f'{bet.tons}/(40*{package_tons})={int(bet.tons / (40 * package_tons))}'
+            rows.append(
+                {
+                    'supply_chain': f'{bet.from_point.country} - {bet.to_point.country}',
+                    'tons': bet.tons,
+                    'containers_quantity': f'{bet.tons}/(40*{package_tons})={int(bet.tons / (40 * package_tons))}',
+                }
+            )
 
-            })
-
-        return {"description": description, "rows": rows}
+        return {'description': description, 'rows': rows}
 
     def _get_introduction_table(self, bets: List[models.PracticeTwoVariantBet]):
         # Первый скрин с табличкой
         introduction_table = []
 
         for bet in bets:
-            introduction_table.append({
-                "purpose_of_supply": f"{bet.from_point.country} - {bet.to_point.country}",
-                "delivery_route": f"{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country}",
-                "3PL1": bet.third_party_logistics_1,
-                "3PL2": bet.third_party_logistics_2,
-                "3PL3": bet.third_party_logistics_3
-            })
+            introduction_table.append(
+                {
+                    'purpose_of_supply': f'{bet.from_point.country} - {bet.to_point.country}',
+                    'delivery_route': f'{bet.from_point.country} - {bet.to_point.country} через {bet.transit_point.country}',
+                    '3PL1': bet.third_party_logistics_1,
+                    '3PL2': bet.third_party_logistics_2,
+                    '3PL3': bet.third_party_logistics_3,
+                }
+            )
 
         return introduction_table
 
@@ -520,10 +556,9 @@ class EventService:
             option = pl_options[0]
             if variant_num == 2 and len(pl_options) > 1:
                 option = pl_options[1]
-            stack.append({
-                "delivery_price": int(option['delivery_price'].split("=")[1]),
-                "route_number": option['route_number']
-            })
+            stack.append(
+                {'delivery_price': int(option['delivery_price'].split('=')[1]), 'route_number': option['route_number'],}
+            )
 
         total = self.f(sum([route['delivery_price'] for route in stack]) / 1000)
         route_numbers = [str(route['route_number']) for route in stack]
@@ -533,14 +568,14 @@ class EventService:
     def _find_optimal_option(self, all_routes_calculations, variant_num):
         stack = []
         for val in all_routes_calculations.values():
-            all_nums = [{"delivery_price": dic['delivery_price'], "route_number": dic['route_number']} for dic in val]
+            all_nums = [{'delivery_price': dic['delivery_price'], 'route_number': dic['route_number']} for dic in val]
             all_nums.sort(key=lambda dic: dic['delivery_price'])
             index = 0
             if variant_num == 2 and all_nums[0]['delivery_price'] == all_nums[1]['delivery_price']:
                 index = 1
             stack.append(all_nums[index])
 
-        total = self.f(sum([int(route['delivery_price'].split("=")[1]) for route in stack]) / 1000)
+        total = self.f(sum([int(route['delivery_price'].split('=')[1]) for route in stack]) / 1000)
         route_numbers = [str(route['route_number']) for route in stack]
 
         return f"{total}: {'-'.join(route_numbers)}"
@@ -573,7 +608,7 @@ class EventService:
             if num > 1:
                 s.add(num)
         s.remove(days)
-        return [{"is_correct": False, "days": days} for days in s]
+        return [{'is_correct': False, 'days': days} for days in s]
 
     @staticmethod
     def _get_random_3PLS_options(num: int):
@@ -584,7 +619,7 @@ class EventService:
             if num > 5:
                 incorrect_3PLS.add(num * 100)
 
-        incorrect_3PLS = [{"is_correct": False, "num": PL} for PL in incorrect_3PLS]
+        incorrect_3PLS = [{'is_correct': False, 'num': PL} for PL in incorrect_3PLS]
 
         return incorrect_3PLS
 

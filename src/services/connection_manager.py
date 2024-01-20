@@ -12,7 +12,8 @@ class ConnectionManager:
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
 
     @staticmethod
     async def send_personal_message(message: str, websocket: WebSocket):
@@ -21,3 +22,10 @@ class ConnectionManager:
     async def broadcast(self, message: Any):
         for connection in self.active_connections:
             await connection.send_json(message)
+
+    async def safe_broadcast(self, message: Any):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception as exc:
+                pass
