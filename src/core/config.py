@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     pr1_last_step_number: int
     pr2_last_step_number: int
     redis_url: str
+    tg_token: str
+    tg_chat_id: int
 
     class Config:
         env_file = '.env'

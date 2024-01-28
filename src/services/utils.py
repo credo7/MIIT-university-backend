@@ -138,7 +138,7 @@ def change_mongo_instance(obj: Union[List, Dict], exclude: Optional[List[str]] =
         return helper(obj)
 
 
-async def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) -> Any:
+def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) -> Any:
     if isinstance(db_obj, Cursor):
         db_obj = list(db_obj)
     if isinstance(db_obj, list):
@@ -159,7 +159,7 @@ async def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) ->
     raise Exception(f'Некорректный обьект в normilize_mongo. db_obj={db_obj}')
 
 
-async def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
+def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
     if isinstance(obj, list):
         if isinstance(obj[0], BaseModel):
             obj = [instance.dict() for instance in obj]
@@ -172,7 +172,7 @@ async def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
         return str(inserted.inserted_id)
 
 
-async def raise_if_users_already_connected(connected_computers: Dict[int, ConnectedComputer], users_ids: List[str]):
+def raise_if_users_already_connected(connected_computers: Dict[int, ConnectedComputer], users_ids: List[str]):
     all_connected_users_ids = []
     for computer_id, computer in connected_computers.items():
         all_connected_users_ids.extend(computer.users_ids)

@@ -18,7 +18,8 @@ from schemas import (
     UserOut,
     Incoterm,
     ExamInputPR1,
-    ExamInputVariablesPR1, PracticeOneExamVariant,
+    ExamInputVariablesPR1,
+    PracticeOneExamVariant,
 )
 from services.utils import normalize_mongo
 
@@ -30,13 +31,13 @@ class PracticeOne:
         self.users_ids = users_ids
         self.db = db
 
-    async def generate_classic(self) -> PracticeOneVariant:
-        input_variables = await self.prepare_variables(self.users_ids)
+    def generate_classic(self) -> PracticeOneVariant:
+        input_variables = self.prepare_variables(self.users_ids)
 
-        tables = await self.prepare_tables(input_variables)
-        logists = await self.prepare_logists()
-        options = await self.prepare_options(tables=tables, product_price=input_variables.product_price)
-        tests = await self.prepare_tests(incoterms=input_variables.incoterms)
+        tables = self.prepare_tables(input_variables)
+        logists = self.prepare_logists()
+        options = self.prepare_options(tables=tables, product_price=input_variables.product_price)
+        tests = self.prepare_tests_class(incoterms=input_variables.incoterms)
 
         return PracticeOneVariant(
             lesson_id=self.lesson.id,
@@ -56,7 +57,7 @@ class PracticeOne:
             users_ids=self.users_ids,
         )
 
-    async def generate_exam(self):
+    def generate_exam(self):
         to_point = 'Выборг (Россия)'
         from_point = 'Бильбао (Испания)'
         product_name = 'оливĸовое масло в бутылĸах'
@@ -120,7 +121,7 @@ class PracticeOne:
 
         answers = {}
         for incoterm in incoterms:
-            result = await self.calculate_incoterm(exam_input, incoterm)
+            result = self.calculate_incoterm(exam_input, incoterm)
             answers[incoterm] = result
 
         return PracticeOneExamVariant(
@@ -130,12 +131,11 @@ class PracticeOne:
             event_type=self.lesson.event_type,
             event_mode=self.lesson.event_mode,
             answers=answers,
-            exam_input=exam_input
+            exam_input=exam_input,
         )
 
-
     @staticmethod
-    async def prepare_tables(input: PracticeOneVariables) -> Dict[str, List[TablePR1]]:
+    def prepare_tables(input: PracticeOneVariables) -> Dict[str, List[TablePR1]]:
         tables = {'BUYER': [], 'SELLER': []}
 
         for index, incoterm in enumerate(input.incoterms):
@@ -161,12 +161,12 @@ class PracticeOne:
 
         return tables
 
-    async def prepare_variables(self, users_ids: list[str]) -> PracticeOneVariables:
+    def prepare_variables(self, users_ids: list[str]) -> PracticeOneVariables:
         all_incoterms = practice_one_info.all_incoterms.copy()
         users_incoterms_mappings = []
         for user_id in users_ids:
             user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
-            user: UserOut = await normalize_mongo(user_db, UserOut)
+            user: UserOut = normalize_mongo(user_db, UserOut)
             users_incoterms_mappings.append(user.incoterms)
 
         new_or_bad_known_incoterms = []
@@ -218,14 +218,14 @@ class PracticeOne:
         )
 
     @staticmethod
-    async def prepare_logists() -> List[Logist]:
+    def prepare_logists() -> List[Logist]:
         logists = practice_one_info.logists.copy()
         random.shuffle(logists)
         chosen_logists = logists[:3]
         return [Logist(description=desc) for desc in chosen_logists]
 
     @staticmethod
-    async def prepare_options(tables, product_price):
+    def prepare_options(tables, product_price):
         options = []
         for i in range(3):
             seller = product_price
@@ -248,41 +248,49 @@ class PracticeOne:
         return options
 
     @staticmethod
-    async def prepare_tests(incoterms: list[Incoterm], is_control: bool = False):
+    def prepare_tests_class(incoterms: list[Incoterm]):
         test_questions = []
-        if is_control:
-            ...
-        else:
+        for i in range(3):
             # Первый вопрос
             first_block_questions = practice_one_info.classic_test_questions.first_block.copy()
-            random.shuffle(first_block_questions)
             first_block_question = first_block_questions[0]
-            random.shuffle(first_block_question.options)
+            while first_block_question in test_questions:
+                random.shuffle(first_block_questions)
+                first_block_question = first_block_questions[0]
             test_questions.append(first_block_question)
 
             # Второй вопрос
             second_block_questions = practice_one_info.classic_test_questions.second_block.copy()
-            random.shuffle(second_block_questions)
             second_block_question = second_block_questions[0]
+            while second_block_question in test_questions:
+                random.shuffle(second_block_questions)
+                second_block_question = second_block_questions[0]
             random.shuffle(second_block_question.options)
             test_questions.append(second_block_question)
 
+            def get_random_third_block_question():
+                random.shuffle(incoterms)
+                incoterm = incoterms[0]
+                incoterm_questions = practice_one_info.classic_test_questions.third_block[incoterm].copy()
+                random.shuffle(incoterm_questions)
+                incoterm_question = incoterm_questions[0]
+                incoterm_question.incoterm = incoterm
+
             # 3-10 вопросы ( по инкотермам ). 8 вопросов
             third_block = []
-            for i in range(4):
-                random.shuffle(incoterms)
-                for incoterm in incoterms[:2]:
-                    question = practice_one_info.classic_test_questions.third_block[incoterm][i]
-                    question.incoterm = incoterm
-                    third_block.append(question)
+            for _ in range(8):
+                incoterm_question = get_random_third_block_question()
+                while incoterm_question in test_questions:
+                    incoterm_question = get_random_third_block_question()
+                third_block.append(incoterm_question)
             random.shuffle(third_block)
 
             test_questions.extend(third_block)
 
-        return test_questions
+        return [test_questions[0:10], test_questions[10:20], test_questions[20:30]]
 
     @staticmethod
-    async def calculate_incoterm(exam_input: ExamInputPR1, incoterm: Incoterm):
+    def calculate_incoterm(exam_input: ExamInputPR1, incoterm: Incoterm):
         answer = None
 
         if incoterm == Incoterm.EXW:

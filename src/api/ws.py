@@ -10,7 +10,7 @@ from schemas import (
     WSCommandTypes,
 )
 from db.mongo import Database, get_db
-from db.state import state
+from db.state import State
 from services.event import EventService
 from services.oauth2 import extract_ws_info
 from services.ws import connect_with_broadcast, disconnect, broadcast_connected_computers
@@ -24,10 +24,10 @@ db: Database = get_db()
 
 ws_handlers = {
     WSCommandTypes.SELECT_TYPE: actualize_computer_state,
-    WSCommandTypes.START: StartEvents(state, state.manager, db).run,
-    WSCommandTypes.FINISH: EventService(state, db).finish_current_lesson,
-    WSCommandTypes.RAISE_HAND: RaiseHand(state, db).run,
-    WSCommandTypes.EXIT: state.users_exit,
+    WSCommandTypes.START: StartEvents(db).run,
+    WSCommandTypes.FINISH: EventService(db).finish_current_lesson,
+    WSCommandTypes.RAISE_HAND: RaiseHand(db).run,
+    WSCommandTypes.EXIT: State.users_exit,
 }
 
 
@@ -35,14 +35,17 @@ ws_handlers = {
 async def websocket_endpoint(ws: WebSocket, computer_id: int):
     is_teacher, users = False, []
     try:
-        is_teacher, users = await extract_ws_info(ws.headers)
+        if ws.headers.get('broadcast_connected_computers', False):
+            await broadcast_connected_computers()
+            return
+        is_teacher, users = extract_ws_info(ws.headers)
         await connect_with_broadcast(ws, users, computer_id, is_teacher)
         await handle_websocket_messages(ws, users, computer_id, is_teacher)
     except WebSocketDisconnect as exc:
         pass
     except Exception as exc:
         logger.error(f'Error {str(exc)} Traceback: {exc}', exc_info=True)
-        await state.manager.safe_broadcast({'error': str(exc)})
+        await State.manager.safe_broadcast({'error': str(exc)})
     finally:
         await disconnect(ws, computer_id, is_teacher, [user.id for user in users])
         await broadcast_connected_computers()
@@ -57,11 +60,13 @@ async def handle_websocket_messages(ws, users, computer_id, is_teacher):
             await ws_handlers[message.type](
                 computer_id=computer_id, payload=message.payload, is_teacher=is_teacher, ws=ws
             )
-            logger.info(f'ws|cid:{computer_id}|uids:{[user.id for user in users]}|type:{message.type}|succesfully')
+            logger.info(
+                f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|type:{message.type}|succesfully'
+            )
         except WebSocketDisconnect:
             raise WebSocketDisconnect
         except Exception as exc:
             logger.error(
-                f'ws|cid:{computer_id}|uids:{[user.id for user in users]}|type:{message.type}|err={str(exc)}',
+                f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|type:{message.type}|err={str(exc)}',
                 exc_info=True,
             )

@@ -7,15 +7,13 @@ from services.utils import normalize_mongo
 
 
 class LessonService:
-    def __init__(self, state: State, db: Database):
-        self.state = state
+    def __init__(self, db: Database):
         self.db: Database = db
 
-    async def get_current_lesson_results(self) -> dict[int, list[EventResult]]:
-        lesson = await self.state.get_lesson()
-        events_db = self.db[CollectionNames.EVENTS.value].find({'lesson_id': lesson.id})
+    def get_current_lesson_results(self) -> dict[int, list[EventResult]]:
+        events_db = self.db[CollectionNames.EVENTS.value].find({'lesson_id': State.lesson.id})
 
-        events: list[EventInfo] = await normalize_mongo(events_db, EventInfo)
+        events: list[EventInfo] = normalize_mongo(events_db, EventInfo)
 
         event_results = {event.computer_id: event.results for event in events}
 

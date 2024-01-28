@@ -54,7 +54,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
 
     inserted_user = db[CollectionNames.USERS.value].insert_one(new_user.dict())
     user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(inserted_user.inserted_id)})
-    user = await normalize_mongo(user_db, schemas.UserOut)
+    user = normalize_mongo(user_db, schemas.UserOut)
 
     access_token = oauth2.create_access_token(data={'user_id': str(inserted_user.inserted_id)})
 
@@ -80,7 +80,7 @@ async def login(
     if not utils.verify(user_credentials.password, user_db['password']):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')
 
-    user: schemas.UserOutWithEvents = await normalize_mongo(user_db, schemas.UserOutWithEvents)
+    user: schemas.UserOutWithEvents = normalize_mongo(user_db, schemas.UserOutWithEvents)
 
     access_token = oauth2.create_access_token(data={'user_id': user.id})
 

@@ -72,10 +72,10 @@ class EventStatus(str, enum.Enum):
 class ConnectedComputer(BaseModel):
     id: int
     users_ids: List[str]
-    event_type: Optional[EventType]
-    event_mode: Optional[EventMode]
+    event_type: Optional[EventType] = None
+    event_mode: Optional[EventMode] = None
     is_connected: bool
-    step: Optional[GeneralStep]
+    step: Optional[GeneralStep] = None
     status: EventStatus = EventStatus.NOT_STARTED.value
 
 
@@ -86,17 +86,17 @@ class ActualizeComputerPayload(BaseModel):
 
 class ConnectedComputerEdit(BaseModel):
     id: int
-    users_ids: Optional[List[str]]
-    event_type: Optional[EventType]
-    event_mode: Optional[EventMode]
-    step: Optional[GeneralStep]
-    is_connected: Optional[bool]
-    status: Optional[EventStatus]
+    users_ids: Optional[List[str]] = None
+    event_type: Optional[EventType] = None
+    event_mode: Optional[EventMode] = None
+    step: Optional[GeneralStep] = None
+    is_connected: Optional[bool] = None
+    status: Optional[EventStatus] = None
 
 
 class WSMessage(BaseModel):
     type: WSCommandTypes
-    payload: Optional[Any]
+    payload: Optional[Any] = None
 
 
 class UserRole(str, enum.Enum):
@@ -105,25 +105,25 @@ class UserRole(str, enum.Enum):
 
 
 class Lesson(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     group_id: str
     group_name: str
-    event_mode: Optional[EventMode]
-    event_type: Optional[EventType]
+    event_mode: Optional[EventMode] = None
+    event_type: Optional[EventType] = None
     created_at: datetime = datetime.now()
 
 
 class UserBase(BaseModel):
     first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
 
 
 class UserCreateBody(UserBase):
     first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     password: constr(min_length=8, max_length=35)
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
     group_id: str
 
 
@@ -156,7 +156,7 @@ class UserOut(UserBase):
     id: str
     first_name: str
     last_name: str
-    surname: Optional[str]
+    surname: Optional[str] = None
     approved: bool = False
     group_name: Optional[str] = None
     group_id: Optional[str] = None
@@ -177,9 +177,9 @@ class UserOutWithEvents(UserOut):
 
 
 class UserSearch(BaseModel):
-    search: Optional[str]
-    group_id: Optional[str]
-    group_name: Optional[str]
+    search: Optional[str] = None
+    group_id: Optional[str] = None
+    group_name: Optional[str] = None
 
 
 class Token(BaseModel):
@@ -231,11 +231,11 @@ class EventStepResult(BaseModel):
     user_ids: List[str]
     points: int
     fails: int
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class EventInfo(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None
     lesson_id: str
     computer_id: int
     is_finished: bool = False
@@ -297,7 +297,7 @@ class QuestionOption(BaseModel):
 class TestQuestionPR1(BaseModel):
     question: str
     options: List[QuestionOption]
-    incoterm: Optional[Incoterm]
+    incoterm: Optional[Incoterm] = None
 
 
 class PracticeOneVariables(BaseModel):
@@ -343,7 +343,6 @@ class PracticeOneExamVariant(EventInfo, ExamInputPR1):
     answers: dict[Incoterm, int]
 
 
-
 class PracticeOneVariant(EventInfo):
     legend: str
     product: str
@@ -354,7 +353,7 @@ class PracticeOneVariant(EventInfo):
     tables: Dict[BetsRolePR1, List[TablePR1]]
     logists: List[Logist]
     options: List[OptionPR1]
-    tests: List[TestQuestionPR1]
+    tests: List[List[TestQuestionPR1]]
 
 
 class StepRole(str, enum.Enum):
@@ -411,9 +410,9 @@ class UserCredentials(BaseModel):
 
 class UserUpdate(UserBase):
     id: int
-    group_id: Optional[str]
-    group_name: Optional[str]
-    username: Optional[str]
+    group_id: Optional[str] = None
+    group_name: Optional[str] = None
+    username: Optional[str] = None
 
 
 class ResponseMessage(BaseModel):
@@ -424,7 +423,7 @@ class UserToApprove(BaseModel):
     id: int
     first_name: str
     last_name: str
-    surname: Optional[str]
+    surname: Optional[str] = None
     group_name: str
 
 
@@ -435,7 +434,7 @@ class UserChangePassword(BaseModel):
 class CheckpointData(BaseModel):
     points: conint(ge=0)
     fails: conint(ge=0)
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class JoinData(BaseModel):

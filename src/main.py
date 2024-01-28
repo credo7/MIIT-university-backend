@@ -5,11 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api import auth, group, user, event, ws, lesson
 from services.error_log_handling_middleware import ErrorLogHandlingMiddleware
+from tg_logger import tg_wrapper
 
 logging.basicConfig(level=logging.INFO, filename='../app.log', format='%(asctime)s - %(levelname)s - %(message)s')
 console_handler = logging.StreamHandler()
 logger = logging.getLogger("")
 logger.addHandler(console_handler)
+tg_wrapper(logger)
+
 
 app = FastAPI()
 

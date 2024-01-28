@@ -1,9 +1,8 @@
+import logging
 from typing import List
 
 import pymongo
 from bson import ObjectId
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pymongo.database import Database
 
@@ -27,7 +26,7 @@ async def get_users(
     found_users = utils.search_users_by_group(
         schemas.UserSearch(search=search, group_id=group_id, group_name=group_name)
     )
-    return await normalize_mongo(found_users, schemas.UserOut)
+    return normalize_mongo(found_users, schemas.UserOut)
 
 
 @router.patch('/edit', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -61,7 +60,7 @@ async def edit(
 
         logger.info(f'user updated {user_db}')
 
-        return await normalize_mongo(user_db, schemas.UserOut)
+        return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
@@ -82,7 +81,7 @@ async def approve_user(
 
         logger.info(f'user approved {user_db}')
 
-        return await normalize_mongo(user_db, schemas.UserOut)
+        return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
@@ -98,7 +97,7 @@ async def get_unapproved_users(
         if group_id:
             filter['group_id'] = group_id
         unapproved_users_db = db[CollectionNames.USERS.value].find(filter)
-        return await normalize_mongo(unapproved_users_db, schemas.UserOut, return_dict=True)
+        return normalize_mongo(unapproved_users_db, schemas.UserOut, return_dict=True)
     except Exception as e:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
@@ -138,7 +137,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
     if not user_db:
         raise HTTPException(status_code=404, detail='User not found')
 
-    return await normalize_mongo(user_db, schemas.UserOut, return_dict=True)
+    return normalize_mongo(user_db, schemas.UserOut, return_dict=True)
 
 
 @router.delete('/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)

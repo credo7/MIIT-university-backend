@@ -30,7 +30,7 @@ async def create(
     inserted_group = db[CollectionNames.GROUPS.value].insert_one(group_create.dict())
 
     group_db = db[CollectionNames.GROUPS.value].find_one({'_id': inserted_group.inserted_id})
-    group = await normalize_mongo(group_db, schemas.GroupOut)
+    group = normalize_mongo(group_db, schemas.GroupOut)
 
     logger.info(f'group_created {group}')
 
@@ -40,5 +40,5 @@ async def create(
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])
 async def get_groups(db: Database = Depends(get_db)):
     groups_db = db[CollectionNames.GROUPS.value].find()
-    groups = await normalize_mongo(groups_db, schemas.GroupOut)
+    groups = normalize_mongo(groups_db, schemas.GroupOut)
     return groups
