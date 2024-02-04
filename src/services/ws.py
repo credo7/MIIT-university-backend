@@ -66,7 +66,7 @@ async def connect_with_broadcast(websocket: WebSocket, users: List[UserOut], com
     else:
         raise_if_users_already_connected(State.connected_computers, users_ids)
         connected_computer = ConnectedComputer(users_ids=users_ids, id=computer_id, is_connected=True)
-        await State.add_connected_computer(connected_computer)
+        State.add_connected_computer(connected_computer)
 
         logger.info(f'computer_id:{computer_id} was connected. is_teacher={is_teacher}. users_ids={users_ids}')
 

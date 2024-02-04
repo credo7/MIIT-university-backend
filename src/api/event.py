@@ -8,7 +8,6 @@ from schemas import PracticeOneVariant
 from db.mongo import get_db
 from services import oauth2
 from services.event import EventService
-from db.state import State
 from services.ws import broadcast_connected_computers
 
 router = APIRouter(tags=['Events'], prefix='/events')

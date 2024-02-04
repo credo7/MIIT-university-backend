@@ -64,6 +64,7 @@ async def handle_websocket_messages(ws, users, computer_id, is_teacher):
                 f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|type:{message.type}|succesfully'
             )
         except WebSocketDisconnect:
+            print('DISCONECT')
             raise WebSocketDisconnect
         except Exception as exc:
             logger.error(

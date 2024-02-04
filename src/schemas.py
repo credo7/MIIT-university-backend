@@ -120,10 +120,7 @@ class UserBase(BaseModel):
 
 
 class UserCreateBody(UserBase):
-    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     password: constr(min_length=8, max_length=35)
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
     group_id: str
 
 
@@ -257,6 +254,7 @@ class BetsRolePR1(str, enum.Enum):
 class BetInfoIncotermsRolePR1(BaseModel):
     buyer: List[Incoterm]
     seller: List[Incoterm]
+    common: Optional[list[Incoterm]] = []
 
 
 class PracticeOneBet(BaseModel):
@@ -306,7 +304,6 @@ class PracticeOneVariables(BaseModel):
     from_country: str
     to_country: str
     product_price: int
-    incoterms: List[Incoterm]
     bets: List[PracticeOneBet]
 
 
@@ -349,7 +346,6 @@ class PracticeOneVariant(EventInfo):
     from_country: str
     to_country: str
     product_price: int
-    incoterms: List[Incoterm]
     tables: Dict[BetsRolePR1, List[TablePR1]]
     logists: List[Logist]
     options: List[OptionPR1]
@@ -389,7 +385,7 @@ class BetInfoPR1(BaseModel):
 class ClassicTestQuestionBlock(BaseModel):
     first_block: List[TestQuestionPR1]
     second_block: List[TestQuestionPR1]
-    third_block: Dict[Incoterm, List[TestQuestionPR1]]
+    third_block: List[TestQuestionPR1]
 
 
 class PracticeOneInfo(BaseModel):

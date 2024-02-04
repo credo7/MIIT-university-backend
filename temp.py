@@ -1,18 +1,23 @@
-import json
+from threading import Thread
+import time
 
-from pydantic import BaseModel
+def background_task(print_value):
+    while True:
+        if print_value == 0:
+            print(print_value)
+
+def calc_func():
+    sum = 0
+    for i in range(100000000):
+        sum += i
+
+def main():
+    start = time.time()
+    first_thread = Thread(target=background_task, args=("first",), daemon=True)
+    first_thread.start()
+    calc_func()
+    print(time.time() - start)
 
 
-class UserOut(BaseModel):
-    id: int
-    full_name: str
-
-
-class User(UserOut):
-    approved: bool
-
-if __name__ == "__main__":
-    user = User(id=5, full_name="Vitaly AKhmetzianov", approved=True)
-    print(user.dict())
-    user_out = UserOut(**user.dict())
-    print(json.dumps(user_out))
+if __name__ == '__main__':
+    main()

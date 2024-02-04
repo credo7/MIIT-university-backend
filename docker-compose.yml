@@ -1,20 +1,15 @@
 version: '3'
 services:
-  db:
-    restart: always
-    container_name: db
-    image: postgres:11.13
-    environment:
-      - POSTGRES_USER=${DATABASE_USERNAME}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
-      - TZ=Europe/Moscow
-      - PGTZ=Europe/Moscow
-    volumes:
-      - ./db/data:/var/lib/postgresql/data
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
     ports:
-      - ${DATABASE_PORT}:5432
-    command: postgres -c stats_temp_directory=/tmp
+      - "27017:27017"
+    volumes:
+      - ./db/data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
 
   api:
     build: ./
@@ -24,24 +19,11 @@ services:
     container_name: api
     env_file:
       - .env
-    command: bash -c "python3 src/wait_for_postgres.py && cd src && uvicorn main:api_app --host 0.0.0.0 --workers 4 --port 3001"
-    depends_on:
-      - db
-
-  socket:
-    build: ./
-    ports:
-      - "3002:3002"
-    restart: always
-    container_name: socket
-    env_file:
-      - .env
-    command: bash -c "python3 src/wait_for_postgres.py && cd src && uvicorn main:socket_app --host 0.0.0.0 --port 3002"
+    command: bash -c "python3 src/init_and_wait_for_mongo.py && cd src && uvicorn main:api_app --host 0.0.0.0 --workers 4 --port 3001"
     depends_on:
       - db
 
   redis:
-    image: redis:latest
-    expose:
+    image: "redis:latest"
+    ports:
       - "6379:6379"
-    restart: unless-stopped

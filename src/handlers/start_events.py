@@ -88,7 +88,6 @@ class StartEvents:
                 variant = practice_one.generate_exam()
             else:
                 variant = practice_one.generate_classic()
-                _ = 1
         elif lesson.event_type == EventType.PR2:
             ...
         elif lesson.event_type == EventType.CONTROL:

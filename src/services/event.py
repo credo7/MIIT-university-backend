@@ -38,7 +38,9 @@ class EventService:
         raise Exception('Юзер не подключен к какому-либо компьютеру')
 
     def get_current_event_by_computer_id(self, computer_id: int) -> EventInfo:
-        event_db = self.db[CollectionNames.EVENTS.value].find_one({'lesson_id': State.lesson.id, 'computer_id': computer_id})
+        event_db = self.db[CollectionNames.EVENTS.value].find_one(
+            {'lesson_id': State.lesson.id, 'computer_id': computer_id}
+        )
 
         if not event_db:
             raise Exception('Вариант не найден')

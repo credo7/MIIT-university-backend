@@ -1,11 +1,9 @@
 import random
 from typing import List, Dict
-from bson import ObjectId
 
 from pymongo.database import Database
 
 from constants.practice_one_info import practice_one_info
-from db.mongo import CollectionNames
 from schemas import (
     PracticeOneBet,
     PracticeOneVariables,
@@ -15,7 +13,6 @@ from schemas import (
     PracticeOneBetOut,
     TablePR1,
     Lesson,
-    UserOut,
     Incoterm,
     ExamInputPR1,
     ExamInputVariablesPR1,
@@ -32,12 +29,12 @@ class PracticeOne:
         self.db = db
 
     def generate_classic(self) -> PracticeOneVariant:
-        input_variables = self.prepare_variables(self.users_ids)
+        input_variables = self.prepare_variables()
 
         tables = self.prepare_tables(input_variables)
         logists = self.prepare_logists()
         options = self.prepare_options(tables=tables, product_price=input_variables.product_price)
-        tests = self.prepare_tests_class(incoterms=input_variables.incoterms)
+        tests = self.prepare_tests_class()
 
         return PracticeOneVariant(
             lesson_id=self.lesson.id,
@@ -49,7 +46,6 @@ class PracticeOne:
             from_country=input_variables.from_country,
             to_country=input_variables.to_country,
             product_price=input_variables.product_price,
-            incoterms=input_variables.incoterms,
             tables=tables,
             logists=logists,
             options=options,
@@ -136,10 +132,10 @@ class PracticeOne:
 
     @staticmethod
     def prepare_tables(input: PracticeOneVariables) -> Dict[str, List[TablePR1]]:
-        tables = {'BUYER': [], 'SELLER': []}
+        tables = {'BUYER': [], 'SELLER': [], 'COMMON': []}
 
-        for index, incoterm in enumerate(input.incoterms):
-            for role in ['BUYER', 'SELLER']:
+        for index, incoterm in enumerate(list(Incoterm)):
+            for role in ['BUYER', 'SELLER', 'COMMON']:
                 table_bets = []
 
                 for bet in input.bets:
@@ -159,40 +155,29 @@ class PracticeOne:
 
                 tables[role].append(table)
 
+        # Динамические ставки. Продавец либо покупатель берет эту ставку на себя.
+        # Она обязательна и может быть выбрана лишь одним участником сделки
+        for index, incoterm in enumerate(list(Incoterm)):
+            common_bets = []
+
+            for bet in input.bets:
+                if incoterm in bet.bet_pattern.common:
+                    common_bet = PracticeOneBetOut(name=bet.name, rate=bet.rate, is_correct=True)
+                    common_bets.append(common_bet)
+
+            tables['COMMON'].append(common_bets)
+
         return tables
 
-    def prepare_variables(self, users_ids: list[str]) -> PracticeOneVariables:
-        all_incoterms = practice_one_info.all_incoterms.copy()
-        users_incoterms_mappings = []
-        for user_id in users_ids:
-            user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
-            user: UserOut = normalize_mongo(user_db, UserOut)
-            users_incoterms_mappings.append(user.incoterms)
-
-        new_or_bad_known_incoterms = []
-        for incoterm in all_incoterms:
-            for user_incoterms_mapping in users_incoterms_mappings:
-                if incoterm not in user_incoterms_mapping:
-                    new_or_bad_known_incoterms.append(incoterm)
-
-        if len(new_or_bad_known_incoterms) < 3:
-            for user_incoterms_mapping in users_incoterms_mappings:
-                incoterms = list(dict(sorted(user_incoterms_mapping.items(), key=lambda item: item[1])).keys())
-                rest = 3 - len(new_or_bad_known_incoterms)
-                new_or_bad_known_incoterms.extend(incoterms[:rest])
-
-        random.shuffle(new_or_bad_known_incoterms)
-
-        random_points = ['FROM', 'WHERE']
-        random.shuffle(random_points)
+    @staticmethod
+    def prepare_variables() -> PracticeOneVariables:
+        points = ['FROM', 'WHERE']
         product_options = ['PRODUCT_NAME']
         product = random.choice(product_options)
-        from_country = random_points[0]
-        to_country = random_points[1]
+        from_country = points[0]
+        to_country = points[1]
         product_price = random.randrange(1000, 9000, 100)
         legend = practice_one_info.legend_pattern.format(product, from_country, to_country, product_price)
-        # TODO: STEP 2: Choose incoterms by first student
-        random_incoterms = new_or_bad_known_incoterms[:3]
 
         bets = []
         for bet_pattern in practice_one_info.bets:
@@ -213,7 +198,6 @@ class PracticeOne:
             from_country=from_country,
             to_country=to_country,
             product_price=product_price,
-            incoterms=random_incoterms,
             bets=bets,
         )
 
@@ -227,7 +211,7 @@ class PracticeOne:
     @staticmethod
     def prepare_options(tables, product_price):
         options = []
-        for i in range(3):
+        for i in range(len(tables["BUYER"])):
             seller = product_price
             buyer = 0
 
@@ -248,7 +232,7 @@ class PracticeOne:
         return options
 
     @staticmethod
-    def prepare_tests_class(incoterms: list[Incoterm]):
+    def prepare_tests_class():
         test_questions = []
         for i in range(3):
             # Первый вопрос
@@ -268,24 +252,16 @@ class PracticeOne:
             random.shuffle(second_block_question.options)
             test_questions.append(second_block_question)
 
-            def get_random_third_block_question():
-                random.shuffle(incoterms)
-                incoterm = incoterms[0]
-                incoterm_questions = practice_one_info.classic_test_questions.third_block[incoterm].copy()
-                random.shuffle(incoterm_questions)
-                incoterm_question = incoterm_questions[0]
-                incoterm_question.incoterm = incoterm
-
             # 3-10 вопросы ( по инкотермам ). 8 вопросов
             third_block = []
             for _ in range(8):
-                incoterm_question = get_random_third_block_question()
-                while incoterm_question in test_questions:
-                    incoterm_question = get_random_third_block_question()
-                third_block.append(incoterm_question)
-            random.shuffle(third_block)
-
-            test_questions.extend(third_block)
+                third_block_questions = practice_one_info.classic_test_questions.third_block.copy()
+                third_block_question = third_block_questions[0]
+                while third_block_question in test_questions:
+                    random.shuffle(third_block_questions)
+                    third_block_question = third_block_questions[0]
+                    random.shuffle(third_block_question.options)
+                test_questions.append(third_block_question)
 
         return [test_questions[0:10], test_questions[10:20], test_questions[20:30]]
 

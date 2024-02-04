@@ -39,7 +39,7 @@ class State:
     @staticmethod
     async def users_exit(computer_id: int, payload: dict, *_args, **kwargs):
         # Ids выходящих юзеров
-        users_ids = payload.get("users_ids")
+        users_ids = payload.get('users_ids')
         computer = State.connected_computers[computer_id]
 
         for user_id in users_ids:
@@ -48,7 +48,7 @@ class State:
 
         if not computer.users_ids:
             State.remove_connected_computer(computer_id)
-            ws = kwargs.get("ws")
+            ws = kwargs.get('ws')
             await ws.close()
             raise WebSocketDisconnect
         else:
