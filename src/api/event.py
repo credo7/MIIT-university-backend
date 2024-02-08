@@ -3,10 +3,10 @@ import logging
 
 from fastapi import APIRouter, Depends
 
-import schemas
-from schemas import PracticeOneVariant
+from schemas import PracticeOneVariant, StartEventDto, UserOut, CheckpointData
 from db.mongo import get_db
 from services import oauth2
+from services.create_event import create_event
 from services.event import EventService
 from services.ws import broadcast_connected_computers
 
@@ -15,6 +15,12 @@ router = APIRouter(tags=['Events'], prefix='/events')
 event_service = EventService(db=get_db())
 
 logger = logging.getLogger(__name__)
+
+
+@router.post('/start')
+async def start_event(start_event_dto: StartEventDto):
+    create_event(start_event_dto)
+    return {"message": "success"}
 
 
 @router.get('/current-variant/{computer_id}', response_model=Union[PracticeOneVariant])
@@ -26,7 +32,7 @@ async def get_current_variant(computer_id: int):
 
 @router.post('/checkpoint')
 async def create_checkpoint(
-    checkpoint_dto: schemas.CheckpointData, current_user: schemas.UserOut = Depends(oauth2.get_current_user),
+    checkpoint_dto: CheckpointData, current_user: UserOut = Depends(oauth2.get_current_user),
 ):
     event = event_service.get_current_event_by_user_id(current_user)
     if event.is_finished:

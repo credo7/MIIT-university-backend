@@ -233,17 +233,16 @@ class EventStepResult(BaseModel):
 
 class EventInfo(BaseModel):
     id: Optional[str] = None
-    lesson_id: str
     computer_id: int
     is_finished: bool = False
     event_type: EventType
     event_mode: EventMode
     created_at: datetime = datetime.now()
+    finished_at: Optional[datetime] = None
     users_ids: List[str]
-    checkpoints: List[EventCheckpoint] = []
     steps_results: List[EventStepResult] = []
     results: List[EventResult] = []
-    step_index: int = 1
+    current_step_code: [Optional] = None
 
 
 class BetsRolePR1(str, enum.Enum):
@@ -298,13 +297,14 @@ class TestQuestionPR1(BaseModel):
     incoterm: Optional[Incoterm] = None
 
 
-class PracticeOneVariables(BaseModel):
+class PR1ClassVariables(BaseModel):
     legend: str
     product: str
     from_country: str
     to_country: str
     product_price: int
     bets: List[PracticeOneBet]
+    logists: List[Logist]
 
 
 class ExamInputVariablesPR1(BaseModel):
@@ -442,3 +442,18 @@ class StartEventComputer(BaseModel):
     computer_id: int
     type: int
     mode: EventMode
+
+
+class StartEventDto(BaseModel):
+    computer_id: int
+    type: EventType
+    mode: EventMode
+
+
+class PR1ClassEvent(EventInfo):
+    legend: str
+    logists: List[Logist]
+    product: str
+    from_country: str
+    to_country: str
+    product_price: int

@@ -4,6 +4,7 @@ from typing import List, Dict
 from pymongo.database import Database
 
 from constants.practice_one_info import practice_one_info
+from db.mongo import get_db, CollectionNames
 from schemas import (
     PracticeOneBet,
     PracticeOneVariables,
@@ -16,20 +17,38 @@ from schemas import (
     Incoterm,
     ExamInputPR1,
     ExamInputVariablesPR1,
-    PracticeOneExamVariant,
+    PracticeOneExamVariant, StartEventDto, PR1ClassEvent, PR1ClassVariables,
 )
-from services.utils import normalize_mongo
 
 
 class PracticeOne:
-    def __init__(self, computer_id: int, lesson: Lesson, users_ids: List[str], db: Database):
+    def __init__(self, computer_id: int, users_ids: List[str]):
         self.computer_id = computer_id
-        self.lesson = lesson
         self.users_ids = users_ids
-        self.db = db
+        self.db = get_db()
+
+    def create_pr1_class(self, event_dto: StartEventDto):
+        variables = self.prepare_event_variables()
+        logists = self.prepare_logists()
+
+        event = PR1ClassEvent(
+            computer_id=self.computer_id,
+            event_type=event_dto.type,
+            event_mode=event_dto.mode,
+            logists=logists,
+            users_ids=self.users_ids,
+            legend=variables.legend,
+            product=variables.product,
+            from_country=variables.from_country,
+            to_country=variables.to_country,
+            product_price=variables.product_price,
+        )
+
+        self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
+
 
     def generate_classic(self) -> PracticeOneVariant:
-        input_variables = self.prepare_variables()
+        input_variables = self.prepare_event_variables()
 
         tables = self.prepare_tables(input_variables)
         logists = self.prepare_logists()
@@ -169,8 +188,8 @@ class PracticeOne:
 
         return tables
 
-    @staticmethod
-    def prepare_variables() -> PracticeOneVariables:
+    # @staticmethod
+    def prepare_event_variables(self) -> PracticeOneVariables:
         points = ['FROM', 'WHERE']
         product_options = ['PRODUCT_NAME']
         product = random.choice(product_options)
@@ -192,13 +211,16 @@ class PracticeOne:
             bet = PracticeOneBet(name=bet_pattern.name, rate=rate, bet_pattern=bet_pattern.incoterms)
             bets.append(bet)
 
-        return PracticeOneVariables(
+        logists = self.prepare_logists()
+
+        return PR1ClassVariables(
             legend=legend,
             product=product,
             from_country=from_country,
             to_country=to_country,
             product_price=product_price,
             bets=bets,
+            logists=logists
         )
 
     @staticmethod
