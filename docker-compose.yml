@@ -1,20 +1,20 @@
-#version: '3'
-#services:
-#  mongodb:
-#    image: mongo:7.0
-#    container_name: mongodb
-#    ports:
-#      - "27017:27017"
-#    volumes:
-#      - ./db/data:/data/db
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: root
-#      MONGO_INITDB_ROOT_PASSWORD: example
+version: '3'
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./db/data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
 
   api:
     build: ./
-#    ports:
-#      - "3001:3001"
+    ports:
+      - "80:80"
     restart: always
     container_name: api
     env_file:
