@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @router.post('/create', status_code=status.HTTP_201_CREATED, response_model=schemas.GroupOut)
 async def create(
     group_create: schemas.GroupCreate,
-    _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+    # _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
     db: Database = Depends(get_db),
 ):
     candidate = db[CollectionNames.GROUPS.value].find_one({'name': group_create.name})
