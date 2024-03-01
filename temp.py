@@ -5,20 +5,20 @@ from pydantic import BaseModel
 
 
 class ReservationStatus(str, Enum):
-    PENDING = "PENDING"
-    CONFIRMED = "CONFIRMED"
-    CANCELED = "CANCELED"
+    PENDING = 'PENDING'
+    CONFIRMED = 'CONFIRMED'
+    CANCELED = 'CANCELED'
 
 
 class UserRole(str, Enum):
-    OWNER = "OWNER"
-    ADMIN = "ADMIN"
-    HOSTESS = "HOSTESS"
+    OWNER = 'OWNER'
+    ADMIN = 'ADMIN'
+    HOSTESS = 'HOSTESS'
 
 
 class Theme(str, Enum):
-    LIGHT = "LIGHT"
-    DARK = "DARK"
+    LIGHT = 'LIGHT'
+    DARK = 'DARK'
 
 
 class UserRestaurant(BaseModel):
@@ -51,13 +51,12 @@ class TimePeriod(BaseModel):
 
 
 class WeekDay(str, Enum):
-    MONDAY = "MONDAY"
+    MONDAY = 'MONDAY'
     # TODO: дописать отсальные days
 
 
-class Canvas(BaseModel): # решим чуть позже
+class Canvas(BaseModel):  # решим чуть позже
     ...
-
 
 
 class RestaurantSettings(BaseModel):
