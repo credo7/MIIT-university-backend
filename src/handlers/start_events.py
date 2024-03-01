@@ -9,16 +9,11 @@ from db.mongo import CollectionNames
 from db.state import State
 from schemas import (
     Lesson,
-    EventType,
     EventInfo,
     EventStatus,
     ConnectedComputerEdit,
-    EventMode,
-    ConnectedComputer,
 )
-from services.connection_manager import ConnectionManager
 from services.event import EventService
-from services.practice_one import PracticeOne
 from services.utils import to_db
 
 
@@ -26,21 +21,6 @@ class StartEvents:
     def __init__(self, db: Database):
         self.db = db
         self.event_service = EventService(db=self.db)
-
-    async def run(self, is_teacher, *_args, **_kwargs):
-        if not is_teacher:
-            raise Exception('Только учитель может запускать работу. Чекается по токену первого юзера')
-        if State.lesson is not None:
-            await self.event_service.finish_current_lesson()
-        self.remove_disconnected_computers()
-        self.validate()
-
-        lesson: Lesson = self.create_and_set_lesson()
-
-        events = self.generate_events(lesson)
-        to_db(events, CollectionNames.EVENTS.value)
-        await State.manager.broadcast({'type': 'STATUS', 'payload': 'START'})
-        self.set_started_status(events)
 
     @staticmethod
     def set_started_status(events: List[EventInfo]):
@@ -70,29 +50,6 @@ class StartEvents:
         State.lesson = lesson
 
         return lesson
-
-    def generate_events(self, lesson: Lesson):
-        events = []
-
-        for computer_id, connected_computer in State.connected_computers.items():
-            variant = self.get_variant(lesson, computer_id, connected_computer)
-            events.append(variant)
-
-        return events
-
-    def get_variant(self, lesson: Lesson, computer_id: int, connected_computer: ConnectedComputer):
-        variant = None
-        if lesson.event_type == EventType.PR1:
-            practice_one = PracticeOne(computer_id, lesson, connected_computer.users_ids, db=self.db)
-            if lesson.event_mode == EventMode.EXAM:
-                variant = practice_one.generate_exam()
-            else:
-                variant = practice_one.generate_classic()
-        elif lesson.event_type == EventType.PR2:
-            ...
-        elif lesson.event_type == EventType.CONTROL:
-            ...
-        return variant
 
     def computers_exist(self):
         if len(State.connected_computers) < 1:

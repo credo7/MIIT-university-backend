@@ -9,7 +9,7 @@ from core.config import settings
 class TelegramLoggerHandler(logging.StreamHandler):
     def __init__(self):
         super().__init__()
-        self.bot = telebot.TeleBot(settings.tg_token)
+        self.bot = telebot.TeleBot(settings.telegram_bot_token)
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
@@ -30,7 +30,7 @@ class TelegramLoggerHandler(logging.StreamHandler):
                 def run(self, *args, **kwargs):
                     func_with_timeout = SetTimeout(self.bot.send_message, timeout=1)
                     _is_done, _is_timeout, _erro_message, _results = func_with_timeout(
-                        chat_id=settings.tg_chat_id, text=text
+                        chat_id=settings.telegram_chat_id, text=text
                     )
 
             t = BackgroundTask(self.bot)

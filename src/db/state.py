@@ -1,19 +1,42 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from fastapi import WebSocketDisconnect
 
-from schemas import ConnectedComputer, Lesson, ConnectedComputerEdit, EventStatus
+from schemas import ConnectedComputer, Lesson, ConnectedComputerEdit, EventStatus, Step
 from services.connection_manager import ConnectionManager
 
 
+
 class State:
-    lesson: Optional[Lesson] = None
     connected_computers: Dict[int, ConnectedComputer] = {}
     manager = ConnectionManager()
 
     @staticmethod
     def add_connected_computer(connected_computer: ConnectedComputer):
         State.connected_computers[connected_computer.id] = connected_computer
+
+    @staticmethod
+    def upsert_connected_computer(connected_computer: ConnectedComputer):
+        if connected_computer.id in State.connected_computers and \
+                connected_computer.users_ids == State.connected_computers[connected_computer.id]:
+            computer_edit = ConnectedComputerEdit(
+                id=connected_computer.id,
+                event_type=connected_computer.event_type,
+                event_mode=connected_computer.event_mode,
+                step=connected_computer.step
+            )
+            State.edit_connected_computer(computer_edit)
+        else:
+            State.add_connected_computer(connected_computer)
+
+    @staticmethod
+    def update_connected_computer_checkpoint(
+            connected_computer_id: int,
+            step: Optional[Union[Step, str]]
+    ):
+        print(f"REST CONNECTED_COMPUTERS={State.connected_computers}")
+        connected_computer = State.connected_computers[connected_computer_id]
+        connected_computer.step = step
 
     @staticmethod
     def edit_connected_computer(connected_computer_edit: ConnectedComputerEdit):

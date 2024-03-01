@@ -1,8 +1,9 @@
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from pymongo.database import Database
 
-from db.mongo import get_db
+from db.mongo import get_db, CollectionNames
 from schemas import EventResult
 from services.lesson import LessonService
 
@@ -14,6 +15,8 @@ lesson_service = LessonService(db=get_db())
 
 
 @router.get('/current-results', response_model=dict[int, list[EventResult]])
-async def get_current_lesson_results():
-    results = lesson_service.get_current_lesson_results()
-    return results
+async def get_current_lesson_results(
+        db: Database = Depends(get_db),
+
+):
+    event_db = db[CollectionNames.EVENTS.value].find_one()

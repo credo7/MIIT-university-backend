@@ -25,7 +25,7 @@ async def disconnect(
     logger.info(f'computer_id:{computer_id} was disconnected. is_teacher={is_teacher}.' f' users_ids={users_ids}')
 
     if not is_teacher and computer_id in State.connected_computers:
-        connected_computer_edit = ConnectedComputerEdit(id=computer_id, is_connected=False)
+        connected_computer_edit = ConnectedComputerEdit(id=computer_id, is_connected=False, is_searching_someone=False)
         State.edit_connected_computer(connected_computer_edit)
         await broadcast_connected_computers()
 
@@ -49,21 +49,23 @@ async def connect_with_broadcast(websocket: WebSocket, users: List[UserOut], com
 
     users_ids = [user.id for user in users]
 
+    print("LALALAL")
+
+    print(f"COMPUTER_ID={computer_id}. state.connected_computers={State.connected_computers}")
+
     if computer_id in State.connected_computers:
         connected_computers_without_current = copy.copy(State.connected_computers)
         del connected_computers_without_current[computer_id]
         raise_if_users_already_connected(connected_computers_without_current, users_ids)
 
-        computer = State.connected_computers[computer_id]
-        if computer.status != EventStatus.NOT_STARTED:
-            if users_ids != computer.users_ids:
-                raise Exception("You can't change users_ids during session")
-
         connected_computer_edit = ConnectedComputerEdit(id=computer_id, users_ids=users_ids, is_connected=True)
         State.edit_connected_computer(connected_computer_edit)
 
+        print("HERE HERE HERE")
+
         logger.info(f'computer_id:{computer_id} was reconnected. is_teacher={is_teacher}. users_ids={users_ids}')
     else:
+        print("HERE2 HERE2 HERE2")
         raise_if_users_already_connected(State.connected_computers, users_ids)
         connected_computer = ConnectedComputer(users_ids=users_ids, id=computer_id, is_connected=True)
         State.add_connected_computer(connected_computer)

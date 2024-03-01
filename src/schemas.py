@@ -1,9 +1,10 @@
 import enum
 from datetime import datetime
-from typing import Optional, Any, List, Dict
+from typing import Optional, Union, Any
 from bson import ObjectId
 
-from pydantic import BaseModel, constr, conint
+from typing_extensions import Annotated
+from pydantic import BaseModel, constr, conint, Field
 from pydantic.class_validators import validator
 
 
@@ -24,6 +25,25 @@ from pydantic.class_validators import validator
 #         return result
 
 
+class AnswerStatus(str, enum.Enum):
+    CORRECT = "CORRECT"
+    CORRECT_WITH_FAILS = "CORRECT_WITH_FAILS"
+    FAILED = "FAILED"
+
+
+class PR1ClassBetType(str, enum.Enum):
+    COMMON = "COMMON"
+    BUYER = "BUYER"
+    SELLER = "SELLER"
+
+
+
+class CheckpointResponseStatus(str, enum.Enum):
+    SUCCESS = 'SUCCESS'
+    TRY_AGAIN = 'TRY_AGAIN'
+    FAILED = 'FAILED'
+
+
 class Incoterm(str, enum.Enum):
     EXW = 'EXW'
     FCA = 'FCA'
@@ -38,7 +58,57 @@ class Incoterm(str, enum.Enum):
     CIF = 'CIF'
 
 
+class PR1ClassStep(str, enum.Enum):
+    SELECT_LOGIST = 'SELECT_LOGIST'
+    EXW_BUYER = 'EXW_BUYER'
+    EXW_SELLER = 'EXW_SELLER'
+    FCA_BUYER = 'FCA_BUYER'
+    FCA_SELLER = 'FCA_SELLER'
+    CPT_BUYER = 'CPT_BUYER'
+    CPT_SELLER = 'CPT_SELLER'
+    CIP_BUYER = 'CIP_BUYER'
+    CIP_SELLER = 'CIP_SELLER'
+    DAP_BUYER = 'DAP_BUYER'
+    DAP_SELLER = 'DAP_SELLER'
+    DPU_BUYER = 'DPU_BUYER'
+    DPU_SELLER = 'DPU_SELLER'
+    DDP_BUYER = 'DDP_BUYER'
+    DDP_SELLER = 'DDP_SELLER'
+    FAS_BUYER = 'FAS_BUYER'
+    FAS_SELLER = 'FAS_SELLER'
+    FOB_BUYER = 'FOB_BUYER'
+    FOB_SELLER = 'FOB_SELLER'
+    CFR_BUYER = 'CFR_BUYER'
+    CFR_SELLER = 'CFR_SELLER'
+    CIF_BUYER = 'CIF_BUYER'
+    CIF_SELLER = 'CIF_SELLER'
+    OPTIONS_COMPARISON = 'OPTIONS_COMPARISON'
+    CONDITIONS_SELECTION = 'CONDITIONS_SELECTION'
+    DESCRIBE_OPTION = 'DESCRIBE_OPTION'
+    TEST_1 = 'TEST_1'
+    TEST_2 = 'TEST_2'
+    TEST_3 = 'TEST_3'
+    TEST_4 = 'TEST_4'
+    TEST_5 = 'TEST_5'
+    TEST_6 = 'TEST_6'
+    TEST_7 = 'TEST_7'
+    TEST_8 = 'TEST_8'
+    TEST_9 = 'TEST_9'
+    TEST_10 = 'TEST_10'
+    TEST_11 = 'TEST_11'
+    TEST_12 = 'TEST_12'
+    TEST_13 = 'TEST_13'
+    TEST_14 = 'TEST_14'
+    TEST_15 = 'TEST_15'
+    TEST_16 = 'TEST_16'
+    TEST_17 = 'TEST_17'
+    TEST_18 = 'TEST_18'
+    TEST_19 = 'TEST_19'
+    TEST_20 = 'TEST_20'
+
+
 class WSCommandTypes(str, enum.Enum):
+    INVITE_STUDENT = "INVITE_STUDENT"
     SELECT_TYPE = 'SELECT_TYPE'
     START = 'START'
     RAISE_HAND = 'RAISE_HAND'
@@ -58,6 +128,12 @@ class EventMode(str, enum.Enum):
     WORKOUT = 'WORKOUT'
 
 
+class SelectLogist(BaseModel):
+    computer_id: int
+    event_id: str
+    logist_index: Annotated[int, Field(strict=True, ge=0, lt=3)]
+
+
 class GeneralStep(BaseModel):
     id: int
     name: str
@@ -69,14 +145,18 @@ class EventStatus(str, enum.Enum):
     FINISHED = 'FINISHED'
 
 
+class StartEventResponse(BaseModel):
+    event_id: str
+
+
 class ConnectedComputer(BaseModel):
     id: int
-    users_ids: List[str]
+    users_ids: list[str]
     event_type: Optional[EventType] = None
     event_mode: Optional[EventMode] = None
-    is_connected: bool
+    is_connected: Optional[bool] = False
     step: Optional[GeneralStep] = None
-    status: EventStatus = EventStatus.NOT_STARTED.value
+    is_searching_someone: bool = False
 
 
 class ActualizeComputerPayload(BaseModel):
@@ -86,11 +166,12 @@ class ActualizeComputerPayload(BaseModel):
 
 class ConnectedComputerEdit(BaseModel):
     id: int
-    users_ids: Optional[List[str]] = None
+    users_ids: Optional[list[str]] = None
     event_type: Optional[EventType] = None
     event_mode: Optional[EventMode] = None
     step: Optional[GeneralStep] = None
     is_connected: Optional[bool] = None
+    is_searching_someone: Optional[bool] = None
     status: Optional[EventStatus] = None
 
 
@@ -141,7 +222,7 @@ class UserCreateDB(UserCreateBody):
     role: UserRole = UserRole.STUDENT
     group_name: str
     approved: bool = False
-    history: List[UserEventHistory] = []
+    history: list[UserEventHistory] = []
 
 
 class FullUser(UserCreateDB):
@@ -158,7 +239,7 @@ class UserOut(UserBase):
     group_name: Optional[str] = None
     group_id: Optional[str] = None
     role: UserRole = UserRole.STUDENT.value
-    incoterms: Dict[Incoterm, int] = {}
+    incoterms: dict[Incoterm, int] = {}
 
 
 class UserEvent(BaseModel):
@@ -170,7 +251,7 @@ class UserEvent(BaseModel):
 
 
 class UserOutWithEvents(UserOut):
-    events_history: Optional[List[UserEvent]] = []
+    events_history: Optional[list[UserEvent]] = []
 
 
 class UserSearch(BaseModel):
@@ -205,13 +286,32 @@ class GroupCreate(GroupBase):
     pass
 
 
+class SearchPartner(BaseModel):
+    computer_id: int
+
+
+class InvitePartner(BaseModel):
+    computer_id: int
+    partner_computer_id: int
+
+
+class AcceptInvite(BaseModel):
+    computer_id: int
+    partner_computer_id: int
+
+
+class RejectInvite(BaseModel):
+    computer_id: int
+    partner_computer_id: int
+
+
 class GroupOut(GroupBase):
     id: str
 
 
 class EventCheckpoint(BaseModel):
     step_id: int
-    user_ids: List[str]
+    user_ids: list[str]
     points: int
     fails: int
 
@@ -224,11 +324,44 @@ class EventResult(UserBase):
 
 
 class EventStepResult(BaseModel):
-    step_index: int
-    user_ids: List[str]
-    points: int
+    step_code: str
+    users_ids: list[str]
     fails: int
+    incoterm: Optional[Incoterm]
     description: Optional[str] = None
+    is_finished: bool = False
+
+
+class StepRole(str, enum.Enum):
+    BUYER = 'BUYER'
+    SELLER = 'SELLER'
+    ALL = 'ALL'
+
+
+class Step(BaseModel):
+    id: int
+    code: str
+    name: str
+    role: StepRole
+
+
+class SubResult(BaseModel):
+    correct: int = 0
+    correct_with_fails: int = 0
+    failed: int = 0
+
+
+class PR1ClassResults(BaseModel):
+    user_id: str
+    first_name: str
+    last_name: str
+    event_type: EventType
+    event_mode: EventMode
+    surname: Optional[str] = None
+    event_id: str
+    test_result: SubResult
+    incoterms_results: dict[Incoterm, SubResult]
+    minimal_incoterms: dict[Incoterm, AnswerStatus]
 
 
 class EventInfo(BaseModel):
@@ -239,10 +372,11 @@ class EventInfo(BaseModel):
     event_mode: EventMode
     created_at: datetime = datetime.now()
     finished_at: Optional[datetime] = None
-    users_ids: List[str]
-    steps_results: List[EventStepResult] = []
-    results: List[EventResult] = []
-    current_step_code: [Optional] = None
+    users_ids: list[str]
+    steps_results: list[EventStepResult] = []
+    results: list[EventResult] = []
+    current_step: Union[Step, str]
+    results: Optional[list[PR1ClassResults]]
 
 
 class BetsRolePR1(str, enum.Enum):
@@ -251,12 +385,14 @@ class BetsRolePR1(str, enum.Enum):
 
 
 class BetInfoIncotermsRolePR1(BaseModel):
-    buyer: List[Incoterm]
-    seller: List[Incoterm]
+    buyer: list[Incoterm]
+    seller: list[Incoterm]
     common: Optional[list[Incoterm]] = []
 
 
+
 class PracticeOneBet(BaseModel):
+    id: int
     name: str
     rate: int
     bet_pattern: BetInfoIncotermsRolePR1
@@ -272,7 +408,7 @@ class TablePR1(BaseModel):
     index: int
     role: BetsRolePR1
     incoterm: Incoterm
-    bets: List[PracticeOneBetOut]
+    bets: list[PracticeOneBetOut]
 
 
 class Logist(BaseModel):
@@ -287,13 +423,15 @@ class OptionPR1(BaseModel):
 
 
 class QuestionOption(BaseModel):
+    id: int
     value: str
     is_correct: bool = False
 
 
 class TestQuestionPR1(BaseModel):
+    id: int
     question: str
-    options: List[QuestionOption]
+    options: list[QuestionOption]
     incoterm: Optional[Incoterm] = None
 
 
@@ -303,8 +441,10 @@ class PR1ClassVariables(BaseModel):
     from_country: str
     to_country: str
     product_price: int
-    bets: List[PracticeOneBet]
-    logists: List[Logist]
+    bets: list[PracticeOneBet]
+    logists: list[Logist]
+    test: list[TestQuestionPR1]
+    zero_step: Step
 
 
 class ExamInputVariablesPR1(BaseModel):
@@ -346,27 +486,14 @@ class PracticeOneVariant(EventInfo):
     from_country: str
     to_country: str
     product_price: int
-    tables: Dict[BetsRolePR1, List[TablePR1]]
-    logists: List[Logist]
-    options: List[OptionPR1]
-    tests: List[List[TestQuestionPR1]]
-
-
-class StepRole(str, enum.Enum):
-    BUYER = 'BUYER'
-    SELLER = 'SELLER'
-    ALL = 'ALL'
-
-
-class Step(BaseModel):
-    index: int
-    code: str
-    name: str
-    role: StepRole
+    tables: dict[BetsRolePR1, list[TablePR1]]
+    logists: list[Logist]
+    options: list[OptionPR1]
+    tests: list[list[TestQuestionPR1]]
 
 
 class ExamStep(BaseModel):
-    index: int
+    id: int
     code: str
     name: str
 
@@ -377,24 +504,25 @@ class BetInfoValuePR1(BaseModel):
 
 
 class BetInfoPR1(BaseModel):
+    id: int
     name: str
     value_percentage: BetInfoValuePR1
     incoterms: BetInfoIncotermsRolePR1
 
 
 class ClassicTestQuestionBlock(BaseModel):
-    first_block: List[TestQuestionPR1]
-    second_block: List[TestQuestionPR1]
-    third_block: List[TestQuestionPR1]
+    first_block: list[TestQuestionPR1]
+    second_block: list[TestQuestionPR1]
+    third_block: list[TestQuestionPR1]
 
 
 class PracticeOneInfo(BaseModel):
     legend_pattern: str
-    all_incoterms: List[str]
-    steps: List[Step]
-    exam_steps: List[ExamStep]
-    bets: List[BetInfoPR1]
-    logists: List[str]
+    all_incoterms: list[str]
+    steps: list[Step]
+    exam_steps: list[ExamStep]
+    bets: list[BetInfoPR1]
+    logists: list[str]
     classic_test_questions: ClassicTestQuestionBlock
     control_test_questions: list[TestQuestionPR1]
 
@@ -428,9 +556,13 @@ class UserChangePassword(BaseModel):
 
 
 class CheckpointData(BaseModel):
-    points: conint(ge=0)
-    fails: conint(ge=0)
-    description: Optional[str] = None
+    computer_id: int
+    event_id: str
+    step_code: PR1ClassStep
+    text: Optional[str]
+    answer_ids: Optional[list[int]] = []
+    chosen_index: Optional[int]
+    chosen_incoterm: Optional[Incoterm]
 
 
 class JoinData(BaseModel):
@@ -450,10 +582,60 @@ class StartEventDto(BaseModel):
     mode: EventMode
 
 
+class PR1ClassChosenBet(BaseModel):
+    id: int
+    name: str
+    rate: float
+    chosen_by: BetsRolePR1
+    type: PR1ClassBetType
+
+
+class IncotermInfo(BaseModel):
+    bets: list[PR1ClassChosenBet]
+    agreement_price_seller: int
+    delivery_price_buyer: int
+    total: int
+
+
+class IncotermInfoSummarize(BaseModel):
+    agreement_price_seller: int
+    delivery_price_buyer: int
+    total: int
+
+
+class ChosenOption(IncotermInfoSummarize):
+    incoterm: Incoterm
+
+
 class PR1ClassEvent(EventInfo):
     legend: str
-    logists: List[Logist]
+    logists: list[Logist]
+    chosen_logist_index: Optional[int] = None
     product: str
     from_country: str
     to_country: str
     product_price: int
+    bets: list[PracticeOneBet]
+    test: list[TestQuestionPR1]
+    common_bets_ids_chosen_by_seller: Optional[dict[str, list[str]]] = {}
+    describe_option: Optional[str] = None
+    options_comparison: Optional[dict[Incoterm, IncotermInfo]]
+    chosen_option: Optional[ChosenOption]
+
+
+class CurrentStepResponse(BaseModel):
+    is_finished: bool = False
+    current_step: Optional[Union[Step, str]]
+    bets: Optional[list[PracticeOneBet]]
+    options_comparison: Optional[dict[Incoterm, IncotermInfo]]
+    delivery_options: Optional[dict[Incoterm, IncotermInfoSummarize]]
+    test_question: Optional[TestQuestionPR1]
+    logists: Optional[list[Logist]]
+
+
+class CheckpointResponse(BaseModel):
+    status: Optional[str] = None
+    next_step: Optional[Union[Step, str]] = None
+    fails: Optional[int] = 0
+    missed_ids: Optional[list[int]] = []
+    not_needed_ids: Optional[list[int]] = []

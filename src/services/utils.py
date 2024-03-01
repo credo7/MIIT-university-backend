@@ -2,7 +2,7 @@ import copy
 import random
 import string
 from bson import ObjectId
-from typing import Optional, List, Any, Union, Dict
+from typing import Optional, List, Any, Union, Dict, TypeVar
 
 from passlib.context import CryptContext
 from pydantic.main import BaseModel
@@ -138,7 +138,10 @@ def change_mongo_instance(obj: Union[List, Dict], exclude: Optional[List[str]] =
         return helper(obj)
 
 
-def normalize_mongo(db_obj, pydantic_schema, return_dict: bool = False) -> Any:
+T = TypeVar('T')
+
+
+def normalize_mongo(db_obj, pydantic_schema: T, return_dict: bool = False) -> T:
     if isinstance(db_obj, Cursor):
         db_obj = list(db_obj)
     if isinstance(db_obj, list):
@@ -180,3 +183,14 @@ def raise_if_users_already_connected(connected_computers: Dict[int, ConnectedCom
     for user_id in users_ids:
         if user_id in all_connected_users_ids:
             raise Exception('User is already connected to another computer')
+
+
+def normilize_id(db_obj):
+    if isinstance(db_obj, list):
+        for db_el in db_obj:
+            db_el['id'] = str(db_el['_id'])
+            del db_el['_id']
+    else:
+        db_obj['id'] = str(db_obj['_id'])
+        del db_obj['_id']
+    return db_obj

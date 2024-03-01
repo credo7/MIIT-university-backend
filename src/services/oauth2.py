@@ -3,7 +3,7 @@ from typing import List
 import logging
 from bson import ObjectId
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pymongo.database import Database
@@ -91,6 +91,10 @@ def extract_users_ids(headers: Headers):
             users_ids.append(user_id)
 
     return users_ids
+
+
+def extract_users_ids_rest(request: Request):
+    return extract_users_ids(request.headers)
 
 
 def get_current_user(

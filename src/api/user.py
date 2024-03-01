@@ -62,7 +62,7 @@ async def edit(
 
         return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.post('/approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -83,7 +83,7 @@ async def approve_user(
 
         return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get('/unapproved', status_code=status.HTTP_200_OK, response_model=List[schemas.UserToApprove])
@@ -99,7 +99,7 @@ async def get_unapproved_users(
         unapproved_users_db = db[CollectionNames.USERS.value].find(filter)
         return normalize_mongo(unapproved_users_db, schemas.UserOut, return_dict=True)
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.patch(
@@ -126,7 +126,7 @@ async def change_password(
 
         return schemas.UserCredentials(username=user_db['username'], password=new_password)
     except Exception as e:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)

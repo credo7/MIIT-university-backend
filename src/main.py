@@ -3,7 +3,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import auth, group, user, event, ws, lesson
+from api import auth, group, user, event, ws
+from core.config import settings
 from services.error_log_handling_middleware import ErrorLogHandlingMiddleware
 from tg_logger import tg_wrapper
 
@@ -27,7 +28,7 @@ app.include_router(auth.router)
 app.include_router(group.router)
 app.include_router(user.router)
 app.include_router(event.router)
-app.include_router(lesson.router)
+# app.include_router(lesson.router)
 app.include_router(ws.router)
 
 
@@ -37,4 +38,4 @@ app.add_middleware(ErrorLogHandlingMiddleware)
 import uvicorn
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=3001)
+    uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
