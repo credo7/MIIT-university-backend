@@ -38,10 +38,15 @@ app.add_middleware(ErrorLogHandlingMiddleware)
 
 import uvicorn
 
-def create_group():
+def make_me_teacher():
     db = get_db()
-    inserted = db[CollectionNames.GROUPS.value].insert_one({"name": "first"})
-    print(str(inserted.inserted_id))
+    from bson import ObjectId
+    inserted = db[CollectionNames.USERS.value].update_one({"_id": ObjectId("65e205c9fa31762cd37c9cd3")},{
+        "$approved": True
+    })
+
+    print(inserted)
 
 if __name__ == '__main__':
+    make_me_teacher()
     uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
