@@ -11,15 +11,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  api:
-    build: ./
-    ports:
-      - "80:80"
-    restart: always
-    container_name: api
-    env_file:
-      - .env
-    command: bash -c "python3 src/init_and_wait_for_mongo.py && cd src && uvicorn main:api_app --port 80"
+#  api:
+#    build: ./
+#    ports:
+#      - "80:80"
+#    restart: always
+#    container_name: api
+#    env_file:
+#      - .env
+#    command: bash -c "python3 src/init_and_wait_for_mongo.py && cd src && uvicorn main:api_app --port 80"
 #    depends_on:
 #      - db
 
