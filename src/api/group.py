@@ -20,7 +20,6 @@ async def create(
     # _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
     db: Database = Depends(get_db),
 ):
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, "LALALLALA")
     candidate = db[CollectionNames.GROUPS.value].find_one({'name': group_create.name})
 
     if candidate:

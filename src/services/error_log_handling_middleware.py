@@ -16,10 +16,7 @@ class ErrorLogHandlingMiddleware(BaseHTTPMiddleware):
         logger = logging.getLogger(__name__)
         users_ids = None
         try:
-            try:
-                users_ids = extract_users_ids(request.headers)
-            except:
-                ...
+            users_ids = extract_users_ids(request.headers)
             response = await call_next(request)
         except HTTPException as exc:
             logger.error(f'Error in path: {request.url.path}, users_ids={users_ids} Traceback: {exc}', exc_info=True)
