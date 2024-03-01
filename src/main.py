@@ -41,9 +41,14 @@ import uvicorn
 def make_me_teacher():
     db = get_db()
     from bson import ObjectId
-    inserted = db[CollectionNames.USERS.value].update_one({"_id": ObjectId("65e205c9fa31762cd37c9cd3")},{
-        "$approved": True
+    inserted = db[CollectionNames.USERS.value].update_one({"_id": ObjectId("65e205c9fa31762cd37c9cd3")}, {
+        "$set": {
+            "approved": True
+        }
     })
+        # "_id": ObjectId("65e205c9fa31762cd37c9cd3")}, {
+        # {"$set": {"approved": True}
+        #  })
 
     print(inserted)
 
