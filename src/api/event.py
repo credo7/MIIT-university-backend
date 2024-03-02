@@ -33,6 +33,9 @@ logger = logging.getLogger(__name__)
 
 @router.post('/start', response_model=StartEventResponse)
 async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Depends(extract_users_ids_rest)):
+    if not users_ids:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Юзеры не найдены")
+
     event = create_event(event_dto=start_event_dto, users_ids=users_ids)
 
     connected_computer = ConnectedComputer(

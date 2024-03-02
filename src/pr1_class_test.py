@@ -31,8 +31,8 @@ from services.utils import normalize_mongo
 USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjU4YWQzNDE2ZGNiN2M5N2VlNWNlMTFkIiwiZXhwIjoxNzA5MzE0MjMxfQ.yqNMAu-x6uU9SX4gRmnEL-Hcen0-yMlKADGPgii15IY'
 USER_2_TOKEN = ""
 COMPUTER_ID = 5
-API_URL = 'http://localhost:3000'
-WS_URL = f'ws://localhost:3000/ws/{COMPUTER_ID}'
+API_URL = 'http://79.174.93.53'
+WS_URL = f'ws://79.174.93.53/ws/{COMPUTER_ID}'
 EVENT_TYPE = EventType.PR1.value
 EVENT_MODE = EventMode.CLASS.value
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
             json={'computer_id': COMPUTER_ID, 'event_id': event_id, **checkpoint},
         )
 
-        print(f"checkpoint_response={response.json()}")
+        print(f"\ncheckpoint_response={response.json()}")
 
         if response.status_code > 400:
             raise Exception("STOP")
