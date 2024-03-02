@@ -41,17 +41,11 @@ import uvicorn
 def make_me_teacher():
     db = get_db()
     from bson import ObjectId
-    inserted = db[CollectionNames.USERS.value].update_one({"_id": ObjectId("65e205c9fa31762cd37c9cd3")}, {
-        "$set": {
-            "approved": True
-        }
-    })
-        # "_id": ObjectId("65e205c9fa31762cd37c9cd3")}, {
-        # {"$set": {"approved": True}
-        #  })
+    inserted = db[CollectionNames.USERS.value].insert_one({"name": "Vitaly"})
 
-    print(inserted)
+make_me_teacher()
 
-if __name__ == '__main__':
-    make_me_teacher()
-    uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
+# if __name__ == '__main__':
+#     make_me_teacher()
+#     print("BEFORE RUNNING", flush=True)
+#     uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
