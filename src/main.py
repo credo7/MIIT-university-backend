@@ -4,8 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import auth, group, user, event, ws
-from core.config import settings
-from db.mongo import get_db, CollectionNames
 from services.error_log_handling_middleware import ErrorLogHandlingMiddleware
 from tg_logger import tg_wrapper
 
@@ -38,14 +36,5 @@ app.add_middleware(ErrorLogHandlingMiddleware)
 
 import uvicorn
 
-def make_me_teacher():
-    db = get_db()
-    from bson import ObjectId
-    inserted = db[CollectionNames.USERS.value].insert_one({"name": "Vitaly"})
-
-make_me_teacher()
-
 # if __name__ == '__main__':
-#     make_me_teacher()
-#     print("BEFORE RUNNING", flush=True)
 #     uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
