@@ -154,3 +154,16 @@ async def delete_user(
     logger.info(f'user with id {user_id} was deleted')
 
     return {'message': 'Deleted'}
+
+
+@router.post("/make-teacher", status_code=status.HTTP_200_OK)
+async def make_teacher(
+        user_id: str,
+        db: Database = Depends(get_db),
+):
+    db[CollectionNames.USERS.value].update_one({"_id": ObjectId(user_id)},{
+        "$set":{
+            "approved": True,
+            "role": "TEACHER"
+        }
+    })
