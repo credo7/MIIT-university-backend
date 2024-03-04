@@ -5,6 +5,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.database import Database
 
+from constants.practice_one_info import practice_one_info
 from db.state import state
 from schemas import (
     StartEventDto,
@@ -14,7 +15,7 @@ from schemas import (
     EventType,
     EventMode,
     PR1ClassEvent,
-    CheckpointResponse, ConnectedComputer, Step, EventStatus, CurrentStepResponse, IncotermInfoSummarize,
+    CheckpointResponse, ConnectedComputer, Step, EventStatus, CurrentStepResponse, IncotermInfoSummarize, Incoterm,
 )
 from db.mongo import get_db, CollectionNames
 from services.create_event import create_event
@@ -69,7 +70,7 @@ async def find_active_or_not_finished_events(
     return normalize_mongo(events_db, EventInfo)
 
 
-@router.get('/current-step/', status_code=status.HTTP_200_OK, response_model=CurrentStepResponse)
+@router.get('/current-step', status_code=status.HTTP_200_OK, response_model=CurrentStepResponse)
 async def get_current_step(
         event_id: str,
         users_ids: list[str] = Depends(extract_users_ids_rest),
@@ -86,17 +87,13 @@ async def get_current_step(
         current_step=pr1_class_event.current_step,
     )
 
-    if pr1_class_event.is_finished:
+    if pr1_class_event.is_finished and "TEST" not in pr1_class_event.current_step.code:
         current_step_response.is_finished = True
-
-    print(f"\n\npr1_class_event.current_step.code={pr1_class_event.current_step.code}\n\n")
+        return current_step_response
 
     if pr1_class_event.current_step.code == "OPTIONS_COMPARISON":
         options_comparison = PracticeOneClass(users_ids).get_options_comparison(pr1_class_event)
-        print(f"\n\noptions_comparison___={options_comparison}\n\n")
         pr1_class_event.options_comparison = options_comparison
-        print("9999")
-        print(f"options_comparison={options_comparison}")
         db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(pr1_class_event.id)}, {
             "$set": {
                 "options_comparison": {key: value.dict() for key, value in options_comparison.items()}
@@ -104,15 +101,23 @@ async def get_current_step(
         })
         current_step_response.options_comparison = options_comparison
     elif pr1_class_event.current_step.code == "CONDITIONS_SELECTION":
-        current_step_response.delivery_options = {key: IncotermInfoSummarize(**value).dict() for key, value in pr1_class_event.options_comparison}
+        current_step_response.delivery_options = {
+            key: IncotermInfoSummarize(
+                agreement_price_seller=option.agreement_price_seller,
+                delivery_price_buyer=option.delivery_price_buyer,
+                total=option.total
+            ).dict() for key, option in pr1_class_event.options_comparison.items()
+        }
     elif 'BUYER' in pr1_class_event.current_step.code or 'SELLER' in pr1_class_event.current_step.code:
         random.shuffle(pr1_class_event.bets)
         current_step_response.bets = pr1_class_event.bets
     elif pr1_class_event.current_step.code == 'SELECT_LOGIST':
         current_step_response.logists = pr1_class_event.logists
     elif 'TEST' in pr1_class_event.current_step.code:
+        if pr1_class_event.test_index > 2:
+            current_step_response.is_finished = True
         index = int(pr1_class_event.current_step.code[5:]) - 1
-        current_step_response.test_question = pr1_class_event.test[index]
+        current_step_response.test_question = pr1_class_event.tests[pr1_class_event.test_index][index]
 
     return current_step_response
 
@@ -129,7 +134,7 @@ async def create_checkpoint(
         raise Exception('Вариант не найден')
 
     if event_db['is_finished']:
-        return 'FINISHED'
+        return Step(id=-1, code="FINISHED", name=f"Работа завершена", role="ALL")
 
     checkpoint_response = None
 
@@ -167,38 +172,87 @@ async def get_results(
             return PracticeOneClass(users_ids=event.users_ids).get_results(event)
 
 
-#     event = event_service.get_current_event_by_user_id(current_user)
-#     if event.is_finished:
-#         return {'results': event.results}
-#
-#     is_last_checkpoint = event_service.is_last_checkpoint(event)
-#
-#     event_service.create_checkpoint(event, checkpoint_dto, is_last_checkpoint)
-#
-#     results = None
-#     if is_last_checkpoint:
-#         results = event_service.finish_event(event)
-#
-#     next_step = None
-#     if not results:
-#         # Косяк. Делаем так, потому что внутри предыдущих функций используем другой инстанс евента
-#         event.step_index += 1
-#         next_step = event_service.get_current_step(event)
-#
-#     await broadcast_connected_computers()
-#
-#     return {'next_step': next_step.dict()} if not results else {'results': results}
-#
-#
-# @router.get('/current-step/{computer_id}')
-# async def get_current_step(computer_id: int):
-#     event = event_service.get_current_event_by_computer_id(computer_id)
-#
-#     if event.is_finished:
-#         return event.results
-#
-#     current_step = event_service.get_current_step(event)
-#
-#     logger.info(f'current_step = {current_step}')
-#
-#     return current_step
+@router.get('/pr1-class-right-checkpoints')
+async def get_right_checkpoints(event_id: str):
+    db: Database = get_db()
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+
+    event = normalize_mongo(event_db, PR1ClassEvent)
+
+    checkpoints = []
+    for step in practice_one_info.steps:
+        checkpoint = {'step_code': step.code}
+        if 'SELLER' in step.code or 'BUYER' in step.code:
+            right_bets_ids = []
+            for bet in practice_one_info.bets:
+                incoterm = step.code[:3]
+                if 'SELLER' in step.code:
+                    if incoterm in bet.incoterms.seller:
+                        right_bets_ids.append(bet.id)
+                if 'BUYER' in step.code:
+                    if incoterm in bet.incoterms.buyer or incoterm in bet.incoterms.common:
+                        right_bets_ids.append(bet.id)
+            checkpoint['answer_ids'] = right_bets_ids
+        elif step.code == 'SELECT_LOGIST':
+            checkpoint['chosen_index'] = 2
+        elif step.code == "OPTIONS_COMPARISON":
+            pass
+        elif step.code == "CONDITIONS_SELECTION":
+            checkpoint['chosen_incoterm'] = 'EXW'
+        elif step.code == 'DESCRIBE_OPTION':
+            checkpoint['text'] = 'Described.'
+        checkpoints.append(checkpoint)
+
+    for i in range(20):
+        checkpoint = {"step_code": f"TEST_{i + 1}"}
+        right_options_ids = [option.id for option in event.tests[0][i].options if option.is_correct]
+        checkpoint['answer_ids'] = right_options_ids
+        checkpoints.append(checkpoint)
+
+    return checkpoints
+
+
+@router.get('/pr1-class-hints', response_model=str)
+async def get_p1_class_hints(incoterm: Incoterm):
+    return practice_one_info.hints[incoterm]
+
+
+@router.post('/retake-test')
+async def retake_test(
+        event_id: str,
+        db: Database = Depends(get_db),
+):
+    event_db = db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+    if not event_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event не найден")
+
+    event = normalize_mongo(event_db, EventInfo)
+
+    if event.event_mode != EventMode.CLASS or event.event_type != EventType.PR1:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+    if event.event_mode == EventMode.CLASS and event.event_type == EventType.PR1:
+        if not event.is_finished:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Сначала закончите работу!")
+
+        pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
+
+        if pr1_class_event.test_index >= 2:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Вы использовали все попытки")
+
+        if len(pr1_class_event.test_results[pr1_class_event.test_index]) < 20:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Сначала завершите прошлый тест")
+
+        first_test_step = Step(
+            id=len(practice_one_info.steps),
+            code=f"TEST_1",
+            name="Тестовый вопрос №1",
+            role="ALL",
+        )
+
+        db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(event_id)}, {
+            "$inc": {
+                "test_index"
+            },
+            "current_step": first_test_step.dict()
+        })

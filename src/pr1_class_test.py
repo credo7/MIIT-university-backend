@@ -28,11 +28,13 @@ from schemas import PR1ClassEvent, EventType, EventMode
 from services.utils import normalize_mongo
 
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjU4YWQzNDE2ZGNiN2M5N2VlNWNlMTFkIiwiZXhwIjoxNzA5MzE0MjMxfQ.yqNMAu-x6uU9SX4gRmnEL-Hcen0-yMlKADGPgii15IY'
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzA5NTc0MDg1fQ.UP5S3GFrcD_Nx7ourAwJSyKsaHv8AGXytpjO_c6_JnM'
 USER_2_TOKEN = ""
-COMPUTER_ID = 5
-API_URL = 'http://79.174.93.53'
-WS_URL = f'ws://79.174.93.53/ws/{COMPUTER_ID}'
+COMPUTER_ID = 9
+# API_URL = 'http://79.174.93.53'
+# WS_URL = f'ws://79.174.93.53/ws/{COMPUTER_ID}'
+API_URL = 'http://localhost:3000'
+WS_URL = f'ws://localhost/ws/{COMPUTER_ID}'
 EVENT_TYPE = EventType.PR1.value
 EVENT_MODE = EventMode.CLASS.value
 
@@ -107,10 +109,12 @@ def get_right_checkpoints():
             checkpoint['chosen_incoterm'] = 'EXW'
         elif step.code == 'DESCRIBE_OPTION':
             checkpoint['text'] = 'Described.'
-        else:
-            test_index = int(step.code[5:]) - 1
-            right_options_ids = [option.id for option in event.test[test_index].options if option.is_correct]
-            checkpoint['answer_ids'] = right_options_ids
+        checkpoints.append(checkpoint)
+
+    for i in range(20):
+        checkpoint = {"step_code": f"TEST_{i+1}"}
+        right_options_ids = [option.id for option in event.tests[0][i].options if option.is_correct]
+        checkpoint['answer_ids'] = right_options_ids
         checkpoints.append(checkpoint)
 
     return checkpoints
@@ -172,7 +176,6 @@ def make_test_two_tries_13(checkpoints):
 
 
 if __name__ == "__main__":
-
     # Все ответы верны с первого раза, все common выбираются покупателем
     checkpoints = get_right_checkpoints()
 
@@ -189,6 +192,7 @@ if __name__ == "__main__":
             params=params
         )
 
+        print()
         print(f"\nCurrent-step={response.json()}")
 
         response = requests.post(

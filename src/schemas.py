@@ -376,7 +376,6 @@ class EventInfo(BaseModel):
     steps_results: list[EventStepResult] = []
     results: list[EventResult] = []
     current_step: Union[Step, str]
-    results: Optional[list[PR1ClassResults]]
 
 
 class BetsRolePR1(str, enum.Enum):
@@ -443,7 +442,7 @@ class PR1ClassVariables(BaseModel):
     product_price: int
     bets: list[PracticeOneBet]
     logists: list[Logist]
-    test: list[TestQuestionPR1]
+    tests: list[list[TestQuestionPR1]]
     zero_step: Step
 
 
@@ -525,6 +524,7 @@ class PracticeOneInfo(BaseModel):
     logists: list[str]
     classic_test_questions: ClassicTestQuestionBlock
     control_test_questions: list[TestQuestionPR1]
+    hints: dict[Incoterm, str]
 
 
 class UserCredentials(BaseModel):
@@ -616,11 +616,14 @@ class PR1ClassEvent(EventInfo):
     to_country: str
     product_price: int
     bets: list[PracticeOneBet]
-    test: list[TestQuestionPR1]
+    test_index: int = 0
     common_bets_ids_chosen_by_seller: Optional[dict[str, list[str]]] = {}
     describe_option: Optional[str] = None
     options_comparison: Optional[dict[Incoterm, IncotermInfo]]
     chosen_option: Optional[ChosenOption]
+    tests: Optional[list[list[TestQuestionPR1]]]
+    test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
+    results: Optional[list[PR1ClassResults]] = []
 
 
 class CurrentStepResponse(BaseModel):
