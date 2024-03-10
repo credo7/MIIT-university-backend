@@ -379,7 +379,7 @@ class PracticeOneClass:
 
             if event.current_step.code != event.test_results[event.test_index][-1].step_code:
                 step_result = EventStepResult(
-                    step_code=event.current_step.code, users_ids=event.users_ids, fails=0,
+                    step_code=event.current_step.code, users_ids=event.users_ids, fails=0, test_index=event.test_index
                 )
                 event.test_results[event.test_index].append(step_result)
 

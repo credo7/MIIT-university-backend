@@ -221,8 +221,8 @@ if __name__ == "__main__":
         if response.status_code > 400:
             raise Exception("STOP")
 
-        if index == 7:
-            raise Exception("STOP")
+        # if index == 7:
+        #     raise Exception("STOP")
 
     response = requests.get(f"{API_URL}/events/results", params={"event_id": event_id})
     print(response.json())
@@ -258,7 +258,7 @@ if __name__ == "__main__":
                 json={'computer_id': COMPUTER_ID, 'event_id': event_id, 'answer_ids': answer_ids, 'step_code': f"TEST_{j}"},
             )
 
-            if response.status_code > 200:
+            if response.status_code >= 300:
                 raise Exception(f"TEST_{i} question_{j} checkpoint status_code={response.status_code} json={response.json()}")
 
             print(f"\ntest_{i} question_{j} response = {response.json()}\n")
