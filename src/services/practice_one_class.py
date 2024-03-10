@@ -55,6 +55,22 @@ class PracticeOneClass:
 
         return normalize_mongo(event_db, EventInfo)
 
+    def continue_work(self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
+        if not event.steps_results:
+            return
+
+        if "SELLER" in event.steps_results[-1].step_code:
+            event.steps_results.pop()
+        if "BUYER" in event.steps_results[-1].step_code:
+            if not event.steps_results[-1].is_finished:
+                event.steps_results.pop()
+                event.steps_results.pop()
+
+        self.db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(event.id)}, {
+            "$set": {"steps_results": [sr.dict() for sr in event.steps_results]}
+        })
+
+
     @staticmethod
     def _get_next_step(event: PR1ClassEvent, checkpoint_response: CheckpointResponse):
         finished_step = Step(
@@ -92,7 +108,6 @@ class PracticeOneClass:
 
         for user_id in self.users_ids:
             incoterms_results: dict[Incoterm, SubResult] = {}
-            test_result = SubResult()
 
             for step in event.steps_results:
                 if step.incoterm:
@@ -106,14 +121,20 @@ class PracticeOneClass:
                         else:
                             incoterms_results[step.incoterm].failed += 1
 
-                if "TEST" in step.step_code:
-                    if user_id in step.users_ids:
-                        if step.fails == 0:
-                            test_result.correct += 1
-                        elif step.fails < 3:
-                            test_result.correct_with_fails += 1
-                        else:
-                            test_result.failed += 1
+            final_test_results = [SubResult(), SubResult(), SubResult()]
+            for index, test_result in enumerate(event.test_results):
+                if not test_result or "20" not in test_result[-1].step_code:
+                    break
+                for step in test_result:
+                    if step.fails == 0:
+                        final_test_results[step.test_index].correct += 1
+                    elif step.fails < 3:
+                        final_test_results[step.test_index].failed += 1
+                    else:
+                        final_test_results[step.test_index].correct_with_fails += 1
+
+
+
 
             user_db = self.db[CollectionNames.USERS.value].find_one({
                 "_id": ObjectId(user_id)
@@ -130,6 +151,15 @@ class PracticeOneClass:
                 else:
                     minimal_incoterms[incoterm] = AnswerStatus.CORRECT.value
 
+            index_of_the_best = 0
+            max_corrects = 0
+            for index, test_result in enumerate(final_test_results):
+                if test_result.correct > max_corrects:
+                    index_of_the_best = index
+                    max_corrects = test_result.correct
+
+            last_test_index = event.test_index if event.test_results[event.test_index] and "20" in event.test_results[event.test_index][-1] else event.test_index -1
+
             result = PR1ClassResults(
                 first_name=user.first_name,
                 last_name=user.last_name,
@@ -138,7 +168,9 @@ class PracticeOneClass:
                 event_type=event.event_type,
                 event_mode=event.event_mode,
                 event_id=event.id,
-                test_result=test_result,
+                test_results=final_test_results,
+                best_test_result=final_test_results[index_of_the_best],
+                last_test_result=final_test_results[last_test_index],
                 incoterms_results=incoterms_results,
                 minimal_incoterms=minimal_incoterms,
 
@@ -284,8 +316,6 @@ class PracticeOneClass:
 
             next_step = self._get_next_step(event, checkpoint_response)
 
-            print(f'\nNEXT_step is = {next_step}\n')
-
             event.current_step = next_step
             checkpoint_response.next_step = next_step
             checkpoint_response.fails = current_step_result.fails
@@ -294,7 +324,7 @@ class PracticeOneClass:
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
             if event.current_step.code == 'SELECT_LOGIST':
-                event.chosen_logist_index = checkpoint_dto.chosen_index
+                event.chosen_logist_letter = checkpoint_dto.chosen_letter
 
             if event.current_step.code == 'OPTIONS_COMPARISON':
                 pass
@@ -343,7 +373,7 @@ class PracticeOneClass:
             if not event.test_results[event.test_index]:
                 event.test_results[event.test_index].append(
                     EventStepResult(
-                        step_code=event.current_step.code, users_ids=event.users_ids, fails=0,
+                        step_code=event.current_step.code, users_ids=event.users_ids, fails=0, test_index=event.test_index
                     )
                 )
 
@@ -371,6 +401,8 @@ class PracticeOneClass:
 
             next_step = self._get_next_step(event, checkpoint_response)
             event.current_step = next_step
+            if next_step.code == "FINISHED":
+                event.is_finished = True
             checkpoint_response.next_step = next_step
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
@@ -459,8 +491,7 @@ class PracticeOneClass:
     def prepare_logists() -> List[Logist]:
         logists = practice_one_info.logists.copy()
         random.shuffle(logists)
-        chosen_logists = logists[:3]
-        return [Logist(description=desc) for desc in chosen_logists]
+        return logists[:3]
 
     @staticmethod
     def prepare_options(tables, product_price):
@@ -497,6 +528,13 @@ class PracticeOneClass:
         for i in range(3):
             random.shuffle(questions)
             tests.append(deepcopy(questions[:20]))
+
+        for test in tests:
+            for question in test:
+                random.shuffle(question.options)
+                if len([option for option in question.options if option.is_correct]) > 1:
+                    question.multiple_options = True
+                question.right_ids = [option.id for option in question.options if option.is_correct]
 
         return tests
 

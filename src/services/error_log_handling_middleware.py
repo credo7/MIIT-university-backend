@@ -6,7 +6,6 @@ from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 
 from services.oauth2 import extract_users_ids
-from services.utils import normilize_id
 
 RequestResponseEndpoint = Callable[[Request], Awaitable[Response]]
 

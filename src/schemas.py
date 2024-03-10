@@ -124,7 +124,7 @@ class EventType(str, enum.Enum):
 
 class EventMode(str, enum.Enum):
     CLASS = 'CLASS'
-    EXAM = 'EXAM'
+    CONTROL = 'CONTROL'
     WORKOUT = 'WORKOUT'
 
 
@@ -324,6 +324,7 @@ class EventResult(UserBase):
 
 
 class EventStepResult(BaseModel):
+    test_index: Optional[int] = 0
     step_code: str
     users_ids: list[str]
     fails: int
@@ -359,7 +360,9 @@ class PR1ClassResults(BaseModel):
     event_mode: EventMode
     surname: Optional[str] = None
     event_id: str
-    test_result: SubResult
+    test_results: list[SubResult]
+    best_test_result: SubResult
+    last_test_result: SubResult
     incoterms_results: dict[Incoterm, SubResult]
     minimal_incoterms: dict[Incoterm, AnswerStatus]
 
@@ -411,7 +414,8 @@ class TablePR1(BaseModel):
 
 
 class Logist(BaseModel):
-    description: str
+    letter: str
+    text: str
 
 
 class OptionPR1(BaseModel):
@@ -430,6 +434,8 @@ class QuestionOption(BaseModel):
 class TestQuestionPR1(BaseModel):
     id: int
     question: str
+    multiple_options: Optional[bool] = False
+    right_ids: Optional[list[int]] = []
     options: list[QuestionOption]
     incoterm: Optional[Incoterm] = None
 
@@ -446,7 +452,7 @@ class PR1ClassVariables(BaseModel):
     zero_step: Step
 
 
-class ExamInputVariablesPR1(BaseModel):
+class PR1ControlInputVariables(BaseModel):
     product_price: int
     total_products: int
     packaging: int
@@ -467,15 +473,15 @@ class ExamInputVariablesPR1(BaseModel):
     unloading_on_terminal: int
 
 
-class ExamInputPR1(BaseModel):
+class PR1ControlInput(BaseModel):
     legend: str
     to_point: str
     from_point: str
     product_name: str
-    variables: ExamInputVariablesPR1
+    variables: PR1ControlInputVariables
 
 
-class PracticeOneExamVariant(EventInfo, ExamInputPR1):
+class PR1ControlEvent(EventInfo, PR1ControlInput):
     answers: dict[Incoterm, int]
 
 
@@ -514,6 +520,8 @@ class ClassicTestQuestionBlock(BaseModel):
     second_block: list[TestQuestionPR1]
     third_block: list[TestQuestionPR1]
 
+Logist
+
 
 class PracticeOneInfo(BaseModel):
     legend_pattern: str
@@ -521,7 +529,7 @@ class PracticeOneInfo(BaseModel):
     steps: list[Step]
     exam_steps: list[ExamStep]
     bets: list[BetInfoPR1]
-    logists: list[str]
+    logists: list[Logist]
     classic_test_questions: ClassicTestQuestionBlock
     control_test_questions: list[TestQuestionPR1]
     hints: dict[Incoterm, str]
@@ -563,6 +571,7 @@ class CheckpointData(BaseModel):
     answer_ids: Optional[list[int]] = []
     chosen_index: Optional[int]
     chosen_incoterm: Optional[Incoterm]
+    chosen_letter: Optional[str] = None
 
 
 class JoinData(BaseModel):
@@ -610,7 +619,7 @@ class ChosenOption(IncotermInfoSummarize):
 class PR1ClassEvent(EventInfo):
     legend: str
     logists: list[Logist]
-    chosen_logist_index: Optional[int] = None
+    chosen_logist_letter: Optional[str] = None
     product: str
     from_country: str
     to_country: str

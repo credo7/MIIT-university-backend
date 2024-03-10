@@ -122,7 +122,7 @@ async def get_current_step(
     return current_step_response
 
 
-@router.post('/checkpoint', response_model=CheckpointResponse)
+@router.post('/checkpoint', response_model=CheckpointResponse, status_code=status.HTTP_201_CREATED)
 async def create_checkpoint(
     checkpoint_dto: CheckpointData,
     # users_ids: list[str] = Depends(extract_users_ids_rest),
@@ -133,8 +133,8 @@ async def create_checkpoint(
     if not event_db:
         raise Exception('Вариант не найден')
 
-    if event_db['is_finished']:
-        return Step(id=-1, code="FINISHED", name=f"Работа завершена", role="ALL")
+    # if event_db['is_finished']:
+    #     return Step(id=-1, code="FINISHED", name=f"Работа завершена", role="ALL")
 
     checkpoint_response = None
 
@@ -151,7 +151,7 @@ async def create_checkpoint(
     return checkpoint_response
 
 
-@router.get('/results')
+@router.get('/results', status_code=status.HTTP_200_OK)
 async def get_results(
         event_id: str,
         db: Database = Depends(get_db),
@@ -172,7 +172,7 @@ async def get_results(
             return PracticeOneClass(users_ids=event.users_ids).get_results(event)
 
 
-@router.get('/pr1-class-right-checkpoints')
+@router.get('/pr1-class-right-checkpoints', status_code=status.HTTP_200_OK)
 async def get_right_checkpoints(event_id: str):
     db: Database = get_db()
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
@@ -212,12 +212,12 @@ async def get_right_checkpoints(event_id: str):
     return checkpoints
 
 
-@router.get('/pr1-class-hints', response_model=str)
+@router.get('/pr1-class-hints', response_model=str, status_code=status.HTTP_200_OK)
 async def get_p1_class_hints(incoterm: Incoterm):
     return practice_one_info.hints[incoterm]
 
 
-@router.post('/retake-test')
+@router.post('/retake-test', status_code=status.HTTP_200_OK)
 async def retake_test(
         event_id: str,
         db: Database = Depends(get_db),
@@ -227,7 +227,6 @@ async def retake_test(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event не найден")
 
     event = normalize_mongo(event_db, EventInfo)
-
     if event.event_mode != EventMode.CLASS or event.event_type != EventType.PR1:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
@@ -252,7 +251,38 @@ async def retake_test(
 
         db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(event_id)}, {
             "$inc": {
-                "test_index"
+                "test_index": 1
             },
-            "current_step": first_test_step.dict()
+            "$set": {
+                "current_step": first_test_step.dict()
+            }
         })
+
+
+@router.post('/continue-work', status_code=status.HTTP_200_OK)
+async def continue_work(
+        event_id: str,
+        db: Database = Depends(get_db),
+        # _users_ids: list[str] = Depends(extract_users_ids_rest),
+):
+    event_db = db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+
+    if not event_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Вариант не найден")
+
+    event = normalize_mongo(event_db, EventInfo)
+
+    if event.event_mode != EventMode.CLASS.value or event.event_type != EventType.PR1.value:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Пока работает только для классной работы PR1"
+        )
+
+    if event.is_finished:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Работа уже завершена"
+        )
+
+    if event.event_type == EventType.PR1.value:
+        if event.event_mode == EventMode.CLASS.value:
+            pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
+            PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)

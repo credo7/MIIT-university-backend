@@ -28,7 +28,7 @@ from schemas import PR1ClassEvent, EventType, EventMode
 from services.utils import normalize_mongo
 
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzA5NTc0MDg1fQ.UP5S3GFrcD_Nx7ourAwJSyKsaHv8AGXytpjO_c6_JnM'
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzEwMTEwNTE4fQ.lSMPo1F1_PxbgWcbb4p1qkANGElWJZOj2eRfYKOscz0'
 USER_2_TOKEN = ""
 COMPUTER_ID = 9
 # API_URL = 'http://79.174.93.53'
@@ -102,7 +102,7 @@ def get_right_checkpoints():
                         right_bets_ids.append(bet.id)
             checkpoint['answer_ids'] = right_bets_ids
         elif step.code == 'SELECT_LOGIST':
-            checkpoint['chosen_index'] = 2
+            checkpoint['chosen_letter'] = "Б"
         elif step.code == "OPTIONS_COMPARISON":
             pass
         elif step.code == "CONDITIONS_SELECTION":
@@ -176,6 +176,21 @@ def make_test_two_tries_13(checkpoints):
 
 
 if __name__ == "__main__":
+    # response = requests.get(f"{API_URL}/events/results", params={"event_id": "65eb31e0264d6a74c012d473"})
+    # print(response.json())
+    # raise Exception("STOP")
+    # params = {'event_id': "65eb13500986b148ac3a074e"}
+    # response = requests.get(
+    #     f"{API_URL}/events/current-step/",
+    #     params=params
+    # )
+    # print(f"response.json()={response.json()}")
+    #
+    # raise Exception("STOP")
+
+
+
+
     # Все ответы верны с первого раза, все common выбираются покупателем
     checkpoints = get_right_checkpoints()
 
@@ -186,7 +201,7 @@ if __name__ == "__main__":
 
     params = {"event_id": event_id}
 
-    for checkpoint in checkpoints:
+    for index, checkpoint in enumerate(checkpoints):
         response = requests.get(
             f"{API_URL}/events/current-step/",
             params=params
@@ -206,7 +221,47 @@ if __name__ == "__main__":
         if response.status_code > 400:
             raise Exception("STOP")
 
+        if index == 7:
+            raise Exception("STOP")
+
     response = requests.get(f"{API_URL}/events/results", params={"event_id": event_id})
     print(response.json())
+
+    for i in range(2, 5):
+        response = requests.post(
+            f"{API_URL}/events/retake-test",
+            params=params
+        )
+
+        print(f"\nretake-test_{i}_response={response.json()}\n")
+
+        for j in range(1, 21):
+            response = requests.get(
+                f"{API_URL}/events/current-step",
+                headers=headers,
+                params=params
+            )
+
+            if response.status_code > 200:
+                raise Exception(f"TEST_{i} question_{j} current-step status_code={response.status_code} json={response.json()}")
+
+            response_json = response.json()
+
+            print(f"\n\n\nresponse_json={response_json}\n\n")
+
+            current_step_code = response_json["current_step"]["code"]
+            answer_ids = response_json["test_question"]["right_ids"]
+
+            response = requests.post(
+                f'{API_URL}/events/checkpoint',
+                headers=headers,
+                json={'computer_id': COMPUTER_ID, 'event_id': event_id, 'answer_ids': answer_ids, 'step_code': f"TEST_{j}"},
+            )
+
+            if response.status_code > 200:
+                raise Exception(f"TEST_{i} question_{j} checkpoint status_code={response.status_code} json={response.json()}")
+
+            print(f"\ntest_{i} question_{j} response = {response.json()}\n")
+
 
     time.sleep(5)
