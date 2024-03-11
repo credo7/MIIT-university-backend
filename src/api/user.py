@@ -156,14 +156,10 @@ async def delete_user(
     return {'message': 'Deleted'}
 
 
-@router.post("/make-teacher", status_code=status.HTTP_200_OK)
+@router.post('/make-teacher', status_code=status.HTTP_200_OK)
 async def make_teacher(
-        user_id: str,
-        db: Database = Depends(get_db),
+    user_id: str, db: Database = Depends(get_db),
 ):
-    db[CollectionNames.USERS.value].update_one({"_id": ObjectId(user_id)},{
-        "$set":{
-            "approved": True,
-            "role": "TEACHER"
-        }
-    })
+    db[CollectionNames.USERS.value].update_one(
+        {'_id': ObjectId(user_id)}, {'$set': {'approved': True, 'role': 'TEACHER'}}
+    )

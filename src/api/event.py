@@ -15,13 +15,21 @@ from schemas import (
     EventType,
     EventMode,
     PR1ClassEvent,
-    CheckpointResponse, ConnectedComputer, Step, EventStatus, CurrentStepResponse, IncotermInfoSummarize, Incoterm,
+    CheckpointResponse,
+    ConnectedComputer,
+    Step,
+    EventStatus,
+    CurrentStepResponse,
+    IncotermInfoSummarize,
+    Incoterm,
+    PR1ControlEvent,
 )
 from db.mongo import get_db, CollectionNames
 from services.create_event import create_event
 from services.event import EventService
 from services.oauth2 import extract_users_ids_rest
 from services.practice_one_class import PracticeOneClass
+from services.practice_one_control import PracticeOneControl
 from services.utils import normalize_mongo
 from services.ws import broadcast_connected_computers
 
@@ -35,7 +43,7 @@ logger = logging.getLogger(__name__)
 @router.post('/start', response_model=StartEventResponse)
 async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Depends(extract_users_ids_rest)):
     if not users_ids:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Юзеры не найдены")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Юзеры не найдены')
 
     event = create_event(event_dto=start_event_dto, users_ids=users_ids)
 
@@ -48,7 +56,7 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
     )
     state.upsert_connected_computer(connected_computer)
 
-    print(f"EVENT_ID is {event.id}")
+    print(f'EVENT_ID is {event.id}')
 
     return StartEventResponse(event_id=event.id)
 
@@ -72,54 +80,28 @@ async def find_active_or_not_finished_events(
 
 @router.get('/current-step', status_code=status.HTTP_200_OK, response_model=CurrentStepResponse)
 async def get_current_step(
-        event_id: str,
-        users_ids: list[str] = Depends(extract_users_ids_rest),
-        db: Database = Depends(get_db)
+    event_id: str, users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
 ):
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вариант не найден')
 
-    pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
+    event = normalize_mongo(event_db, EventInfo)
+    if event.event_type != EventType.PR1:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для PR1')
 
-    current_step_response = CurrentStepResponse(
-        current_step=pr1_class_event.current_step,
-    )
-
-    if pr1_class_event.is_finished and "TEST" not in pr1_class_event.current_step.code:
-        current_step_response.is_finished = True
-        return current_step_response
-
-    if pr1_class_event.current_step.code == "OPTIONS_COMPARISON":
-        options_comparison = PracticeOneClass(users_ids).get_options_comparison(pr1_class_event)
-        pr1_class_event.options_comparison = options_comparison
-        db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(pr1_class_event.id)}, {
-            "$set": {
-                "options_comparison": {key: value.dict() for key, value in options_comparison.items()}
-            }
-        })
-        current_step_response.options_comparison = options_comparison
-    elif pr1_class_event.current_step.code == "CONDITIONS_SELECTION":
-        current_step_response.delivery_options = {
-            key: IncotermInfoSummarize(
-                agreement_price_seller=option.agreement_price_seller,
-                delivery_price_buyer=option.delivery_price_buyer,
-                total=option.total
-            ).dict() for key, option in pr1_class_event.options_comparison.items()
-        }
-    elif 'BUYER' in pr1_class_event.current_step.code or 'SELLER' in pr1_class_event.current_step.code:
-        random.shuffle(pr1_class_event.bets)
-        current_step_response.bets = pr1_class_event.bets
-    elif pr1_class_event.current_step.code == 'SELECT_LOGIST':
-        current_step_response.logists = pr1_class_event.logists
-    elif 'TEST' in pr1_class_event.current_step.code:
-        if pr1_class_event.test_index > 2:
-            current_step_response.is_finished = True
-        index = int(pr1_class_event.current_step.code[5:]) - 1
-        current_step_response.test_question = pr1_class_event.tests[pr1_class_event.test_index][index]
-
-    return current_step_response
+    if event.event_type == EventType.PR1:
+        if event.event_mode == EventMode.CLASS:
+            pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
+            return PracticeOneClass(computer_id=pr1_class_event.computer_id, users_ids=users_ids).get_current_step(
+                pr1_class_event
+            )
+        elif event.event_mode == EventMode.CONTROL:
+            pr1_control_event = normalize_mongo(event_db, PR1ControlEvent)
+            return PracticeOneControl(computer_id=pr1_control_event.computer_id, users_ids=users_ids).get_current_step(
+                pr1_control_event
+            )
 
 
 @router.post('/checkpoint', response_model=CheckpointResponse, status_code=status.HTTP_201_CREATED)
@@ -141,9 +123,9 @@ async def create_checkpoint(
     if event_db['event_type'] == EventType.PR1.value:
         if event_db['event_mode'] == EventMode.CLASS.value:
             event = normalize_mongo(event_db, PR1ClassEvent)
-            checkpoint_response = PracticeOneClass(computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids).checkpoint(
-                event, checkpoint_dto
-            )
+            checkpoint_response = PracticeOneClass(
+                computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
+            ).checkpoint(event, checkpoint_dto)
 
     state.update_connected_computer_checkpoint(checkpoint_dto.computer_id, checkpoint_response.next_step)
     await broadcast_connected_computers()
@@ -153,8 +135,7 @@ async def create_checkpoint(
 
 @router.get('/results', status_code=status.HTTP_200_OK)
 async def get_results(
-        event_id: str,
-        db: Database = Depends(get_db),
+    event_id: str, db: Database = Depends(get_db),
 ):
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
@@ -195,16 +176,16 @@ async def get_right_checkpoints(event_id: str):
             checkpoint['answer_ids'] = right_bets_ids
         elif step.code == 'SELECT_LOGIST':
             checkpoint['chosen_index'] = 2
-        elif step.code == "OPTIONS_COMPARISON":
+        elif step.code == 'OPTIONS_COMPARISON':
             pass
-        elif step.code == "CONDITIONS_SELECTION":
+        elif step.code == 'CONDITIONS_SELECTION':
             checkpoint['chosen_incoterm'] = 'EXW'
         elif step.code == 'DESCRIBE_OPTION':
             checkpoint['text'] = 'Described.'
         checkpoints.append(checkpoint)
 
     for i in range(20):
-        checkpoint = {"step_code": f"TEST_{i + 1}"}
+        checkpoint = {'step_code': f'TEST_{i + 1}'}
         right_options_ids = [option.id for option in event.tests[0][i].options if option.is_correct]
         checkpoint['answer_ids'] = right_options_ids
         checkpoints.append(checkpoint)
@@ -219,12 +200,11 @@ async def get_p1_class_hints(incoterm: Incoterm):
 
 @router.post('/retake-test', status_code=status.HTTP_200_OK)
 async def retake_test(
-        event_id: str,
-        db: Database = Depends(get_db),
+    event_id: str, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
     if not event_db:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event не найден")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Event не найден')
 
     event = normalize_mongo(event_db, EventInfo)
     if event.event_mode != EventMode.CLASS or event.event_type != EventType.PR1:
@@ -232,55 +212,43 @@ async def retake_test(
 
     if event.event_mode == EventMode.CLASS and event.event_type == EventType.PR1:
         if not event.is_finished:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Сначала закончите работу!")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Сначала закончите работу!')
 
         pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
 
         if pr1_class_event.test_index >= 2:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Вы использовали все попытки")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вы использовали все попытки')
 
         if len(pr1_class_event.test_results[pr1_class_event.test_index]) < 20:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Сначала завершите прошлый тест")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Сначала завершите прошлый тест')
 
-        first_test_step = Step(
-            id=len(practice_one_info.steps),
-            code=f"TEST_1",
-            name="Тестовый вопрос №1",
-            role="ALL",
+        first_test_step = Step(id=len(practice_one_info.steps), code=f'TEST_1', name='Тестовый вопрос №1', role='ALL',)
+
+        db[CollectionNames.EVENTS.value].update_one(
+            {'_id': ObjectId(event_id)}, {'$inc': {'test_index': 1}, '$set': {'current_step': first_test_step.dict()}}
         )
-
-        db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(event_id)}, {
-            "$inc": {
-                "test_index": 1
-            },
-            "$set": {
-                "current_step": first_test_step.dict()
-            }
-        })
 
 
 @router.post('/continue-work', status_code=status.HTTP_200_OK)
 async def continue_work(
-        event_id: str,
-        db: Database = Depends(get_db),
-        # _users_ids: list[str] = Depends(extract_users_ids_rest),
+    event_id: str,
+    db: Database = Depends(get_db),
+    # _users_ids: list[str] = Depends(extract_users_ids_rest),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({"_id": ObjectId(event_id)})
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Вариант не найден")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
 
     event = normalize_mongo(event_db, EventInfo)
 
     if event.event_mode != EventMode.CLASS.value or event.event_type != EventType.PR1.value:
         raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Пока работает только для классной работы PR1"
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для классной работы PR1'
         )
 
     if event.is_finished:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Работа уже завершена"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Работа уже завершена')
 
     if event.event_type == EventType.PR1.value:
         if event.event_mode == EventMode.CLASS.value:

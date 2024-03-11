@@ -18,8 +18,21 @@ from schemas import (
     CheckpointData,
     CheckpointResponse,
     EventStepResult,
-    CheckpointResponseStatus, PR1ClassResults, UserOut, SubResult, AnswerStatus, EventInfo, ChosenOption,
-    PR1ClassBetType, BetsRolePR1, PR1ClassChosenBet, IncotermInfo, Step, StepRole,
+    CheckpointResponseStatus,
+    PR1ClassResults,
+    UserOut,
+    SubResult,
+    AnswerStatus,
+    EventInfo,
+    ChosenOption,
+    PR1ClassBetType,
+    BetsRolePR1,
+    PR1ClassChosenBet,
+    IncotermInfo,
+    Step,
+    StepRole,
+    CurrentStepResponse,
+    IncotermInfoSummarize,
 )
 from services.utils import normalize_mongo
 
@@ -51,7 +64,7 @@ class PracticeOneClass:
 
         event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
 
-        event_db = self.db[CollectionNames.EVENTS.value].find_one({"_id": event_db.inserted_id})
+        event_db = self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
 
         return normalize_mongo(event_db, EventInfo)
 
@@ -59,39 +72,69 @@ class PracticeOneClass:
         if not event.steps_results:
             return
 
-        if "SELLER" in event.steps_results[-1].step_code:
+        if 'SELLER' in event.steps_results[-1].step_code:
             event.steps_results.pop()
-        if "BUYER" in event.steps_results[-1].step_code:
+        if 'BUYER' in event.steps_results[-1].step_code:
             if not event.steps_results[-1].is_finished:
                 event.steps_results.pop()
                 event.steps_results.pop()
 
-        self.db[CollectionNames.EVENTS.value].update_one({"_id": ObjectId(event.id)}, {
-            "$set": {"steps_results": [sr.dict() for sr in event.steps_results]}
-        })
+        self.db[CollectionNames.EVENTS.value].update_one(
+            {'_id': ObjectId(event.id)}, {'$set': {'steps_results': [sr.dict() for sr in event.steps_results]}}
+        )
 
+    def get_current_step(self, pr1_class_event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
+        current_step_response = CurrentStepResponse(current_step=pr1_class_event.current_step,)
+
+        if pr1_class_event.is_finished and 'TEST' not in pr1_class_event.current_step.code:
+            current_step_response.is_finished = True
+            return current_step_response
+
+        if pr1_class_event.current_step.code == 'OPTIONS_COMPARISON':
+            options_comparison = self.get_options_comparison(pr1_class_event)
+            pr1_class_event.options_comparison = options_comparison
+            self.db[CollectionNames.EVENTS.value].update_one(
+                {'_id': ObjectId(pr1_class_event.id)},
+                {'$set': {'options_comparison': {key: value.dict() for key, value in options_comparison.items()}}},
+            )
+            current_step_response.options_comparison = options_comparison
+        elif pr1_class_event.current_step.code == 'CONDITIONS_SELECTION':
+            current_step_response.delivery_options = {
+                key: IncotermInfoSummarize(
+                    agreement_price_seller=option.agreement_price_seller,
+                    delivery_price_buyer=option.delivery_price_buyer,
+                    total=option.total,
+                ).dict()
+                for key, option in pr1_class_event.options_comparison.items()
+            }
+        elif 'BUYER' in pr1_class_event.current_step.code or 'SELLER' in pr1_class_event.current_step.code:
+            random.shuffle(pr1_class_event.bets)
+            current_step_response.bets = pr1_class_event.bets
+        elif pr1_class_event.current_step.code == 'SELECT_LOGIST':
+            current_step_response.logists = pr1_class_event.logists
+        elif 'TEST' in pr1_class_event.current_step.code:
+            if pr1_class_event.test_index > 2:
+                current_step_response.is_finished = True
+            index = int(pr1_class_event.current_step.code[5:]) - 1
+            current_step_response.test_question = pr1_class_event.tests[pr1_class_event.test_index][index]
+        return current_step_response
 
     @staticmethod
     def _get_next_step(event: PR1ClassEvent, checkpoint_response: CheckpointResponse):
-        finished_step = Step(
-                        id=-1,
-                        code="FINISHED",
-                        name=f"Работа завершена",
-                        role=StepRole.ALL
-                    )
+        finished_step = Step(id=-1, code='FINISHED', name=f'Работа завершена', role=StepRole.ALL)
         if checkpoint_response.status in (
             CheckpointResponseStatus.SUCCESS.value,
             CheckpointResponseStatus.FAILED.value,
         ):
-            if "TEST" in event.current_step.code or event.current_step.code == "DESCRIBE_OPTION":
+            if 'TEST' in event.current_step.code or event.current_step.code == 'DESCRIBE_OPTION':
                 if len(event.test_results[event.test_index]) == 20:
                     return finished_step
                 else:
                     return Step(
-                        id=len(practice_one_info.steps)+len(event.test_results[event.test_index]),
-                        code=f"TEST_{len(event.test_results[event.test_index])+1}",
-                        name=f"Тестовый вопрос №{len(event.test_results[event.test_index])+1}",
-                        role=StepRole.ALL
+                        id=len(practice_one_info.steps) + len(event.test_results[event.test_index]),
+                        code=f'TEST_{len(event.test_results[event.test_index])+1}',
+                        name=f'Тестовый вопрос №{len(event.test_results[event.test_index])+1}',
+                        role=StepRole.ALL,
                     )
 
             # Если этот чекпоинт завершен, то обновляем current_step
@@ -123,7 +166,7 @@ class PracticeOneClass:
 
             final_test_results = [SubResult(), SubResult(), SubResult()]
             for index, test_result in enumerate(event.test_results):
-                if not test_result or "20" not in test_result[-1].step_code:
+                if not test_result or '20' not in test_result[-1].step_code:
                     break
                 for step in test_result:
                     if step.fails == 0:
@@ -133,12 +176,7 @@ class PracticeOneClass:
                     else:
                         final_test_results[step.test_index].correct_with_fails += 1
 
-
-
-
-            user_db = self.db[CollectionNames.USERS.value].find_one({
-                "_id": ObjectId(user_id)
-            })
+            user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
 
             user = normalize_mongo(user_db, UserOut)
 
@@ -158,7 +196,11 @@ class PracticeOneClass:
                     index_of_the_best = index
                     max_corrects = test_result.correct
 
-            last_test_index = event.test_index if event.test_results[event.test_index] and "20" in event.test_results[event.test_index][-1] else event.test_index -1
+            last_test_index = (
+                event.test_index
+                if event.test_results[event.test_index] and '20' in event.test_results[event.test_index][-1]
+                else event.test_index - 1
+            )
 
             result = PR1ClassResults(
                 first_name=user.first_name,
@@ -173,7 +215,6 @@ class PracticeOneClass:
                 last_test_result=final_test_results[last_test_index],
                 incoterms_results=incoterms_results,
                 minimal_incoterms=minimal_incoterms,
-
             )
 
             results.append(result)
@@ -205,11 +246,7 @@ class PracticeOneClass:
                         chosen_by = BetsRolePR1.BUYER.value
                 if chosen_by is not None or bet_type is not None:
                     chosen_bet = PR1ClassChosenBet(
-                        id=bet.id,
-                        name=bet.name,
-                        rate=bet.rate,
-                        chosen_by=chosen_by,
-                        type=bet_type
+                        id=bet.id, name=bet.name, rate=bet.rate, chosen_by=chosen_by, type=bet_type
                     )
 
                     chosen_bets.append(chosen_bet)
@@ -227,14 +264,16 @@ class PracticeOneClass:
                 bets=chosen_bets,
                 agreement_price_seller=agreement_price_seller,
                 delivery_price_buyer=delivery_price_buyer,
-                total=agreement_price_seller + delivery_price_buyer
+                total=agreement_price_seller + delivery_price_buyer,
             )
 
             incoterms_mapping[incoterm] = incoterm_info
 
         return incoterms_mapping
 
-    def checkpoint(self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]], checkpoint_dto: CheckpointData) -> CheckpointResponse:
+    def checkpoint(
+        self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]], checkpoint_dto: CheckpointData
+    ) -> CheckpointResponse:
         checkpoint_response = CheckpointResponse()
 
         if checkpoint_dto.step_code != event.current_step.code:
@@ -320,7 +359,12 @@ class PracticeOneClass:
             checkpoint_response.next_step = next_step
             checkpoint_response.fails = current_step_result.fails
 
-        elif event.current_step.code in ('SELECT_LOGIST', 'OPTIONS_COMPARISON', 'CONDITIONS_SELECTION', 'DESCRIBE_OPTION'):
+        elif event.current_step.code in (
+            'SELECT_LOGIST',
+            'OPTIONS_COMPARISON',
+            'CONDITIONS_SELECTION',
+            'DESCRIBE_OPTION',
+        ):
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
             if event.current_step.code == 'SELECT_LOGIST':
@@ -334,10 +378,12 @@ class PracticeOneClass:
 
             if event.current_step.code == 'CONDITIONS_SELECTION':
                 event.chosen_option = ChosenOption(
-                    agreement_price_seller=event.options_comparison[checkpoint_dto.chosen_incoterm].agreement_price_seller,
+                    agreement_price_seller=event.options_comparison[
+                        checkpoint_dto.chosen_incoterm
+                    ].agreement_price_seller,
                     delivery_price_buyer=event.options_comparison[checkpoint_dto.chosen_incoterm].delivery_price_buyer,
                     total=event.options_comparison[checkpoint_dto.chosen_incoterm].total,
-                    incoterm=checkpoint_dto.chosen_incoterm.value
+                    incoterm=checkpoint_dto.chosen_incoterm.value,
                 )
 
             step_result = EventStepResult(
@@ -357,7 +403,7 @@ class PracticeOneClass:
 
         elif 'TEST' in event.current_step.code:
             if event.test_index > 2:
-                raise Exception("Тесты можно выполнить не более 3 раз")
+                raise Exception('Тесты можно выполнить не более 3 раз')
 
             test = event.tests[event.test_index]
             test_question_index = int(event.current_step.code[5:]) - 1
@@ -373,7 +419,10 @@ class PracticeOneClass:
             if not event.test_results[event.test_index]:
                 event.test_results[event.test_index].append(
                     EventStepResult(
-                        step_code=event.current_step.code, users_ids=event.users_ids, fails=0, test_index=event.test_index
+                        step_code=event.current_step.code,
+                        users_ids=event.users_ids,
+                        fails=0,
+                        test_index=event.test_index,
                     )
                 )
 
@@ -401,7 +450,7 @@ class PracticeOneClass:
 
             next_step = self._get_next_step(event, checkpoint_response)
             event.current_step = next_step
-            if next_step.code == "FINISHED":
+            if next_step.code == 'FINISHED':
                 event.is_finished = True
             checkpoint_response.next_step = next_step
 

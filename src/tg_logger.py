@@ -17,7 +17,7 @@ class TelegramLoggerHandler(logging.StreamHandler):
             if record.exc_info:
                 text += f'\n{str(record.exc_text).replace("<", "(").replace(">", ")")}'
 
-            print(f"text={text}")
+            print(f'text={text}')
 
             if 'bcrypt' in text:
                 return

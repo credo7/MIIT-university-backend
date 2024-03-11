@@ -26,16 +26,15 @@ from pydantic.class_validators import validator
 
 
 class AnswerStatus(str, enum.Enum):
-    CORRECT = "CORRECT"
-    CORRECT_WITH_FAILS = "CORRECT_WITH_FAILS"
-    FAILED = "FAILED"
+    CORRECT = 'CORRECT'
+    CORRECT_WITH_FAILS = 'CORRECT_WITH_FAILS'
+    FAILED = 'FAILED'
 
 
 class PR1ClassBetType(str, enum.Enum):
-    COMMON = "COMMON"
-    BUYER = "BUYER"
-    SELLER = "SELLER"
-
+    COMMON = 'COMMON'
+    BUYER = 'BUYER'
+    SELLER = 'SELLER'
 
 
 class CheckpointResponseStatus(str, enum.Enum):
@@ -108,7 +107,7 @@ class PR1ClassStep(str, enum.Enum):
 
 
 class WSCommandTypes(str, enum.Enum):
-    INVITE_STUDENT = "INVITE_STUDENT"
+    INVITE_STUDENT = 'INVITE_STUDENT'
     SELECT_TYPE = 'SELECT_TYPE'
     START = 'START'
     RAISE_HAND = 'RAISE_HAND'
@@ -119,13 +118,13 @@ class WSCommandTypes(str, enum.Enum):
 class EventType(str, enum.Enum):
     PR1 = 'PR1'
     PR2 = 'PR2'
-    CONTROL = 'CONTROL'
+    # CONTROL = 'CONTROL'
 
 
 class EventMode(str, enum.Enum):
     CLASS = 'CLASS'
     CONTROL = 'CONTROL'
-    WORKOUT = 'WORKOUT'
+    # WORKOUT = 'WORKOUT'
 
 
 class SelectLogist(BaseModel):
@@ -392,7 +391,6 @@ class BetInfoIncotermsRolePR1(BaseModel):
     common: Optional[list[Incoterm]] = []
 
 
-
 class PracticeOneBet(BaseModel):
     id: int
     name: str
@@ -415,7 +413,8 @@ class TablePR1(BaseModel):
 
 class Logist(BaseModel):
     letter: str
-    text: str
+    header: str
+    body: str
 
 
 class OptionPR1(BaseModel):
@@ -482,7 +481,10 @@ class PR1ControlInput(BaseModel):
 
 
 class PR1ControlEvent(EventInfo, PR1ControlInput):
+    incoterms: list[Incoterm]
     answers: dict[Incoterm, int]
+    event_mode = EventMode.CONTROL
+    event_type = EventType.PR1
 
 
 class PracticeOneVariant(EventInfo):
@@ -520,19 +522,25 @@ class ClassicTestQuestionBlock(BaseModel):
     second_block: list[TestQuestionPR1]
     third_block: list[TestQuestionPR1]
 
+
 Logist
 
 
-class PracticeOneInfo(BaseModel):
+class PR1ClassInfo(BaseModel):
     legend_pattern: str
     all_incoterms: list[str]
     steps: list[Step]
-    exam_steps: list[ExamStep]
+    # exam_steps: list[ExamStep]
     bets: list[BetInfoPR1]
     logists: list[Logist]
     classic_test_questions: ClassicTestQuestionBlock
-    control_test_questions: list[TestQuestionPR1]
+    # control_test_questions: list[TestQuestionPR1]
     hints: dict[Incoterm, str]
+
+
+class PR1ControlInfo(BaseModel):
+    steps: list[Step]
+    control_test_questions: list[TestQuestionPR1]
 
 
 class UserCredentials(BaseModel):

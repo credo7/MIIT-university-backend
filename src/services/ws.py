@@ -49,9 +49,9 @@ async def connect_with_broadcast(websocket: WebSocket, users: List[UserOut], com
 
     users_ids = [user.id for user in users]
 
-    print("LALALAL")
+    print('LALALAL')
 
-    print(f"COMPUTER_ID={computer_id}. state.connected_computers={State.connected_computers}")
+    print(f'COMPUTER_ID={computer_id}. state.connected_computers={State.connected_computers}')
 
     if computer_id in State.connected_computers:
         connected_computers_without_current = copy.copy(State.connected_computers)
@@ -61,11 +61,11 @@ async def connect_with_broadcast(websocket: WebSocket, users: List[UserOut], com
         connected_computer_edit = ConnectedComputerEdit(id=computer_id, users_ids=users_ids, is_connected=True)
         State.edit_connected_computer(connected_computer_edit)
 
-        print("HERE HERE HERE")
+        print('HERE HERE HERE')
 
         logger.info(f'computer_id:{computer_id} was reconnected. is_teacher={is_teacher}. users_ids={users_ids}')
     else:
-        print("HERE2 HERE2 HERE2")
+        print('HERE2 HERE2 HERE2')
         raise_if_users_already_connected(State.connected_computers, users_ids)
         connected_computer = ConnectedComputer(users_ids=users_ids, id=computer_id, is_connected=True)
         State.add_connected_computer(connected_computer)

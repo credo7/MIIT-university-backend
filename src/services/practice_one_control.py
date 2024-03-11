@@ -1,9 +1,9 @@
-from typing import Optional
+from typing import Optional, Union, Type
 import random
 
 from constants.practice_one_info import practice_one_info
 from db.mongo import get_db
-from schemas import Incoterm, PR1ControlInput, PR1ControlInputVariables
+from schemas import Incoterm, PR1ControlInput, PR1ControlInputVariables, PR1ControlEvent
 
 
 class PracticeOneControl:
@@ -72,162 +72,167 @@ class PracticeOneControl:
 
         incoterms = practice_one_info.all_incoterms.copy()
         random.shuffle(incoterms)
-        incoterms = incoterm[:3]
+        incoterms = ['EXW', 'FAS', 'FOB']
+        # incoterms = incoterm[:3]
 
-        # answers = {}
-        # for incoterm in incoterms:
-        #     result = self.calculate_incoterm(exam_input, incoterm)
-        #     answers[incoterm] = result
-        #
-        # return PracticeOneExamVariant(
-        #     lesson_id=self.lesson.id,
-        #     computer_id=self.computer_id,
-        #     users_ids=self.users_ids,
-        #     event_type=self.lesson.event_type,
-        #     event_mode=self.lesson.event_mode,
-        #     answers=answers,
-        #     exam_input=exam_input,
-        # )
+        answers = {}
+        for incoterm in incoterms:
+            result = self.calculate_incoterm(exam_input, incoterm)
+            answers[incoterm] = result
 
-    # @staticmethod
-    # def calculate_incoterm(exam_input: ExamInputPR1, incoterm: Incoterm):
-    #     answer = None
-    #
-    #     if incoterm == Incoterm.EXW:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.FCA:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.main_delivery,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.FOB:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.unloading_during_transport,
-    #                 exam_input.variables.delivery_to_port,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.loading_on_board,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.FAS:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.unloading_during_transport,
-    #                 exam_input.variables.delivery_to_port,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.CFR:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.unloading_during_transport,
-    #                 exam_input.variables.delivery_to_port,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.loading_on_board,
-    #                 exam_input.variables.transport_to_destination,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.CIP:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.delivery_to_carrier,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.transport_to_destination,
-    #                 exam_input.variables.insurance,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.CPT:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.delivery_to_carrier,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.transport_to_destination,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.CIF:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.unloading_during_transport,
-    #                 exam_input.variables.delivery_to_port,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.loading_on_board,
-    #                 exam_input.variables.transport_to_destination,
-    #                 exam_input.variables.insurance,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.DDP:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.delivery_to_carrier,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.unloading_seller_agreement,
-    #                 exam_input.variables.import_customs_formalities_and_payments,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.DAP:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.delivery_to_carrier,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.transport_to_destination,
-    #                 exam_input.variables.unloading_seller_agreement,
-    #             ]
-    #         )
-    #     elif incoterm == Incoterm.DPU:
-    #         answer = sum(
-    #             [
-    #                 exam_input.variables.product_price,
-    #                 exam_input.variables.packaging,
-    #                 exam_input.variables.product_examination,
-    #                 exam_input.variables.loading_during_transport,
-    #                 exam_input.variables.delivery_to_carrier,
-    #                 exam_input.variables.export_customs_formalities_and_payments,
-    #                 exam_input.variables.transport_to_terminal,
-    #                 exam_input.variables.unloading_on_terminal,
-    #             ]
-    #         )
-    #     return answer
+        return PR1ControlEvent(
+            computer_id=self.computer_id,
+            users_ids=self.users_ids,
+            answers=answers,
+            incoterms=incoterms,
+            exam_input=exam_input,
+        )
+
+    def get_current_step(self, event: Union[PR1ControlEvent, Type[PR1ControlEvent]]):
+        if 'TEST' in event.current_step.code:
+            ...
+        else:
+            incoterm_index = event.current_step.code
+
+    @staticmethod
+    def calculate_incoterm(exam_input: PR1ControlInput, incoterm: Incoterm):
+        answer = None
+
+        if incoterm == Incoterm.EXW:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                ]
+            )
+        elif incoterm == Incoterm.FCA:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.main_delivery,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                ]
+            )
+        elif incoterm == Incoterm.FOB:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.unloading_during_transport,
+                    exam_input.variables.delivery_to_port,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.loading_on_board,
+                ]
+            )
+        elif incoterm == Incoterm.FAS:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.unloading_during_transport,
+                    exam_input.variables.delivery_to_port,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                ]
+            )
+        elif incoterm == Incoterm.CFR:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.unloading_during_transport,
+                    exam_input.variables.delivery_to_port,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.loading_on_board,
+                    exam_input.variables.transport_to_destination,
+                ]
+            )
+        elif incoterm == Incoterm.CIP:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.delivery_to_carrier,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.transport_to_destination,
+                    exam_input.variables.insurance,
+                ]
+            )
+        elif incoterm == Incoterm.CPT:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.delivery_to_carrier,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.transport_to_destination,
+                ]
+            )
+        elif incoterm == Incoterm.CIF:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.unloading_during_transport,
+                    exam_input.variables.delivery_to_port,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.loading_on_board,
+                    exam_input.variables.transport_to_destination,
+                    exam_input.variables.insurance,
+                ]
+            )
+        elif incoterm == Incoterm.DDP:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.delivery_to_carrier,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.unloading_seller_agreement,
+                    exam_input.variables.import_customs_formalities_and_payments,
+                ]
+            )
+        elif incoterm == Incoterm.DAP:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.delivery_to_carrier,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.transport_to_destination,
+                    exam_input.variables.unloading_seller_agreement,
+                ]
+            )
+        elif incoterm == Incoterm.DPU:
+            answer = sum(
+                [
+                    exam_input.variables.product_price,
+                    exam_input.variables.packaging,
+                    exam_input.variables.product_examination,
+                    exam_input.variables.loading_during_transport,
+                    exam_input.variables.delivery_to_carrier,
+                    exam_input.variables.export_customs_formalities_and_payments,
+                    exam_input.variables.transport_to_terminal,
+                    exam_input.variables.unloading_on_terminal,
+                ]
+            )
+        return answer

@@ -15,8 +15,5 @@ lesson_service = LessonService(db=get_db())
 
 
 @router.get('/current-results', response_model=dict[int, list[EventResult]])
-async def get_current_lesson_results(
-        db: Database = Depends(get_db),
-
-):
+async def get_current_lesson_results(db: Database = Depends(get_db),):
     event_db = db[CollectionNames.EVENTS.value].find_one()

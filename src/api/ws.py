@@ -22,7 +22,6 @@ db: Database = get_db()
 ws_handlers = {
     # WSCommandTypes.FINISH: EventService(db).finish_current_lesson, ???
     WSCommandTypes.RAISE_HAND: RaiseHand(db).run,
-
     # WSCommandTypes.EXIT: State.users_exit,
 }
 
@@ -36,10 +35,10 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
             return
         is_teacher, users = extract_ws_info(ws.headers)
         await connect_with_broadcast(ws, users, computer_id, is_teacher)
-        print(f"connected_computers={State.connected_computers}")
+        print(f'connected_computers={State.connected_computers}')
         await handle_websocket_messages(ws, users, computer_id, is_teacher)
     except WebSocketDisconnect as exc:
-        print("DISCONNECT EXCEPTION")
+        print('DISCONNECT EXCEPTION')
         pass
     except Exception as exc:
         logger.error(f'Error {str(exc)} Traceback: {exc}', exc_info=True)
