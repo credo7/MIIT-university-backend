@@ -175,7 +175,7 @@ async def get_right_checkpoints(event_id: str):
                         right_bets_ids.append(bet.id)
             checkpoint['answer_ids'] = right_bets_ids
         elif step.code == 'SELECT_LOGIST':
-            checkpoint['chosen_index'] = 2
+            checkpoint['chosen_letter'] = 'Б'
         elif step.code == 'OPTIONS_COMPARISON':
             pass
         elif step.code == 'CONDITIONS_SELECTION':
