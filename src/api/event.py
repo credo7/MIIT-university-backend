@@ -254,3 +254,19 @@ async def continue_work(
         if event.event_mode == EventMode.CLASS.value:
             pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
             PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
+
+
+@router.get("/{event_id}")
+async def get_event(
+        event_id: str, db: Database = Depends(get_db)
+):
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+
+    if not event_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
+
+    event = normalize_mongo(event_db, EventInfo)
+    if event.event_type != EventType.PR1:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для PR1')
+
+    return normalize_mongo(event_db, PR1ClassEvent)

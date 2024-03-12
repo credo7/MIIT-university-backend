@@ -651,6 +651,10 @@ class CurrentStepResponse(BaseModel):
     delivery_options: Optional[dict[Incoterm, IncotermInfoSummarize]]
     test_question: Optional[TestQuestionPR1]
     logists: Optional[list[Logist]]
+    product: Optional[str]
+    from_country: Optional[str]
+    to_country: Optional[str]
+    product_price: Optional[int]
 
 
 class CheckpointResponse(BaseModel):

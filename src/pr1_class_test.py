@@ -28,7 +28,7 @@ from schemas import PR1ClassEvent, EventType, EventMode
 from services.utils import normalize_mongo
 
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzEwMjMzODA1fQ.pNXNar_RpT10_7pe8P_nTFxmDN8SizILRl9j2XYrccA'
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzEwMjgwMDY3fQ.TeDCASTfX_RLc13Nso4jXIt1PSni2_79vcs1dj65dQg'
 USER_2_TOKEN = ""
 COMPUTER_ID = 9
 # API_URL = 'http://79.174.93.53'
@@ -78,7 +78,7 @@ print(f'response.status_code={response.status_code}')
 event_id = response.json()['event_id']
 print(event_id)
 
-raise Exception("STOP")
+# raise Exception("STOP")
 
 db: Database = get_db()
 
