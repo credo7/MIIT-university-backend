@@ -106,6 +106,30 @@ class PR1ClassStep(str, enum.Enum):
     TEST_20 = 'TEST_20'
 
 
+class PR1ControlStep(str, enum.Enum):
+    INCOTERM_EXW = 'INCOTERM_EXW'
+    INCOTERM_FCA = 'INCOTERM_FCA'
+    INCOTERM_CPT = 'INCOTERM_CPT'
+    INCOTERM_CIP = 'INCOTERM_CIP'
+    INCOTERM_DAP = 'INCOTERM_DAP'
+    INCOTERM_DPU = 'INCOTERM_DPU'
+    INCOTERM_DDP = 'INCOTERM_DDP'
+    INCOTERM_FAS = 'INCOTERM_FAS'
+    INCOTERM_FOB = 'INCOTERM_FOB'
+    INCOTERM_CFR = 'INCOTERM_CFR'
+    INCOTERM_CIF = 'INCOTERM_CIF'
+    TEST_1 = 'TEST_1'
+    TEST_2 = 'TEST_2'
+    TEST_3 = 'TEST_3'
+    TEST_4 = 'TEST_4'
+    TEST_5 = 'TEST_5'
+    TEST_6 = 'TEST_6'
+    TEST_7 = 'TEST_7'
+    TEST_8 = 'TEST_8'
+    TEST_9 = 'TEST_9'
+    TEST_10 = 'TEST_10'
+
+
 class WSCommandTypes(str, enum.Enum):
     INVITE_STUDENT = 'INVITE_STUDENT'
     SELECT_TYPE = 'SELECT_TYPE'
@@ -351,6 +375,18 @@ class SubResult(BaseModel):
     failed: int = 0
 
 
+class PR1ControlResults(BaseModel):
+    user_id: str
+    first_name: str
+    last_name: str
+    event_type: EventType
+    event_mode: EventMode
+    surname: Optional[str] = None
+    event_id: str
+    right_test_answers: int
+    incoterms_points: dict[Incoterm, int]
+
+
 class PR1ClassResults(BaseModel):
     user_id: str
     first_name: str
@@ -451,40 +487,180 @@ class PR1ClassVariables(BaseModel):
     zero_step: Step
 
 
-class PR1ControlInputVariables(BaseModel):
-    product_price: int
-    total_products: int
-    packaging: int
-    product_examination: int
-    loading_during_transport: int
-    unloading_during_transport: int
-    main_delivery: int
-    export_customs_formalities_and_payments: int
-    delivery_to_port: int
-    loading_on_board: int
-    transport_to_destination: int
-    delivery_to_carrier: int
-    insurance: int
-    # Расходы на разгрузку, которые по договору перевозки относятся к продавцу
-    unloading_seller_agreement: int
-    import_customs_formalities_and_payments: int
-    transport_to_terminal: int
-    unloading_on_terminal: int
+# class PR1ControlInputVariables(BaseModel):
+#     product_price: int
+#     total_products: int
+#     packaging: int
+#     product_examination: int
+#     loading_during_transport: int
+#     unloading_during_transport: int
+#     main_delivery: int
+#     export_customs_formalities_and_payments: int
+#     delivery_to_port: int
+#     loading_on_board: int
+#     transport_to_destination: int
+#     delivery_to_carrier: int
+#     insurance: int
+#     # Расходы на разгрузку, которые по договору перевозки относятся к продавцу
+#     unloading_seller_agreement: int
+#     import_customs_formalities_and_payments: int
+#     transport_to_terminal: int
+#     unloading_on_terminal: int
 
 
-class PR1ControlInput(BaseModel):
+# class PR1ControlInput(BaseModel):
+#     legend: str
+#     to_point: str
+#     from_point: str
+#     product_name: str
+#     variables: PR1ControlInputVariables
+
+
+# class PR1ControlEvent(EventInfo, PR1ControlInput):
+#     incoterms: list[Incoterm]
+#     answers: dict[Incoterm, int]
+#     event_mode = EventMode.CONTROL
+#     event_type = EventType.PR1
+
+
+class PR1ControlEvent(EventInfo):
     legend: str
-    to_point: str
-    from_point: str
-    product_name: str
-    variables: PR1ControlInputVariables
-
-
-class PR1ControlEvent(EventInfo, PR1ControlInput):
+    test: Optional[list[TestQuestionPR1]]
     incoterms: list[Incoterm]
-    answers: dict[Incoterm, int]
-    event_mode = EventMode.CONTROL
-    event_type = EventType.PR1
+    product_price: int
+    product_quantity: Optional[int] = 0
+    packaging: Optional[int] = 0
+    product_check: Optional[int] = 0
+    loading_expenses: Optional[int] = 0
+    delivery_to_main_carrier: Optional[int] = 0
+    export_formalities: Optional[int] = 0
+    loading_unloading_to_point: Optional[int] = 0
+    delivery_to_unloading_port: Optional[int] = 0
+    loading_on_board: Optional[int] = 0
+    transport_expenses_to_port: Optional[int] = 0
+    products_insurance: Optional[int] = 0
+    unloading_on_seller: Optional[int] = 0
+    import_formalities: Optional[int] = 0
+    unloading_on_terminal: Optional[int] = 0
+
+    def calculate_incoterm(self, incoterm: str):
+        if incoterm == Incoterm.EXW.value:
+            return self.product_price + self.packaging + self.product_check
+        elif incoterm == Incoterm.FCA:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_expenses
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+            )
+        elif incoterm == Incoterm.FOB.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_unloading_to_point
+                + self.delivery_to_unloading_port
+                + self.export_formalities
+                + self.loading_on_board
+            )
+        elif incoterm == Incoterm.FAS.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_unloading_to_point
+                + self.delivery_to_unloading_port
+                + self.export_formalities
+            )
+        elif incoterm == Incoterm.CFR.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_unloading_to_point
+                + self.delivery_to_unloading_port
+                + self.export_formalities
+                + self.loading_on_board
+                + self.transport_expenses_to_port
+            )
+        elif incoterm == Incoterm.CIP.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_expenses
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+                + self.transport_expenses_to_port
+                + self.products_insurance
+            )
+        elif incoterm == Incoterm.CPT.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_expenses
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+                + self.transport_expenses_to_port
+            )
+        elif incoterm == Incoterm.CIF.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_unloading_to_point
+                + self.delivery_to_unloading_port
+                + self.export_formalities
+                + self.loading_on_board
+                + self.transport_expenses_to_port
+                + self.products_insurance
+            )
+        elif incoterm == Incoterm.DDP.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_expenses
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+                + self.transport_expenses_to_port
+                + self.unloading_on_seller
+                + self.import_formalities
+            )
+        elif incoterm == Incoterm.DAP.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+                + self.transport_expenses_to_port
+                + self.unloading_on_seller
+            )
+        elif incoterm == Incoterm.DPU.value:
+            return (
+                self.product_price
+                + self.product_quantity
+                + self.packaging
+                + self.product_check
+                + self.loading_expenses
+                + self.delivery_to_main_carrier
+                + self.export_formalities
+                + self.transport_expenses_to_port
+                + self.unloading_on_terminal
+            )
 
 
 class PracticeOneVariant(EventInfo):
@@ -521,9 +697,6 @@ class ClassicTestQuestionBlock(BaseModel):
     first_block: list[TestQuestionPR1]
     second_block: list[TestQuestionPR1]
     third_block: list[TestQuestionPR1]
-
-
-Logist
 
 
 class PR1ClassInfo(BaseModel):
@@ -574,12 +747,13 @@ class UserChangePassword(BaseModel):
 class CheckpointData(BaseModel):
     computer_id: int
     event_id: str
-    step_code: PR1ClassStep
+    step_code: Union[PR1ClassStep, PR1ControlStep]
     text: Optional[str]
     answer_ids: Optional[list[int]] = []
     chosen_index: Optional[int]
     chosen_incoterm: Optional[Incoterm]
     chosen_letter: Optional[str] = None
+    formula: Optional[str]
 
 
 class JoinData(BaseModel):
@@ -655,6 +829,7 @@ class CurrentStepResponse(BaseModel):
     from_country: Optional[str]
     to_country: Optional[str]
     product_price: Optional[int]
+    legend: Optional[str]
 
 
 class CheckpointResponse(BaseModel):

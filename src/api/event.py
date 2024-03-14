@@ -118,14 +118,23 @@ async def create_checkpoint(
     # if event_db['is_finished']:
     #     return Step(id=-1, code="FINISHED", name=f"Работа завершена", role="ALL")
 
+    event_info = normalize_mongo(event_db, EventInfo)
+
     checkpoint_response = None
 
-    if event_db['event_type'] == EventType.PR1.value:
-        if event_db['event_mode'] == EventMode.CLASS.value:
+    if event_info.event_type == EventType.PR1:
+        if event_info.event_mode == EventMode.CLASS:
             event = normalize_mongo(event_db, PR1ClassEvent)
             checkpoint_response = PracticeOneClass(
                 computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
             ).checkpoint(event, checkpoint_dto)
+        if event_info.event_mode == EventMode.CONTROL:
+            event = normalize_mongo(event_db, PR1ControlEvent)
+            checkpoint_response = PracticeOneControl(
+                computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
+            ).checkpoint(event, checkpoint_dto)
+
+    print(f"checkpoint_response={checkpoint_response}")
 
     state.update_connected_computer_checkpoint(checkpoint_dto.computer_id, checkpoint_response.next_step)
     await broadcast_connected_computers()
@@ -147,10 +156,13 @@ async def get_results(
     if event.results:
         return event.results
 
-    if event_db['event_type'] == EventType.PR1.value:
-        if event_db['event_mode'] == EventMode.CLASS.value:
+    if event.event_type == EventType.PR1:
+        if event.event_mode == EventMode.CLASS:
             event = normalize_mongo(event_db, PR1ClassEvent)
             return PracticeOneClass(users_ids=event.users_ids).get_results(event)
+        elif event.event_mode == EventMode.CONTROL:
+            event = normalize_mongo(event_db, PR1ControlEvent)
+            return PracticeOneControl(users_ids=event.users_ids).get_results(event)
 
 
 @router.get('/pr1-class-right-checkpoints', status_code=status.HTTP_200_OK)
@@ -256,10 +268,8 @@ async def continue_work(
             PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
 
 
-@router.get("/{event_id}")
-async def get_event(
-        event_id: str, db: Database = Depends(get_db)
-):
+@router.get('/{event_id}')
+async def get_event(event_id: str, db: Database = Depends(get_db)):
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
@@ -269,4 +279,8 @@ async def get_event(
     if event.event_type != EventType.PR1:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для PR1')
 
-    return normalize_mongo(event_db, PR1ClassEvent)
+    if event.event_mode == EventMode.CLASS:
+        return normalize_mongo(event_db, PR1ClassEvent)
+
+    if event.event_mode == EventMode.CONTROL:
+        return normalize_mongo(event_db, PR1ControlEvent)
