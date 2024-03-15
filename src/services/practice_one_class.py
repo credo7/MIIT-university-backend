@@ -504,8 +504,8 @@ class PracticeOneClass:
 
     # @staticmethod
     def prepare_event_variables(self) -> PR1ClassVariables:
-        points = ['FROM', 'WHERE']
-        product_options = ['PRODUCT_NAME']
+        points = ['Бильбао (Испания)', 'Выборг (Россия)']
+        product_options = ['сетевое оборудование']
         product = random.choice(product_options)
         from_country = points[0]
         to_country = points[1]

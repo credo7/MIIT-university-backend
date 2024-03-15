@@ -28,7 +28,7 @@ from schemas import PR1ClassEvent, EventType, EventMode
 from services.utils import normalize_mongo
 
 
-USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzEwMjgwMDY3fQ.TeDCASTfX_RLc13Nso4jXIt1PSni2_79vcs1dj65dQg'
+USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjVlMzEwY2ZlZjUyZWQwYTFmYTljYzgyIiwiZXhwIjoxNzEwNTQwODc2fQ.3maq4N4KhcNi4XbUQDhWa0R4R7u0QdnRHujpBn-vtlU'
 USER_2_TOKEN = ""
 COMPUTER_ID = 9
 # API_URL = 'http://79.174.93.53'
