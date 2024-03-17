@@ -35,12 +35,8 @@ class PracticeOneControl:
 
         for step in event.steps_results:
             if step.incoterm:
-                if step.fails == 3:
+                if step.fails:
                     points = 0
-                elif step.fails == 2:
-                    points = 1
-                elif step.fails == 1:
-                    points = 2
                 else:
                     points = 3
                 if step.incoterm in incoterms_results:
@@ -48,7 +44,7 @@ class PracticeOneControl:
                 else:
                     incoterms_results[step.incoterm] = points
             else:
-                if step.fails < 3:
+                if not step.fails:
                     right_tests += 1
 
         user_db = self.db[CollectionNames.USERS.value].find_one({
@@ -188,7 +184,12 @@ class PracticeOneControl:
             test_question_index = int(event.current_step.code[5:]) - 1
             step_response.test_question = event.test[test_question_index]
         else:
-            current_incoterm = event.current_step.code[:3]
+            current_incoterm = event.current_step.code[-3:]
+
+            step_response.right_answer = event.calculate_incoterm(current_incoterm)
+            step_response.right_formula = event.get_formula(current_incoterm)
+            step_response.right_formula_with_nums = event.get_formula_with_nums(current_incoterm)
+
             step_response.legend = event.legend.format(current_incoterm)
         return step_response
 
@@ -217,34 +218,27 @@ class PracticeOneControl:
                 )
 
             if required_ids or not_needed_ids:
+                checkpoint_response.not_needed_ids = not_needed_ids
+                checkpoint_response.missed_ids = required_ids
                 event.steps_results[-1].fails += 1
-
-                checkpoint_response.fails = event.steps_results[-1].fails
-
-                if event.steps_results[-1].fails < 3:
-                    checkpoint_response.status = CheckpointResponseStatus.TRY_AGAIN
-                else:
-                    checkpoint_response.status = CheckpointResponseStatus.FAILED
+                checkpoint_response.status = CheckpointResponseStatus.FAILED
             else:
                 checkpoint_response.status = CheckpointResponseStatus.SUCCESS
 
-            if checkpoint_response.status in (CheckpointResponseStatus.SUCCESS, CheckpointResponseStatus.FAILED):
-                if test_question_index == 19:
-                    finished_step = Step(id=-1, code='FINISHED', name=f'Работа завершена', role=StepRole.ALL)
-                    checkpoint_response.next_step = finished_step
-                    event.current_step = finished_step
-                    event.is_finished = True
-                else:
-                    next_step = Step(
-                        id=3+test_question_index+2,
-                        code=f'TEST_{test_question_index+2}',
-                        name=f'Тестовый вопрос #{test_question_index+2}',
-                        role=StepRole.ALL
-                    )
-                    checkpoint_response.next_step = next_step
-                    event.current_step = next_step
+            if test_question_index == 19:
+                finished_step = Step(id=-1, code='FINISHED', name=f'Работа завершена', role=StepRole.ALL)
+                checkpoint_response.next_step = finished_step
+                event.current_step = finished_step
+                event.is_finished = True
             else:
-                checkpoint_response.next_step = event.current_step
+                next_step = Step(
+                    id=3+test_question_index+2,
+                    code=f'TEST_{test_question_index+2}',
+                    name=f'Тестовый вопрос #{test_question_index+2}',
+                    role=StepRole.ALL
+                )
+                checkpoint_response.next_step = next_step
+                event.current_step = next_step
         else:
             current_incoterm = event.current_step.code.split('_')[1]
             right_answer = event.calculate_incoterm(current_incoterm)
