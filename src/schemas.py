@@ -550,52 +550,52 @@ class PR1ControlEvent(EventInfo):
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.FCA:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.FOB.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.FAS.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.CFR.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.CIP.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.products_insurance]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.products_insurance]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.CPT.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.CIF.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port, self.products_insurance]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port, self.products_insurance]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.DDP.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller, self.import_formalities]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller, self.import_formalities]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.DAP.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller]
+            nums = [self.product_price, self.packaging, self.product_check, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
         elif incoterm == Incoterm.DPU.value:
-            nums = [self.product_price, self.product_quantity, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_terminal]
+            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_terminal]
             nums = [str(num) for num in nums if num != 0]
             pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
             return pre + " + ".join(nums)
