@@ -897,6 +897,7 @@ class CurrentStepResponse(BaseModel):
     right_answer: Optional[float]
     right_formula: Optional[str]
     right_formula_with_nums: Optional[str]
+    image_name: Optional[str]
 
 
 class CheckpointResponse(BaseModel):

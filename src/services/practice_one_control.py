@@ -189,6 +189,7 @@ class PracticeOneControl:
             step_response.right_answer = event.calculate_incoterm(current_incoterm)
             step_response.right_formula = event.get_formula(current_incoterm)
             step_response.right_formula_with_nums = event.get_formula_with_nums(current_incoterm)
+            step_response.image_name = "oil"
 
             step_response.legend = event.legend.format(current_incoterm)
         return step_response
