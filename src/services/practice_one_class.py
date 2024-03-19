@@ -174,12 +174,10 @@ class PracticeOneClass:
                 if not test_result or '20' not in test_result[-1].step_code:
                     break
                 for step in test_result:
-                    if step.fails == 0:
+                    if not step.fails:
                         final_test_results[step.test_index].correct += 1
-                    elif step.fails < 3:
-                        final_test_results[step.test_index].failed += 1
                     else:
-                        final_test_results[step.test_index].correct_with_fails += 1
+                        final_test_results[step.test_index].failed += 1
 
             user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
 
@@ -439,14 +437,11 @@ class PracticeOneClass:
 
             if required_ids or not_needed_ids:
                 event.test_results[event.test_index][-1].fails += 1
-                if event.test_results[event.test_index][-1].fails == 3:
-                    checkpoint_response.status = CheckpointResponseStatus.FAILED.value
-                    event.test_results[event.test_index][-1].is_finished = True
-                else:
-                    checkpoint_response.status = CheckpointResponseStatus.TRY_AGAIN.value
+                checkpoint_response.status = CheckpointResponseStatus.FAILED.value
             else:
-                event.test_results[event.test_index][-1].is_finished = True
                 checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
+            
+            event.test_results[event.test_index][-1].is_finished = True
 
             if required_ids:
                 checkpoint_response.missed_ids = required_ids
