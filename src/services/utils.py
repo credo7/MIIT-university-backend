@@ -194,3 +194,7 @@ def normilize_id(db_obj):
         db_obj['id'] = str(db_obj['_id'])
         del db_obj['_id']
     return db_obj
+
+
+def format_with_spaces(num):
+    return '{:,}'.format(num).replace(',', ' ')

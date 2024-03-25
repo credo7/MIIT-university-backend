@@ -34,7 +34,7 @@ from schemas import (
     CurrentStepResponse,
     IncotermInfoSummarize,
 )
-from services.utils import normalize_mongo
+from services.utils import normalize_mongo, format_with_spaces
 
 
 class PracticeOneClass:
@@ -505,7 +505,7 @@ class PracticeOneClass:
         from_country = points[0]
         to_country = points[1]
         product_price = random.randrange(1000, 9000, 100)
-        legend = practice_one_info.legend_pattern.format(product, from_country, to_country, product_price)
+        legend = practice_one_info.legend_pattern.format(product, from_country, to_country, format_with_spaces(product_price))
 
         bets = []
         for bet_pattern in practice_one_info.bets:

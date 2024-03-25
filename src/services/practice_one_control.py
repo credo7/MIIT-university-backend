@@ -143,7 +143,12 @@ class PracticeOneControl:
     # )
 
     def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
-        first_incoterm = pr1_control_info.variants[0].incoterms[0]
+        random_incoterms: list[Incoterm] = list(Incoterm)
+        random.shuffle(random_incoterms)
+        random_incoterms = random_incoterms[:3]
+
+        first_incoterm = random_incoterms[0]
+        # first_incoterm = pr1_control_info.variants[0].incoterms[0]
 
         current_step = Step(
             id=1, code=f'INCOTERM_{first_incoterm.value}', name=f'Инкотерм {first_incoterm}', role=StepRole.ALL
@@ -156,6 +161,8 @@ class PracticeOneControl:
             right_ids = [option.id for option in q.options if option.is_correct]
             q.right_ids = right_ids
             q.multiple_options = bool(len(right_ids) > 1)
+
+        pr1_control_info.variants[0].incoterms = random_incoterms
 
         event = PR1ControlEvent(
             computer_id=self.computer_id,
