@@ -1623,12 +1623,12 @@ raw_practice_one_info = {
             "options": [
                 {
                     "id": 0,
-                    "value": "EXW, FCA, CIP, СРТ,DDP, DAP, DPU",
+                    "value": "EXW, FCA, CIP, CPT,DDP, DAP, DPU",
                     "is_correct": True,
                 },
-                {"id": 1, "value": "EXW, FCA, FOB, СРТ,DDP, DAP, DPU"},
+                {"id": 1, "value": "EXW, FCA, FOB, CPT,DDP, DAP, DPU"},
                 {"id": 2, "value": "FOB, FAS, CFR, CIF, DDP, DAP"},
-                {"id": 3, "value": "EXW, FCA, FOB, СРТ, DDP, DPU"},
+                {"id": 3, "value": "EXW, FCA, FOB, CPT, DDP, DPU"},
             ],
         },
         {
@@ -1636,8 +1636,8 @@ raw_practice_one_info = {
             "question": "Термины, применимые только для морского и внутреннего водного транспорта ",
             "options": [
                 {"id": 0, "value": "FOB, FAS, CFR, CIF", "is_correct": True},
-                {"id": 1, "value": "EXW, FCA, CIP, СРТ"},
-                {"id": 2, "value": "EXW, FCA, FOB, СРТ"},
+                {"id": 1, "value": "EXW, FCA, CIP, CPT"},
+                {"id": 2, "value": "EXW, FCA, FOB, CPT"},
                 {"id": 3, "value": "EXW, FCA, FOB, CFR"},
             ],
         },
