@@ -449,6 +449,7 @@ class TablePR1(BaseModel):
 
 class Logist(BaseModel):
     letter: str
+    types: list[str]
     header: str
     body: str
 
