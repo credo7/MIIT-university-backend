@@ -303,7 +303,7 @@ class PracticeOneClass:
             if 'BUYER' in event.current_step.code:
                 if incoterm in event.common_bets_ids_chosen_by_seller:
                     for id in event.common_bets_ids_chosen_by_seller[incoterm]:
-                        del common_bets_map[id]
+                        del common_bets_map[int(id)]
                     required_bets_map.update(common_bets_map)
 
             not_needed_ids = []

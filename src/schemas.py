@@ -873,7 +873,7 @@ class PR1ClassEvent(EventInfo):
     product_price: int
     bets: list[PracticeOneBet]
     test_index: int = 0
-    common_bets_ids_chosen_by_seller: Optional[dict[str, list[str]]] = {}
+    common_bets_ids_chosen_by_seller: Optional[dict[str, list[int]]] = {}
     describe_option: Optional[str] = None
     options_comparison: Optional[dict[Incoterm, IncotermInfo]]
     chosen_option: Optional[ChosenOption]
