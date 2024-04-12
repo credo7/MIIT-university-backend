@@ -31,6 +31,13 @@ class AnswerStatus(str, enum.Enum):
     FAILED = 'FAILED'
 
 
+class TextType(str, enum.Enum):
+    text = "text"
+    dash = "dash"
+    enumerated = "enumerated"
+
+
+
 class PR1ClassBetType(str, enum.Enum):
     COMMON = 'COMMON'
     BUYER = 'BUYER'
@@ -447,11 +454,16 @@ class TablePR1(BaseModel):
     bets: list[PracticeOneBetOut]
 
 
+class BodyText(BaseModel):
+    type: TextType
+    texts: list[str]
+
+
 class Logist(BaseModel):
     letter: str
     types: list[str]
     header: str
-    body: str
+    body: list[BodyText]
 
 
 class OptionPR1(BaseModel):
