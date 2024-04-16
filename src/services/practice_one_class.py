@@ -440,7 +440,7 @@ class PracticeOneClass:
                 checkpoint_response.status = CheckpointResponseStatus.FAILED.value
             else:
                 checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
-            
+
             event.test_results[event.test_index][-1].is_finished = True
 
             if required_ids:
@@ -505,7 +505,9 @@ class PracticeOneClass:
         from_country = points[0]
         to_country = points[1]
         product_price = random.randrange(1000, 9000, 100)
-        legend = practice_one_info.legend_pattern.format(product, from_country, to_country, format_with_spaces(product_price))
+        legend = practice_one_info.legend_pattern.format(
+            product, from_country, to_country, format_with_spaces(product_price)
+        )
 
         bets = []
         for bet_pattern in practice_one_info.bets:

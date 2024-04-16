@@ -32,10 +32,9 @@ class AnswerStatus(str, enum.Enum):
 
 
 class TextType(str, enum.Enum):
-    text = "text"
-    dash = "dash"
-    enumerated = "enumerated"
-
+    text = 'text'
+    dash = 'dash'
+    enumerated = 'enumerated'
 
 
 class PR1ClassBetType(str, enum.Enum):
@@ -560,72 +559,157 @@ class PR1ControlEvent(EventInfo):
         if incoterm == Incoterm.EXW.value:
             nums = [self.product_price, self.packaging, self.product_check]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.FCA:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_expenses,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.FOB.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_unloading_to_point,
+                self.delivery_to_unloading_port,
+                self.export_formalities,
+                self.loading_on_board,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.FAS.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_unloading_to_point,
+                self.delivery_to_unloading_port,
+                self.export_formalities,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.CFR.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_unloading_to_point,
+                self.delivery_to_unloading_port,
+                self.export_formalities,
+                self.loading_on_board,
+                self.transport_expenses_to_port,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.CIP.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.products_insurance]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_expenses,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+                self.transport_expenses_to_port,
+                self.products_insurance,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.CPT.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_expenses,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+                self.transport_expenses_to_port,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.CIF.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_unloading_to_point, self.delivery_to_unloading_port, self.export_formalities, self.loading_on_board, self.transport_expenses_to_port, self.products_insurance]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_unloading_to_point,
+                self.delivery_to_unloading_port,
+                self.export_formalities,
+                self.loading_on_board,
+                self.transport_expenses_to_port,
+                self.products_insurance,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.DDP.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller, self.import_formalities]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_expenses,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+                self.transport_expenses_to_port,
+                self.unloading_on_seller,
+                self.import_formalities,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.DAP.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_seller]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+                self.transport_expenses_to_port,
+                self.unloading_on_seller,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
         elif incoterm == Incoterm.DPU.value:
-            nums = [self.product_price, self.packaging, self.product_check, self.loading_expenses, self.delivery_to_main_carrier, self.export_formalities, self.transport_expenses_to_port, self.unloading_on_terminal]
+            nums = [
+                self.product_price,
+                self.packaging,
+                self.product_check,
+                self.loading_expenses,
+                self.delivery_to_main_carrier,
+                self.export_formalities,
+                self.transport_expenses_to_port,
+                self.unloading_on_terminal,
+            ]
             nums = [str(num) for num in nums if num != 0]
-            pre = f"{self.product_quantity} * " if self.product_quantity > 1 else ""
-            return pre + " + ".join(nums)
+            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+            return pre + ' + '.join(nums)
 
     def get_formula(self, incoterm: str):
         formula_by_incoterm = {
-            "EXW": "КС = Цена производителя + Упаковка + Проверка товара",
-            "FCA": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара основному перевозчику + Экспортные таможенные формальности и платежи",
-            "FOB": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна",
-            "FAS": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи",
-            "CFR": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения",
-            "CIP": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на страхование груза",
-            "CPT": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения",
-            "CIF": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения + Расходы на страхование груза",
-            "DDP": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу + Импортные таможенные формальности и платежи",
-            "DAP": "КС = Цена производителя + Упаковка + Проверка товара + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу",
-            "DPU": "КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до терминала + Выгрузка товара на терминале"
+            'EXW': 'КС = Цена производителя + Упаковка + Проверка товара',
+            'FCA': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара основному перевозчику + Экспортные таможенные формальности и платежи',
+            'FOB': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна',
+            'FAS': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи',
+            'CFR': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения',
+            'CIP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на страхование груза',
+            'CPT': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения',
+            'CIF': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения + Расходы на страхование груза',
+            'DDP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу + Импортные таможенные формальности и платежи',
+            'DAP': 'КС = Цена производителя + Упаковка + Проверка товара + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу',
+            'DPU': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до терминала + Выгрузка товара на терминале',
         }
 
         return formula_by_incoterm[incoterm]

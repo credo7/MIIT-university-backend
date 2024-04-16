@@ -18,7 +18,9 @@ from schemas import (
     Step,
     StepRole,
     StartEventDto,
-    EventInfo, PR1ControlResults, UserOut,
+    EventInfo,
+    PR1ControlResults,
+    UserOut,
 )
 from services.utils import normalize_mongo
 
@@ -47,9 +49,7 @@ class PracticeOneControl:
                 if not step.fails:
                     right_tests += 1
 
-        user_db = self.db[CollectionNames.USERS.value].find_one({
-            "_id": ObjectId(event.users_ids[0])
-        })
+        user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(event.users_ids[0])})
 
         user = normalize_mongo(user_db, UserOut)
 
@@ -64,7 +64,6 @@ class PracticeOneControl:
             right_test_answers=right_tests,
             incoterms_points=incoterms_results,
         )
-
 
     # def generate_exam(self):
     #     to_point = 'Выборг (Россия)'
@@ -196,7 +195,7 @@ class PracticeOneControl:
             step_response.right_answer = event.calculate_incoterm(current_incoterm)
             step_response.right_formula = event.get_formula(current_incoterm)
             step_response.right_formula_with_nums = event.get_formula_with_nums(current_incoterm)
-            step_response.image_name = "oil"
+            step_response.image_name = 'oil'
 
             step_response.legend = event.legend.format(current_incoterm)
         return step_response
@@ -240,10 +239,10 @@ class PracticeOneControl:
                 event.is_finished = True
             else:
                 next_step = Step(
-                    id=3+test_question_index+2,
+                    id=3 + test_question_index + 2,
                     code=f'TEST_{test_question_index+2}',
                     name=f'Тестовый вопрос #{test_question_index+2}',
-                    role=StepRole.ALL
+                    role=StepRole.ALL,
                 )
                 checkpoint_response.next_step = next_step
                 event.current_step = next_step
@@ -287,7 +286,7 @@ class PracticeOneControl:
                     next_step = Step(id=4, code='TEST_1', name=f'Тестовый вопрос #1', role=StepRole.ALL)
                 else:
                     next_step = Step(
-                        id=incoterm_index+2,
+                        id=incoterm_index + 2,
                         code=f'INCOTERM_{event.incoterms[incoterm_index+1].value}',
                         name=f'Условие {event.incoterms[incoterm_index+1].value}',
                         role=StepRole.ALL,

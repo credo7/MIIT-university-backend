@@ -2,360 +2,163 @@
 from schemas import PR1ClassInfo, Incoterm
 
 raw_practice_one_info = {
-    "bets": [
+    'bets': [
         {
-            "id": 0,
-            "name": "Упаковка и маркировка товара на складе продавца",
-            "value_percentage": {"min": 1, "max": 2},
-            "incoterms": {
-                "buyer": [],
-                "seller": [
-                    "EXW",
-                    "FCA",
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "DDP",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "common": [],
+            'id': 0,
+            'name': 'Упаковка и маркировка товара на складе продавца',
+            'value_percentage': {'min': 1, 'max': 2},
+            'incoterms': {
+                'buyer': [],
+                'seller': ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'common': [],
             },
         },
         {
-            "id": 1,
-            "name": "Погрузка на транспортное средство внутренней перевозки (Pre-Carriage)",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW"],
-                "seller": [
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "DDP",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "common": ["FCA"],
+            'id': 1,
+            'name': 'Погрузка на транспортное средство внутренней перевозки (Pre-Carriage)',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW'],
+                'seller': ['CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'common': ['FCA'],
             },
         },
         {
-            "id": 2,
-            "name": "Внутренняя перевозка",
-            "value_percentage": {"min": 6, "max": 8},
-            "incoterms": {
-                "buyer": ["EXW"],
-                "seller": [
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "DDP",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "common": ["FCA"],
+            'id': 2,
+            'name': 'Внутренняя перевозка',
+            'value_percentage': {'min': 6, 'max': 8},
+            'incoterms': {
+                'buyer': ['EXW'],
+                'seller': ['CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'common': ['FCA'],
             },
         },
         {
-            "id": 3,
-            "name": "Выгрузка с транспортного средства внутренней перевозки",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW"],
-                "seller": [
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "DDP",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "common": ["FCA"],
+            'id': 3,
+            'name': 'Выгрузка с транспортного средства внутренней перевозки',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW'],
+                'seller': ['CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'common': ['FCA'],
             },
         },
         {
-            "id": 4,
-            "name": "Экспортное таможенное оформление",
-            "value_percentage": {"min": 10, "max": 15},
-            "incoterms": {
-                "buyer": ["EXW"],
-                "seller": [
-                    "FCA",
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "DDP",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "common": [],
+            'id': 4,
+            'name': 'Экспортное таможенное оформление',
+            'value_percentage': {'min': 10, 'max': 15},
+            'incoterms': {
+                'buyer': ['EXW'],
+                'seller': ['FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'common': [],
             },
         },
         {
-            "id": 5,
-            "name": "Погрузка на транспортное средство основной перевозки (Main Carriage)",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW", "FAS"],
-                "seller": ["CPT", "CIP", "DAP", "DPU", "DDP", "FOB", "CFR", "CIF"],
-                "common": ["FCA"],
+            'id': 5,
+            'name': 'Погрузка на транспортное средство основной перевозки (Main Carriage)',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW', 'FAS'],
+                'seller': ['CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FOB', 'CFR', 'CIF'],
+                'common': ['FCA'],
             },
         },
         {
-            "id": 6,
-            "name": "Основная перевозка (морской фрахт)",
-            "value_percentage": {"min": 15, "max": 15},
-            "incoterms": {
-                "buyer": ["FAS", "FOB"],
-                "seller": ["CFR", "CIF"],
-                "common": [],
+            'id': 6,
+            'name': 'Основная перевозка (морской фрахт)',
+            'value_percentage': {'min': 15, 'max': 15},
+            'incoterms': {'buyer': ['FAS', 'FOB'], 'seller': ['CFR', 'CIF'], 'common': [],},
+        },
+        {
+            'id': 7,
+            'name': 'Основная перевозка',  # (наземная, авиа)
+            'value_percentage': {'min': 15, 'max': 20},
+            'incoterms': {'buyer': ['EXW', 'FCA'], 'seller': ['CPT', 'CIP', 'DAP', 'DPU', 'DDP'], 'common': [],},
+        },
+        {
+            'id': 8,
+            'name': 'Страхование',
+            'value_percentage': {'min': 1, 'max': 1},
+            'incoterms': {'buyer': [], 'seller': ['CIP', 'CIF'], 'common': []},
+        },
+        {
+            'id': 9,
+            'name': 'Выгрузка с транспортного средства основной перевозки ',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW', 'FCA', 'FAS', 'FOB'],
+                'seller': ['DAP', 'DPU', 'DDP'],
+                'common': ['CPT', 'CIP', 'CFR', 'CIF'],
             },
         },
         {
-            "id": 7,
-            "name": "Основная перевозка",  # (наземная, авиа)
-            "value_percentage": {"min": 15, "max": 20},
-            "incoterms": {
-                "buyer": ["EXW", "FCA"],
-                "seller": ["CPT", "CIP", "DAP", "DPU", "DDP"],
-                "common": [],
+            'id': 10,
+            'name': 'Погрузка на транспортное средство перевозки до места назначения (On-carriage)',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF'],
+                'seller': ['DAP', 'DPU', 'DDP'],
+                'common': ['CPT', 'CIP'],
             },
         },
         {
-            "id": 8,
-            "name": "Страхование",
-            "value_percentage": {"min": 1, "max": 1},
-            "incoterms": {"buyer": [], "seller": ["CIP", "CIF"], "common": []},
-        },
-        {
-            "id": 9,
-            "name": "Выгрузка с транспортного средства основной перевозки ",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW", "FCA", "FAS", "FOB"],
-                "seller": ["DAP", "DPU", "DDP"],
-                "common": ["CPT", "CIP", "CFR", "CIF"],
+            'id': 11,
+            'name': 'Импортное таможенное оформление',
+            'value_percentage': {'min': 10, 'max': 15},
+            'incoterms': {
+                'buyer': ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'FAS', 'FOB', 'CFR', 'CIF',],
+                'seller': ['DDP'],
+                'common': [],
             },
         },
         {
-            "id": 10,
-            "name": "Погрузка на транспортное средство перевозки до места назначения (On-carriage)",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF"],
-                "seller": ["DAP", "DPU", "DDP"],
-                "common": ["CPT", "CIP"],
+            'id': 12,
+            'name': 'Перевозка до места назначения ',
+            'value_percentage': {'min': 6, 'max': 8},
+            'incoterms': {
+                'buyer': ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF'],
+                'seller': ['DAP', 'DPU', 'DDP'],
+                'common': ['CPT', 'CIP'],
             },
         },
         {
-            "id": 11,
-            "name": "Импортное таможенное оформление",
-            "value_percentage": {"min": 10, "max": 15},
-            "incoterms": {
-                "buyer": [
-                    "EXW",
-                    "FCA",
-                    "CPT",
-                    "CIP",
-                    "DAP",
-                    "DPU",
-                    "FAS",
-                    "FOB",
-                    "CFR",
-                    "CIF",
-                ],
-                "seller": ["DDP"],
-                "common": [],
-            },
-        },
-        {
-            "id": 12,
-            "name": "Перевозка до места назначения ",
-            "value_percentage": {"min": 6, "max": 8},
-            "incoterms": {
-                "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF"],
-                "seller": ["DAP", "DPU", "DDP"],
-                "common": ["CPT", "CIP"],
-            },
-        },
-        {
-            "id": 13,
-            "name": "Выгрузка из транспортного средства в месте назначения",
-            "value_percentage": {"min": 3, "max": 4},
-            "incoterms": {
-                "buyer": ["EXW", "FCA", "DAP", "DDP", "FAS", "FOB", "CFR", "CIF"],
-                "seller": ["DPU"],
-                "common": ["CPT", "CIP"],
+            'id': 13,
+            'name': 'Выгрузка из транспортного средства в месте назначения',
+            'value_percentage': {'min': 3, 'max': 4},
+            'incoterms': {
+                'buyer': ['EXW', 'FCA', 'DAP', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF'],
+                'seller': ['DPU'],
+                'common': ['CPT', 'CIP'],
             },
         },
     ],
-    "steps": [
-        {"id": 0, "code": "SELECT_LOGIST", "name": "ВЫБОР ЛОГИСТА", "role": "ALL"},
-        {
-            "id": 1,
-            "code": "EXW_SELLER",
-            "name": "EXW: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 2,
-            "code": "EXW_BUYER",
-            "name": "EXW: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 3,
-            "code": "FCA_SELLER",
-            "name": "FCA: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 4,
-            "code": "FCA_BUYER",
-            "name": "FCA: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 5,
-            "code": "FAS_SELLER",
-            "name": "FAS: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 6,
-            "code": "FAS_BUYER",
-            "name": "FAS: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 7,
-            "code": "FOB_SELLER",
-            "name": "FOB: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 8,
-            "code": "FOB_BUYER",
-            "name": "FOB: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 9,
-            "code": "CFR_SELLER",
-            "name": "CFR: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 10,
-            "code": "CFR_BUYER",
-            "name": "CFR: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 11,
-            "code": "CIF_SELLER",
-            "name": "CIF: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 12,
-            "code": "CIF_BUYER",
-            "name": "CIF: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 15,
-            "code": "CIP_SELLER",
-            "name": "CIP: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 16,
-            "code": "CIP_BUYER",
-            "name": "CIP: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 13,
-            "code": "CPT_SELLER",
-            "name": "CPT: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 14,
-            "code": "CPT_BUYER",
-            "name": "CPT: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 17,
-            "code": "DAP_SELLER",
-            "name": "DAP: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 18,
-            "code": "DAP_BUYER",
-            "name": "DAP: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 19,
-            "code": "DPU_SELLER",
-            "name": "DPU: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 20,
-            "code": "DPU_BUYER",
-            "name": "DPU: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 21,
-            "code": "DDP_SELLER",
-            "name": "DDP: ВЫБОР ПРОДАВЦА",
-            "role": "SELLER",
-        },
-        {
-            "id": 22,
-            "code": "DDP_BUYER",
-            "name": "DDP: ВЫБОР ПОКУПАТЕЛЯ",
-            "role": "BUYER",
-        },
-        {
-            "id": 23,
-            "code": "OPTIONS_COMPARISON",
-            "name": "Сравнение инкотермов",
-            "role": "ALL",
-        },
-        {
-            "id": 24,
-            "code": "CONDITIONS_SELECTION",
-            "name": "Согласование условий поставки",
-            "role": "ALL",
-        },
-        {
-            "id": 25,
-            "code": "DESCRIBE_OPTION",
-            "name": "Обоснование выбора",
-            "role": "ALL",
-        },
+    'steps': [
+        {'id': 0, 'code': 'SELECT_LOGIST', 'name': 'ВЫБОР ЛОГИСТА', 'role': 'ALL'},
+        {'id': 1, 'code': 'EXW_SELLER', 'name': 'EXW: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 2, 'code': 'EXW_BUYER', 'name': 'EXW: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 3, 'code': 'FCA_SELLER', 'name': 'FCA: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 4, 'code': 'FCA_BUYER', 'name': 'FCA: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 5, 'code': 'FAS_SELLER', 'name': 'FAS: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 6, 'code': 'FAS_BUYER', 'name': 'FAS: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 7, 'code': 'FOB_SELLER', 'name': 'FOB: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 8, 'code': 'FOB_BUYER', 'name': 'FOB: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 9, 'code': 'CFR_SELLER', 'name': 'CFR: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 10, 'code': 'CFR_BUYER', 'name': 'CFR: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 11, 'code': 'CIF_SELLER', 'name': 'CIF: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 12, 'code': 'CIF_BUYER', 'name': 'CIF: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 15, 'code': 'CIP_SELLER', 'name': 'CIP: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 16, 'code': 'CIP_BUYER', 'name': 'CIP: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 13, 'code': 'CPT_SELLER', 'name': 'CPT: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 14, 'code': 'CPT_BUYER', 'name': 'CPT: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 17, 'code': 'DAP_SELLER', 'name': 'DAP: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 18, 'code': 'DAP_BUYER', 'name': 'DAP: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 19, 'code': 'DPU_SELLER', 'name': 'DPU: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 20, 'code': 'DPU_BUYER', 'name': 'DPU: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 21, 'code': 'DDP_SELLER', 'name': 'DDP: ВЫБОР ПРОДАВЦА', 'role': 'SELLER',},
+        {'id': 22, 'code': 'DDP_BUYER', 'name': 'DDP: ВЫБОР ПОКУПАТЕЛЯ', 'role': 'BUYER',},
+        {'id': 23, 'code': 'OPTIONS_COMPARISON', 'name': 'Сравнение инкотермов', 'role': 'ALL',},
+        {'id': 24, 'code': 'CONDITIONS_SELECTION', 'name': 'Согласование условий поставки', 'role': 'ALL',},
+        {'id': 25, 'code': 'DESCRIBE_OPTION', 'name': 'Обоснование выбора', 'role': 'ALL',},
         # {'id': 26, 'code': 'TEST_1', 'name': 'Тестовый вопрос №1', 'role': 'ALL'},
         # {'id': 27, 'code': 'TEST_2', 'name': 'Тестовый вопрос №2', 'role': 'ALL'},
         # {'id': 28, 'code': 'TEST_3', 'name': 'Тестовый вопрос №3', 'role': 'ALL'},
@@ -377,1591 +180,1329 @@ raw_practice_one_info = {
         # {'id': 44, 'code': 'TEST_19', 'name': 'Тестовый вопрос №19', 'role': 'ALL'},
         # {'id': 45, 'code': 'TEST_20', 'name': 'Тестовый вопрос №20', 'role': 'ALL'},
     ],
-    "legend_pattern": "Российский Покупатель рассматривает заключение контракта с иностранным Продавцом на поставку партии товара ({0}) из {1} в {2}. Стоимость партии товара – {3} у.е.",
-    "classic_test_questions": {
-        "first_block": [
+    'legend_pattern': 'Российский Покупатель рассматривает заключение контракта с иностранным Продавцом на поставку партии товара ({0}) из {1} в {2}. Стоимость партии товара – {3} у.е.',
+    'classic_test_questions': {
+        'first_block': [
             {
-                "id": 1,
-                "question": "Для чего нужны правила Инкотермс?",
-                "options": [
+                'id': 1,
+                'question': 'Для чего нужны правила Инкотермс?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Описать обязанности, разграничить риски и затраты продавца и покупателя",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Описать обязанности, разграничить риски и затраты продавца и покупателя',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Обеспечить рациональность использования транспортных ресурсов и оптимизацию транспортного фактора",
+                        'id': 1,
+                        'value': 'Обеспечить рациональность использования транспортных ресурсов и оптимизацию транспортного фактора',
                     },
                     {
-                        "id": 2,
-                        "value": "Обеспечить сбалансированность объёмов производства и других ресурсов с размерами потребления определённых видов продукции",
+                        'id': 2,
+                        'value': 'Обеспечить сбалансированность объёмов производства и других ресурсов с размерами потребления определённых видов продукции',
                     },
                 ],
             },
             {
-                "id": 2,
-                "question": "Что включают в себя правила Инкотермс?",
-                "options": [
+                'id': 2,
+                'question': 'Что включают в себя правила Инкотермс?',
+                'options': [
+                    {'id': 0, 'value': 'Обязанности продавца и покупателя', 'is_correct': True,},
                     {
-                        "id": 0,
-                        "value": "Обязанности продавца и покупателя",
-                        "is_correct": True,
+                        'id': 1,
+                        'value': 'Ответственность продавца и покупателя при транспортировке',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Ответственность продавца и покупателя при транспортировке",
-                        "is_correct": True,
+                        'id': 2,
+                        'value': 'Как разделяются расходы на транспортировку между продавцом и покупателем',
+                        'is_correct': True,
                     },
+                    {'id': 3, 'value': 'Последствия просрочки и других нарушений договора'},
                     {
-                        "id": 2,
-                        "value": "Как разделяются расходы на транспортировку между продавцом и покупателем",
-                        "is_correct": True,
-                    },
-                    {"id": 3, "value": "Последствия просрочки и других нарушений договора"},
-                    {
-                        "id": 4,
-                        "value": "Права интеллектуальной собственности и разрешения споров в случае их нарушения",
+                        'id': 4,
+                        'value': 'Права интеллектуальной собственности и разрешения споров в случае их нарушения',
                     },
                 ],
             },
             {
-                "id": 3,
-                "question": "Запись об условиях поставки в документах на перевозку включает:",
-                "options": [
-                    {"id": 0, "value": "Базис поставки", "is_corret": True},
-                    {
-                        "id": 1,
-                        "value": "Географический пункт назначения",
-                        "is_correct": True,
-                    },
-                    {"id": 2, "value": "Редакцию Инкотермс", "is_correct": True},
-                    {"id": 3, "value": "Дату прибытия груза"},
-                    {
-                        "id": 4,
-                        "value": "Данные о всех транспортируемых грузах и сопроводительных документах",
-                    },
+                'id': 3,
+                'question': 'Запись об условиях поставки в документах на перевозку включает:',
+                'options': [
+                    {'id': 0, 'value': 'Базис поставки', 'is_corret': True},
+                    {'id': 1, 'value': 'Географический пункт назначения', 'is_correct': True,},
+                    {'id': 2, 'value': 'Редакцию Инкотермс', 'is_correct': True},
+                    {'id': 3, 'value': 'Дату прибытия груза'},
+                    {'id': 4, 'value': 'Данные о всех транспортируемых грузах и сопроводительных документах',},
                 ],
             },
             {
-                "id": 4,
-                "question": "В каких документах прописываются условия поставки Инкотермс?",
-                "options": [
-                    {"id": 0, "value": "Контракт", "is_correct": True},
-                    {"id": 1, "value": "Инвойс", "is_correct": True},
-                    {"id": 2, "value": "Таможенная декларация", "is_correct": True},
-                    {"id": 3, "value": "Товарная накладная"},
-                    {"id": 4, "value": "Транзитная декларация"},
+                'id': 4,
+                'question': 'В каких документах прописываются условия поставки Инкотермс?',
+                'options': [
+                    {'id': 0, 'value': 'Контракт', 'is_correct': True},
+                    {'id': 1, 'value': 'Инвойс', 'is_correct': True},
+                    {'id': 2, 'value': 'Таможенная декларация', 'is_correct': True},
+                    {'id': 3, 'value': 'Товарная накладная'},
+                    {'id': 4, 'value': 'Транзитная декларация'},
                 ],
             },
             {
-                "id": 5,
-                "question": "Что такое базисные условия поставки Инкотермс?",
-                "options": [
+                'id': 5,
+                'question': 'Что такое базисные условия поставки Инкотермс?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Торговые термины, определяющие условия поставки товаров от продавца покупателю",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Торговые термины, определяющие условия поставки товаров от продавца покупателю',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Условия обеспечение оптимизации использования транспортных ресурсов в системе ценообразования на товары и услуги",
+                        'id': 1,
+                        'value': 'Условия обеспечение оптимизации использования транспортных ресурсов в системе ценообразования на товары и услуги',
                     },
                     {
-                        "id": 2,
-                        "value": "Правила, определяющие перспективы развития грузообразующих отраслей с целью формирования сбалансированного товарообмена в стране",
+                        'id': 2,
+                        'value': 'Правила, определяющие перспективы развития грузообразующих отраслей с целью формирования сбалансированного товарообмена в стране',
                     },
-                    {
-                        "id": 3,
-                        "value": "Условия выполнения договора поставки между грузовладельцем и перевозчиком",
-                    },
+                    {'id': 3, 'value': 'Условия выполнения договора поставки между грузовладельцем и перевозчиком',},
                 ],
             },
         ],
-        "second_block": [
+        'second_block': [
             {
-                "id": 6,
-                "question": "На какие 4 группы в зависимости от участия продавца и покупателя делятся базисы поставки?",
-                "options": [
-                    {"id": 0, "value": "E,F,C,D", "is_correct": True},
-                    {"id": 1, "value": "C,D,A,B"},
-                    {"id": 2, "value": "Y,Z,W,X"},
-                    {"id": 3, "value": "R,S,P,Q"},
+                'id': 6,
+                'question': 'На какие 4 группы в зависимости от участия продавца и покупателя делятся базисы поставки?',
+                'options': [
+                    {'id': 0, 'value': 'E,F,C,D', 'is_correct': True},
+                    {'id': 1, 'value': 'C,D,A,B'},
+                    {'id': 2, 'value': 'Y,Z,W,X'},
+                    {'id': 3, 'value': 'R,S,P,Q'},
                 ],
             },
             {
-                "id": 7,
-                "question": "В каких группах базисов поставки покупатель участвует в основной поставке?",
-                "options": [
-                    {"id": 0, "value": "E и F", "is_correct": True},
-                    {"id": 1, "value": "C и D"},
-                    {"id": 2, "value": "E, F, C, D"},
-                    {"id": 3, "value": "E, F, C"},
+                'id': 7,
+                'question': 'В каких группах базисов поставки покупатель участвует в основной поставке?',
+                'options': [
+                    {'id': 0, 'value': 'E и F', 'is_correct': True},
+                    {'id': 1, 'value': 'C и D'},
+                    {'id': 2, 'value': 'E, F, C, D'},
+                    {'id': 3, 'value': 'E, F, C'},
                 ],
             },
             {
-                "id": 8,
-                "question": "В каких группах базисов поставки покупатель не участвует в основной поставке?",
-                "options": [
-                    {"id": 0, "value": "С и D", "is_correct": True},
-                    {"id": 1, "value": "E и F"},
-                    {"id": 2, "value": "E, F, C, D"},
-                    {"id": 3, "value": "C, D, F"},
+                'id': 8,
+                'question': 'В каких группах базисов поставки покупатель не участвует в основной поставке?',
+                'options': [
+                    {'id': 0, 'value': 'С и D', 'is_correct': True},
+                    {'id': 1, 'value': 'E и F'},
+                    {'id': 2, 'value': 'E, F, C, D'},
+                    {'id': 3, 'value': 'C, D, F'},
                 ],
             },
             {
-                "id": 9,
-                "question": "Выберите правильный вариант записи условия Инкотермс",
-                "options": [
-                    {
-                        "id": 0,
-                        "value": "FOB Shanghai Incoterms 2020",
-                        "is_correct": True,
-                    },
-                    {"id": 1, "value": "FOB Incoterms 2020 Shanghai"},
-                    {"id": 2, "value": "Shanghai FOB Incoterms 2020"},
+                'id': 9,
+                'question': 'Выберите правильный вариант записи условия Инкотермс',
+                'options': [
+                    {'id': 0, 'value': 'FOB Shanghai Incoterms 2020', 'is_correct': True,},
+                    {'id': 1, 'value': 'FOB Incoterms 2020 Shanghai'},
+                    {'id': 2, 'value': 'Shanghai FOB Incoterms 2020'},
                 ],
             },
             {
-                "id": 10,
-                "question": "В каком документе указываются условия перевозки, не входящие в Инкотермс?",
-                "options": [
-                    {"id": 0, "value": "Договор купли-продажи", "is_correct": True},
-                    {"id": 1, "value": "Товарная накладная"},
-                    {"id": 2, "value": "Транзитная декларация"},
+                'id': 10,
+                'question': 'В каком документе указываются условия перевозки, не входящие в Инкотермс?',
+                'options': [
+                    {'id': 0, 'value': 'Договор купли-продажи', 'is_correct': True},
+                    {'id': 1, 'value': 'Товарная накладная'},
+                    {'id': 2, 'value': 'Транзитная декларация'},
                 ],
             },
         ],
-        "third_block": [
+        'third_block': [
             {
-                "id": 11,
-                "question": "Для каких видов перевозок подходит базис поставки EXW?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Морские и речные перевозки"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 11,
+                'question': 'Для каких видов перевозок подходит базис поставки EXW?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Морские и речные перевозки'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.EXW,
+                'incoterm': Incoterm.EXW,
             },
             {
-                "id": 12,
-                "question": "Особенность базиса поставки EXW?",
-                "options": [
+                'id': 12,
+                'question': 'Особенность базиса поставки EXW?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риски случайной порчи товара переходят от продавца к покупателю на складе продавца. Все расходы тоже несет покупатель",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риски случайной порчи товара переходят от продавца к покупателю на складе продавца. Все расходы тоже несет покупатель',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя",
+                        'id': 1,
+                        'value': 'Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                     {
-                        "id": 2,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
+                        'id': 2,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
                 ],
-                "incoterm": Incoterm.EXW,
+                'incoterm': Incoterm.EXW,
             },
             {
-                "id": 13,
-                "question": "Какие обязанности ложатся на продавца при EXW?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
+                'id': 13,
+                'question': 'Какие обязанности ложатся на продавца при EXW?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
                     {
-                        "id": 2,
-                        "value": "Предоставляет доступ к товару перевозчику, которого нанял покупатель",
-                        "is_correct": True,
+                        'id': 2,
+                        'value': 'Предоставляет доступ к товару перевозчику, которого нанял покупатель',
+                        'is_correct': True,
                     },
-                    {"id": 3, "value": "Загружает товар на транспорт покупателя"},
-                    {"id": 4, "value": "Оформляет таможенный экспорт"},
+                    {'id': 3, 'value': 'Загружает товар на транспорт покупателя'},
+                    {'id': 4, 'value': 'Оформляет таможенный экспорт'},
                 ],
-                "incoterm": Incoterm.EXW,
+                'incoterm': Incoterm.EXW,
             },
             {
-                "id": 14,
-                "question": "Какие обязанности ложатся на покупателя при EXW?",
-                "options": [
-                    {"id": 0, "value": "Грузит товар", "is_correct": True},
+                'id': 14,
+                'question': 'Какие обязанности ложатся на покупателя при EXW?',
+                'options': [
+                    {'id': 0, 'value': 'Грузит товар', 'is_correct': True},
                     {
-                        "id": 1,
-                        "value": "Оформляет полную перевозку от завода поставщика до своего склада",
-                        "is_correct": True,
+                        'id': 1,
+                        'value': 'Оформляет полную перевозку от завода поставщика до своего склада',
+                        'is_correct': True,
                     },
-                    {
-                        "id": 2,
-                        "value": "Оформляет таможенный экспорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Маркирует товар"},
-                    {"id": 5, "value": "Упаковывает товар"},
+                    {'id': 2, 'value': 'Оформляет таможенный экспорт', 'is_correct': True,},
+                    {'id': 3, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 4, 'value': 'Маркирует товар'},
+                    {'id': 5, 'value': 'Упаковывает товар'},
                 ],
-                "incoterm": Incoterm.EXW,
+                'incoterm': Incoterm.EXW,
             },
             {
-                "id": 15,
-                "question": "Для каких видов перевозок подходит базис поставки FCA?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Морские и речные перевозки"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 15,
+                'question': 'Для каких видов перевозок подходит базис поставки FCA?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Морские и речные перевозки'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.FCA,
+                'incoterm': Incoterm.FCA,
             },
             {
-                "id": 16,
-                "question": "Особенность базиса поставки FCA?",
-                "options": [
+                'id': 16,
+                'question': 'Особенность базиса поставки FCA?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара",
+                        'id': 1,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара',
                     },
                     {
-                        "id": 2,
-                        "value": "Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения",
+                        'id': 2,
+                        'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                "incoterm": Incoterm.FCA,
+                'incoterm': Incoterm.FCA,
             },
             {
-                "id": 17,
-                "question": "Какие обязанности ложатся на продавца при FCA?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Загружает товар на транспорт покупателя",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Оформляет таможенный импорт"},
-                    {"id": 5, "value": "Выгружает товар из транспорта продавца"},
+                'id': 17,
+                'question': 'Какие обязанности ложатся на продавца при FCA?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Загружает товар на транспорт покупателя', 'is_correct': True,},
+                    {'id': 4, 'value': 'Оформляет таможенный импорт'},
+                    {'id': 5, 'value': 'Выгружает товар из транспорта продавца'},
                 ],
-                "incoterm": Incoterm.FCA,
+                'incoterm': Incoterm.FCA,
             },
             {
-                "id": 18,
-                "question": "Какие обязанности ложатся на покупателя при FCA?",
-                "options": [
+                'id': 18,
+                'question': 'Какие обязанности ложатся на покупателя при FCA?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Организовывает основную перевозку: из места загрузки до своего склада",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Организовывает основную перевозку: из места загрузки до своего склада',
+                        'is_correct': True,
                     },
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {"id": 2, "value": "Осуществляет экспортное таможенное оформление"},
-                    {"id": 3, "value": "Загружает товар на транспорт покупателя"},
-                    {
-                        "id": 4,
-                        "value": "Страхует товар в ходе всей основной перевозки.",
-                    },
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление'},
+                    {'id': 3, 'value': 'Загружает товар на транспорт покупателя'},
+                    {'id': 4, 'value': 'Страхует товар в ходе всей основной перевозки.',},
                 ],
-                "incoterm": Incoterm.FCA,
+                'incoterm': Incoterm.FCA,
             },
             {
-                "id": 19,
-                "question": "Для каких видов перевозок подходит базис поставки FAS?",
-                "options": [
-                    {"id": 0, "value": "Только морские и речные", "is_correct": True},
-                    {"id": 1, "value": "Любой вид перевозок"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 19,
+                'question': 'Для каких видов перевозок подходит базис поставки FAS?',
+                'options': [
+                    {'id': 0, 'value': 'Только морские и речные', 'is_correct': True},
+                    {'id': 1, 'value': 'Любой вид перевозок'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.FAS,
+                'incoterm': Incoterm.FAS,
             },
             {
-                "id": 20,
-                "question": "Особенность базиса поставки FAS?",
-                "options": [
+                'id': 20,
+                'question': 'Особенность базиса поставки FAS?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно, и покупатель несёт все расходы с этого момента",
+                        'id': 1,
+                        'value': 'Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно, и покупатель несёт все расходы с этого момента',
                     },
                     {
-                        "id": 2,
-                        "value": "Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения",
+                        'id': 2,
+                        'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                "incoterm": Incoterm.FAS,
+                'incoterm': Incoterm.FAS,
             },
             {
-                "id": 21,
-                "question": "Какие обязанности ложатся на продавца при FAS?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Доставляет товар в порт и выгружает рядом с бортом судна",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Оформляет таможенный импорт"},
-                    {"id": 5, "value": "Загружает товар на судно покупателя"},
+                'id': 21,
+                'question': 'Какие обязанности ложатся на продавца при FAS?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Доставляет товар в порт и выгружает рядом с бортом судна', 'is_correct': True,},
+                    {'id': 4, 'value': 'Оформляет таможенный импорт'},
+                    {'id': 5, 'value': 'Загружает товар на судно покупателя'},
                 ],
-                "incoterm": Incoterm.FAS,
+                'incoterm': Incoterm.FAS,
             },
             {
-                "id": 22,
-                "question": "Какие обязанности ложатся на покупателя при FAS?",
-                "options": [
+                'id': 22,
+                'question': 'Какие обязанности ложатся на покупателя при FAS?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Заранее фрахтует место на судне и сообщает продавцу все данные — порт, судно перевозчика, время погрузки",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Заранее фрахтует место на судне и сообщает продавцу все данные — порт, судно перевозчика, время погрузки',
+                        'is_correct': True,
                     },
-                    {"id": 1, "value": "Грузит товар на судно", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Доставляет товар из порта до своего склада",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Осуществляет экспортное таможенное оформление"},
-                    {"id": 5, "value": "Доставка груза от склада поставщика в порт"},
+                    {'id': 1, 'value': 'Грузит товар на судно', 'is_correct': True},
+                    {'id': 2, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 3, 'value': 'Доставляет товар из порта до своего склада', 'is_correct': True,},
+                    {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
+                    {'id': 5, 'value': 'Доставка груза от склада поставщика в порт'},
                 ],
-                "incoterm": Incoterm.FAS,
+                'incoterm': Incoterm.FAS,
             },
             {
-                "id": 23,
-                "question": "Для каких видов перевозок подходит базис поставки FOB?",
-                "options": [
-                    {"id": 0, "value": "Только морские и речные", "is_correct": True},
-                    {"id": 1, "value": "Любой вид перевозок"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 23,
+                'question': 'Для каких видов перевозок подходит базис поставки FOB?',
+                'options': [
+                    {'id': 0, 'value': 'Только морские и речные', 'is_correct': True},
+                    {'id': 1, 'value': 'Любой вид перевозок'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.FOB,
+                'incoterm': Incoterm.FOB,
             },
             {
-                "id": 24,
-                "question": "Особенность базиса поставки FOB?",
-                "options": [
+                'id': 24,
+                'question': 'Особенность базиса поставки FOB?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно, и покупатель несёт все расходы с этого момента",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно, и покупатель несёт все расходы с этого момента',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
+                        'id': 1,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
                     {
-                        "id": 2,
-                        "value": "Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения",
+                        'id': 2,
+                        'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                "incoterm": Incoterm.FOB,
+                'incoterm': Incoterm.FOB,
             },
             {
-                "id": 25,
-                "question": "Какие обязанности ложатся на продавца при FOB? ",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Доставляет товар в порт и загружает на судно",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Оформляет таможенный импорт"},
-                    {"id": 5, "value": "Фрахтует место на судне"},
+                'id': 25,
+                'question': 'Какие обязанности ложатся на продавца при FOB? ',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Доставляет товар в порт и загружает на судно', 'is_correct': True,},
+                    {'id': 4, 'value': 'Оформляет таможенный импорт'},
+                    {'id': 5, 'value': 'Фрахтует место на судне'},
                 ],
-                "incoterm": Incoterm.FOB,
+                'incoterm': Incoterm.FOB,
             },
             {
-                "id": 26,
-                "question": "Какие обязанности ложатся на покупателя при FOB? ",
-                "options": [
+                'id': 26,
+                'question': 'Какие обязанности ложатся на покупателя при FOB? ',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Заранее фрахтует место на судне и сообщает продавцу все данные — порт, судно перевозчика, время погрузки",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Заранее фрахтует место на судне и сообщает продавцу все данные — порт, судно перевозчика, время погрузки',
+                        'is_correct': True,
                     },
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 2,
-                        "value": "Доставляет товар из порта до своего склада",
-                        "is_correct": True,
-                    },
-                    {"id": 3, "value": "Грузит товар на судно"},
-                    {"id": 4, "value": "Осуществляет экспортное таможенное оформление"},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Доставляет товар из порта до своего склада', 'is_correct': True,},
+                    {'id': 3, 'value': 'Грузит товар на судно'},
+                    {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                "incoterm": Incoterm.FOB,
+                'incoterm': Incoterm.FOB,
             },
             {
-                "id": 27,
-                "question": "Для каких видов перевозок подходит базис поставки CFR?",
-                "options": [
-                    {"id": 0, "value": "Только морские и речные", "is_correct": True},
-                    {"id": 1, "value": "Любой вид перевозок"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 27,
+                'question': 'Для каких видов перевозок подходит базис поставки CFR?',
+                'options': [
+                    {'id': 0, 'value': 'Только морские и речные', 'is_correct': True},
+                    {'id': 1, 'value': 'Любой вид перевозок'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.CFR,
+                'incoterm': Incoterm.CFR,
             },
             {
-                "id": 28,
-                "question": "Особенность базиса поставки CFR?",
-                "options": [
+                'id': 28,
+                'question': 'Особенность базиса поставки CFR?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно. Расходы по доставке на покупателя не переходят с этого момента, доставку оплачивает поставщик",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риски случайной гибели товара переходят от поставщика к покупателю после погрузки на судно. Расходы по доставке на покупателя не переходят с этого момента, доставку оплачивает поставщик',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
+                        'id': 1,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
-                    {"id": 2, "value": "Риски переходят на складе продавца"},
+                    {'id': 2, 'value': 'Риски переходят на складе продавца'},
                 ],
-                "incoterm": Incoterm.CFR,
+                'incoterm': Incoterm.CFR,
             },
             {
-                "id": 29,
-                "question": "Какие обязанности ложатся на продавца при CFR?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Доставляет товар в порт и загружает на судно",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Фрахтует на судне и оплачивает транспортировку",
-                        "is_correct": True,
-                    },
-                    {"id": 5, "value": "Выгружает товар с судна"},
-                    {"id": 6, "value": "Оформляет таможенный импорт"},
+                'id': 29,
+                'question': 'Какие обязанности ложатся на продавца при CFR?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Доставляет товар в порт и загружает на судно', 'is_correct': True,},
+                    {'id': 4, 'value': 'Фрахтует на судне и оплачивает транспортировку', 'is_correct': True,},
+                    {'id': 5, 'value': 'Выгружает товар с судна'},
+                    {'id': 6, 'value': 'Оформляет таможенный импорт'},
                 ],
-                "incoterm": Incoterm.CFR,
+                'incoterm': Incoterm.CFR,
             },
             {
-                "id": 30,
-                "question": "Какие обязанности ложатся на покупателя при CFR?",
-                "options": [
-                    {"id": 0, "value": "Выгружает товар с судна", "is_correct": True},
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 2,
-                        "value": "Доставляет товар из порта до своего склада",
-                        "is_correct": True,
-                    },
-                    {"id": 3, "value": "Грузит товар на судно"},
-                    {"id": 4, "value": "Осуществляет экспортное таможенное оформление"},
+                'id': 30,
+                'question': 'Какие обязанности ложатся на покупателя при CFR?',
+                'options': [
+                    {'id': 0, 'value': 'Выгружает товар с судна', 'is_correct': True},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Доставляет товар из порта до своего склада', 'is_correct': True,},
+                    {'id': 3, 'value': 'Грузит товар на судно'},
+                    {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                "incoterm": Incoterm.CFR,
+                'incoterm': Incoterm.CFR,
             },
             {
-                "id": 31,
-                "question": "Для каких видов перевозок подходит базис поставки CIF?",
-                "options": [
-                    {"id": 0, "value": "Только морские и речные", "is_correct": True},
-                    {"id": 1, "value": "Любой вид перевозок"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 31,
+                'question': 'Для каких видов перевозок подходит базис поставки CIF?',
+                'options': [
+                    {'id': 0, 'value': 'Только морские и речные', 'is_correct': True},
+                    {'id': 1, 'value': 'Любой вид перевозок'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.CIF,
+                'incoterm': Incoterm.CIF,
             },
             {
-                "id": 32,
-                "question": "Особенность базиса поставки CIF?",
-                "options": [
+                'id': 32,
+                'question': 'Особенность базиса поставки CIF?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск переходит в момент размещения продавцом товара на судне",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск переходит в момент размещения продавцом товара на судне',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
+                        'id': 1,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
-                    {"id": 2, "value": "Риски переходят в пункте назначения"},
+                    {'id': 2, 'value': 'Риски переходят в пункте назначения'},
                 ],
-                "incoterm": Incoterm.CIF,
+                'incoterm': Incoterm.CIF,
             },
             {
-                "id": 33,
-                "question": "Какие обязанности ложатся на продавца при CIF? ",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Доставляет товар в порт и загружает на судно",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Фрахтует на судне и оплачивает транспортировку",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 5,
-                        "value": "Страхует груз от транспортных рисков покупателя",
-                        "is_correct": True,
-                    },
-                    {"id": 6, "value": "Выгружает товар с судна"},
-                    {"id": 7, "value": "Оформляет таможенный импорт"},
+                'id': 33,
+                'question': 'Какие обязанности ложатся на продавца при CIF? ',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Доставляет товар в порт и загружает на судно', 'is_correct': True,},
+                    {'id': 4, 'value': 'Фрахтует на судне и оплачивает транспортировку', 'is_correct': True,},
+                    {'id': 5, 'value': 'Страхует груз от транспортных рисков покупателя', 'is_correct': True,},
+                    {'id': 6, 'value': 'Выгружает товар с судна'},
+                    {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                "incoterm": Incoterm.CIF,
+                'incoterm': Incoterm.CIF,
             },
             {
-                "id": 34,
-                "question": "Какие обязанности ложатся на покупателя при CIF? ",
-                "options": [
-                    {"id": 0, "value": "Выгружает товар с судна", "is_correct": True},
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 2,
-                        "value": "Доставляет товар из порта до своего склада",
-                        "is_correct": True,
-                    },
-                    {"id": 3, "value": "Грузит товар на судно"},
-                    {"id": 4, "value": "Осуществляет экспортное таможенное оформление"},
+                'id': 34,
+                'question': 'Какие обязанности ложатся на покупателя при CIF? ',
+                'options': [
+                    {'id': 0, 'value': 'Выгружает товар с судна', 'is_correct': True},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Доставляет товар из порта до своего склада', 'is_correct': True,},
+                    {'id': 3, 'value': 'Грузит товар на судно'},
+                    {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                "incoterm": Incoterm.CIF,
+                'incoterm': Incoterm.CIF,
             },
             {
-                "id": 35,
-                "question": "Для каких видов перевозок подходит базис поставки CIP?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Только морские и речные"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 35,
+                'question': 'Для каких видов перевозок подходит базис поставки CIP?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Только морские и речные'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.CIP,
+                'incoterm': Incoterm.CIP,
             },
             {
-                "id": 36,
-                "question": "Особенность базиса поставки CIP?",
-                "options": [
+                'id': 36,
+                'question': 'Особенность базиса поставки CIP?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск переходит после передачи продавцом товара перевозчику, а не в пункте назначения. Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков. При этом страхует груз от транспортных рисков покупателя",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск переходит после передачи продавцом товара перевозчику, а не в пункте назначения. Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков. При этом страхует груз от транспортных рисков покупателя',
+                        'is_correct': True,
                     },
+                    {'id': 1, 'value': 'Риск переходит в момент размещения продавцом товара на судне',},
                     {
-                        "id": 1,
-                        "value": "Риск переходит в момент размещения продавцом товара на судне",
+                        'id': 2,
+                        'value': 'Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
-                    {
-                        "id": 2,
-                        "value": "Риск случайной гибели товара переходят от поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна",
-                    },
-                    {"id": 3, "value": "Риски переходят в пункте назначения"},
+                    {'id': 3, 'value': 'Риски переходят в пункте назначения'},
                 ],
-                "incoterm": Incoterm.CIP,
+                'incoterm': Incoterm.CIP,
             },
             {
-                "id": 37,
-                "question": "Какие обязанности ложатся на продавца при CIP? ",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Загружает в транспорт, который сам нанял",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Доставляет товар в назначенное место",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 5,
-                        "value": "Страхует груз в ходе всей основной перевозки",
-                        "is_correct": True,
-                    },
-                    {"id": 6, "value": "Выгружает товар с судна"},
-                    {"id": 7, "value": "Оформляет таможенный импорт"},
+                'id': 37,
+                'question': 'Какие обязанности ложатся на продавца при CIP? ',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Загружает в транспорт, который сам нанял', 'is_correct': True,},
+                    {'id': 4, 'value': 'Доставляет товар в назначенное место', 'is_correct': True,},
+                    {'id': 5, 'value': 'Страхует груз в ходе всей основной перевозки', 'is_correct': True,},
+                    {'id': 6, 'value': 'Выгружает товар с судна'},
+                    {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                "incoterm": Incoterm.CIP,
+                'incoterm': Incoterm.CIP,
             },
             {
-                "id": 38,
-                "question": "Какие обязанности ложатся на покупателя при CIP?",
-                "options": [
-                    {
-                        "id": 0,
-                        "value": "Выгружает товар с транспорта продавца",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 2,
-                        "value": "Доставляет товар из пункта назначения до своего склада",
-                        "is_correct": True,
-                    },
-                    {"id": 3, "value": "Грузит товар на судно"},
-                    {"id": 4, "value": "Осуществляет экспортное таможенное оформление"},
+                'id': 38,
+                'question': 'Какие обязанности ложатся на покупателя при CIP?',
+                'options': [
+                    {'id': 0, 'value': 'Выгружает товар с транспорта продавца', 'is_correct': True,},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Доставляет товар из пункта назначения до своего склада', 'is_correct': True,},
+                    {'id': 3, 'value': 'Грузит товар на судно'},
+                    {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                "incoterm": Incoterm.CIP,
+                'incoterm': Incoterm.CIP,
             },
             {
-                "id": 39,
-                "question": "Для каких видов перевозок подходит базис поставки CPT?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Только морские и речные"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 39,
+                'question': 'Для каких видов перевозок подходит базис поставки CPT?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Только морские и речные'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.CPT,
+                'incoterm': Incoterm.CPT,
             },
             {
-                "id": 40,
-                "question": "Особенность базиса поставки CPT",
-                "options": [
+                'id': 40,
+                'question': 'Особенность базиса поставки CPT',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риски утраты и гибели товара переходят с продавца на покупателя в момент передачи товара первому перевозчику или предоставления товара",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риски утраты и гибели товара переходят с продавца на покупателя в момент передачи товара первому перевозчику или предоставления товара',
+                        'is_correct': True,
                     },
-                    {"id": 1, "value": "Все риски и расходы несёт продавец"},
+                    {'id': 1, 'value': 'Все риски и расходы несёт продавец'},
                     {
-                        "id": 2,
-                        "value": "Риски случайной порчи товара переходят от продавца к покупателю на складе продавца",
+                        'id': 2,
+                        'value': 'Риски случайной порчи товара переходят от продавца к покупателю на складе продавца',
                     },
                 ],
-                "incoterm": Incoterm.CPT,
+                'incoterm': Incoterm.CPT,
             },
             {
-                "id": 41,
-                "question": "Какие обязанности ложатся на продавца при CPT? ",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Загружает на транспортное средство",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Осуществляет импортное таможенное оформление"},
-                    {"id": 5, "value": "Выгружает товар в месте назначения"},
-                    {
-                        "id": 6,
-                        "value": "Страхует груз от транспортных рисков",
-                        "is_correct": True,
-                    },
+                'id': 41,
+                'question': 'Какие обязанности ложатся на продавца при CPT? ',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Загружает на транспортное средство', 'is_correct': True,},
+                    {'id': 3, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 4, 'value': 'Осуществляет импортное таможенное оформление'},
+                    {'id': 5, 'value': 'Выгружает товар в месте назначения'},
+                    {'id': 6, 'value': 'Страхует груз от транспортных рисков', 'is_correct': True,},
                 ],
-                "incoterm": Incoterm.CPT,
+                'incoterm': Incoterm.CPT,
             },
             {
-                "id": 42,
-                "question": "Какие обязанности ложатся на покупателя при CPT?",
-                "options": [
-                    {"id": 0, "value": "Загружает на транспортное средство "},
-                    {"id": 1, "value": "Осуществляет экспортное таможенное оформление"},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет импортное таможенное оформление ",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Выгружает товар в месте назначения",
-                        "is_correct": True,
-                    },
-                    {"id": 4, "value": "Страхует груз от транспортных рисков"},
+                'id': 42,
+                'question': 'Какие обязанности ложатся на покупателя при CPT?',
+                'options': [
+                    {'id': 0, 'value': 'Загружает на транспортное средство '},
+                    {'id': 1, 'value': 'Осуществляет экспортное таможенное оформление'},
+                    {'id': 2, 'value': 'Осуществляет импортное таможенное оформление ', 'is_correct': True,},
+                    {'id': 3, 'value': 'Выгружает товар в месте назначения', 'is_correct': True,},
+                    {'id': 4, 'value': 'Страхует груз от транспортных рисков'},
                 ],
-                "incoterm": Incoterm.CPT,
+                'incoterm': Incoterm.CPT,
             },
             {
-                "id": 43,
-                "question": "Для каких видов перевозок подходит базис поставки DAP?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Только морские и речные"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 43,
+                'question': 'Для каких видов перевозок подходит базис поставки DAP?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Только морские и речные'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.DAP,
+                'incoterm': Incoterm.DAP,
             },
             {
-                "id": 44,
-                "question": "Особенность базиса поставки DAP?",
-                "options": [
+                'id': 44,
+                'question': 'Особенность базиса поставки DAP?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск от продавца к покупателю переходит в пункте назначения",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск от продавца к покупателю переходит в пункте назначения',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риски случайной порчи товара переходят от продавца к покупателю на складе продавца",
+                        'id': 1,
+                        'value': 'Риски случайной порчи товара переходят от продавца к покупателю на складе продавца',
                     },
                     {
-                        "id": 2,
-                        "value": "Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя",
+                        'id': 2,
+                        'value': 'Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                "incoterm": Incoterm.DAP,
+                'incoterm': Incoterm.DAP,
             },
             {
-                "id": 45,
-                "question": "Какие обязанности ложатся на продавца при DAP? ",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Загружает в транспорт, который сам нанял",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Доставляет товар в назначенное место",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 5,
-                        "value": "Страхует груз от транспортных рисков покупателя",
-                    },
-                    {"id": 6, "value": "Выгружает товар"},
-                    {"id": 7, "value": "Оформляет таможенный импорт"},
+                'id': 45,
+                'question': 'Какие обязанности ложатся на продавца при DAP? ',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Загружает в транспорт, который сам нанял', 'is_correct': True,},
+                    {'id': 4, 'value': 'Доставляет товар в назначенное место', 'is_correct': True,},
+                    {'id': 5, 'value': 'Страхует груз от транспортных рисков покупателя',},
+                    {'id': 6, 'value': 'Выгружает товар'},
+                    {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                "incoterm": Incoterm.DAP,
+                'incoterm': Incoterm.DAP,
             },
             {
-                "id": 46,
-                "question": "Какие обязанности ложатся на покупателя при DAP? ",
-                "options": [
-                    {
-                        "id": 0,
-                        "value": "Выгружает товар из транспорта продавца",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 1,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {"id": 2, "value": "Оформляет таможенный экспорт"},
-                    {"id": 3, "value": "Страхует груз"},
+                'id': 46,
+                'question': 'Какие обязанности ложатся на покупателя при DAP? ',
+                'options': [
+                    {'id': 0, 'value': 'Выгружает товар из транспорта продавца', 'is_correct': True,},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 2, 'value': 'Оформляет таможенный экспорт'},
+                    {'id': 3, 'value': 'Страхует груз'},
                 ],
-                "incoterm": Incoterm.DAP,
+                'incoterm': Incoterm.DAP,
             },
             {
-                "id": 47,
-                "question": "Для каких видов перевозок подходит базис поставки DPU?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Только морские и речные"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 47,
+                'question': 'Для каких видов перевозок подходит базис поставки DPU?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Только морские и речные'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.DPU,
+                'incoterm': Incoterm.DPU,
             },
             {
-                "id": 48,
-                "question": "Особенность базиса поставки DPU?",
-                "options": [
+                'id': 48,
+                'question': 'Особенность базиса поставки DPU?',
+                'options': [
                     {
-                        "id": 0,
-                        "value": "Риск порчи товара в ходе всей перевозки несёт продавец. Риск переходит в пункте назначения",
-                        "is_correct": True,
+                        'id': 0,
+                        'value': 'Риск порчи товара в ходе всей перевозки несёт продавец. Риск переходит в пункте назначения',
+                        'is_correct': True,
                     },
                     {
-                        "id": 1,
-                        "value": "Риски случайной порчи товара переходят от продавца к покупателю на складе продавца",
+                        'id': 1,
+                        'value': 'Риски случайной порчи товара переходят от продавца к покупателю на складе продавца',
                     },
                     {
-                        "id": 2,
-                        "value": "Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя",
+                        'id': 2,
+                        'value': 'Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                "incoterm": Incoterm.DPU,
+                'incoterm': Incoterm.DPU,
             },
             {
-                "id": 49,
-                "question": "Какие обязанности ложатся на продавца при DPU?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Загружает в транспорт, который сам нанял",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Доставляет товар в назначенное место и выгружает его",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 5,
-                        "value": "Страхует груз от транспортных рисков покупателя",
-                    },
-                    {"id": 6, "value": "Оформляет таможенный импорт"},
+                'id': 49,
+                'question': 'Какие обязанности ложатся на продавца при DPU?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Загружает в транспорт, который сам нанял', 'is_correct': True,},
+                    {'id': 4, 'value': 'Доставляет товар в назначенное место и выгружает его', 'is_correct': True,},
+                    {'id': 5, 'value': 'Страхует груз от транспортных рисков покупателя',},
+                    {'id': 6, 'value': 'Оформляет таможенный импорт'},
                 ],
-                "incoterm": Incoterm.DPU,
+                'incoterm': Incoterm.DPU,
             },
             {
-                "id": 50,
-                "question": "Какие обязанности ложатся на покупателя при DPU?",
-                "options": [
-                    {
-                        "id": 0,
-                        "value": "Оформляет таможенный импорт",
-                        "is_correct": True,
-                    },
-                    {"id": 1, "value": "Оформляет таможенный экспорт"},
-                    {"id": 2, "value": "Страхует груз"},
-                    {"id": 3, "value": "Загружает груз на транспорт"},
+                'id': 50,
+                'question': 'Какие обязанности ложатся на покупателя при DPU?',
+                'options': [
+                    {'id': 0, 'value': 'Оформляет таможенный импорт', 'is_correct': True,},
+                    {'id': 1, 'value': 'Оформляет таможенный экспорт'},
+                    {'id': 2, 'value': 'Страхует груз'},
+                    {'id': 3, 'value': 'Загружает груз на транспорт'},
                 ],
-                "incoterm": Incoterm.DPU,
+                'incoterm': Incoterm.DPU,
             },
             {
-                "id": 51,
-                "question": "Для каких видов перевозок подходит базис поставки DDP?",
-                "options": [
-                    {"id": 0, "value": "Любой вид перевозок", "is_correct": True},
-                    {"id": 1, "value": "Только морские и речные"},
-                    {"id": 2, "value": "Автомобильные перевозки"},
-                    {"id": 3, "value": "Авиационные перевозки"},
+                'id': 51,
+                'question': 'Для каких видов перевозок подходит базис поставки DDP?',
+                'options': [
+                    {'id': 0, 'value': 'Любой вид перевозок', 'is_correct': True},
+                    {'id': 1, 'value': 'Только морские и речные'},
+                    {'id': 2, 'value': 'Автомобильные перевозки'},
+                    {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                "incoterm": Incoterm.DDP,
+                'incoterm': Incoterm.DDP,
             },
             {
-                "id": 52,
-                "question": "Особенность базиса поставки DDP?",
-                "options": [
+                'id': 52,
+                'question': 'Особенность базиса поставки DDP?',
+                'options': [
+                    {'id': 0, 'value': 'Все риски и расходы несёт продавец', 'is_correct': True,},
                     {
-                        "id": 0,
-                        "value": "Все риски и расходы несёт продавец",
-                        "is_correct": True,
+                        'id': 1,
+                        'value': 'Риски случайной порчи товара переходят от продавца к покупателю на складе продавца',
                     },
                     {
-                        "id": 1,
-                        "value": "Риски случайной порчи товара переходят от продавца к покупателю на складе продавца",
-                    },
-                    {
-                        "id": 2,
-                        "value": "Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя",
+                        'id': 2,
+                        'value': 'Риск случайной гибели товара переходит от продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                "incoterm": Incoterm.DDP,
+                'incoterm': Incoterm.DDP,
             },
             {
-                "id": 53,
-                "question": "Какие обязанности ложатся на продавца при DDP?",
-                "options": [
-                    {"id": 0, "value": "Упаковывает товар", "is_correct": True},
-                    {"id": 1, "value": "Маркирует", "is_correct": True},
-                    {
-                        "id": 2,
-                        "value": "Осуществляет экспортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 3,
-                        "value": "Осуществляет импортное таможенное оформление",
-                        "is_correct": True,
-                    },
-                    {
-                        "id": 4,
-                        "value": "Загружает в транспорт, который сам нанял",
-                        "is_correct": True,
-                    },
-                    {"id": 5, "value": "Выгружает товар из транспорта продавца"},
-                    {
-                        "id": 6,
-                        "value": "Страхует груз от транспортных рисков покупателя",
-                    },
+                'id': 53,
+                'question': 'Какие обязанности ложатся на продавца при DDP?',
+                'options': [
+                    {'id': 0, 'value': 'Упаковывает товар', 'is_correct': True},
+                    {'id': 1, 'value': 'Маркирует', 'is_correct': True},
+                    {'id': 2, 'value': 'Осуществляет экспортное таможенное оформление', 'is_correct': True,},
+                    {'id': 3, 'value': 'Осуществляет импортное таможенное оформление', 'is_correct': True,},
+                    {'id': 4, 'value': 'Загружает в транспорт, который сам нанял', 'is_correct': True,},
+                    {'id': 5, 'value': 'Выгружает товар из транспорта продавца'},
+                    {'id': 6, 'value': 'Страхует груз от транспортных рисков покупателя',},
                 ],
-                "incoterm": Incoterm.DDP,
+                'incoterm': Incoterm.DDP,
             },
             {
-                "id": 54,
-                "question": "Какие обязанности ложатся на покупателя при DDP? ",
-                "options": [
-                    {
-                        "id": 0,
-                        "value": "Выгружает товар из транспорта продавца",
-                        "is_correct": True,
-                    },
-                    {"id": 1, "value": "Оформляет таможенный импорт"},
-                    {"id": 2, "value": "Оформляет таможенный экспорт"},
-                    {"id": 3, "value": "Страхует груз"},
+                'id': 54,
+                'question': 'Какие обязанности ложатся на покупателя при DDP? ',
+                'options': [
+                    {'id': 0, 'value': 'Выгружает товар из транспорта продавца', 'is_correct': True,},
+                    {'id': 1, 'value': 'Оформляет таможенный импорт'},
+                    {'id': 2, 'value': 'Оформляет таможенный экспорт'},
+                    {'id': 3, 'value': 'Страхует груз'},
                 ],
-                "incoterm": Incoterm.DDP,
+                'incoterm': Incoterm.DDP,
             },
         ],
     },
-    "control_test_questions": [
+    'control_test_questions': [
         {
-            "id": 1,
-            "question": "InCoTerms (Инкотермс)",
-            "options": [
-                {
-                    "id": 0,
-                    "value": "Международные торговые термины",
-                    "is_correct": True,
-                },
-                {"id": 1, "value": "Международные коммерческие правила"},
-                {"id": 2, "value": "Международная торговая терминология"},
-                {"id": 3, "value": "Международные коммерческие условия поставки"},
+            'id': 1,
+            'question': 'InCoTerms (Инкотермс)',
+            'options': [
+                {'id': 0, 'value': 'Международные торговые термины', 'is_correct': True,},
+                {'id': 1, 'value': 'Международные коммерческие правила'},
+                {'id': 2, 'value': 'Международная торговая терминология'},
+                {'id': 3, 'value': 'Международные коммерческие условия поставки'},
             ],
         },
         {
-            "id": 2,
-            "question": "Инкотермс определяют",
-            "options": [
+            'id': 2,
+            'question': 'Инкотермс определяют',
+            'options': [
                 {
-                    "id": 0,
-                    "value": "Обязанности продавца и покупателя, риск перехода ответственности, ответственность сторон за расходы",
-                    "is_correct": True,
+                    'id': 0,
+                    'value': 'Обязанности продавца и покупателя, риск перехода ответственности, ответственность сторон за расходы',
+                    'is_correct': True,
                 },
-                {"id": 1, "value": "Обязанности продавца, покупателя, перевозчика"},
-                {
-                    "id": 2,
-                    "value": "Обязанности продавца и покупателя, риск перехода ответственности",
-                },
-                {
-                    "id": 3,
-                    "value": "Обязанности продавца и покупателя, какая из сторон отвечает за расходы",
-                },
+                {'id': 1, 'value': 'Обязанности продавца, покупателя, перевозчика'},
+                {'id': 2, 'value': 'Обязанности продавца и покупателя, риск перехода ответственности',},
+                {'id': 3, 'value': 'Обязанности продавца и покупателя, какая из сторон отвечает за расходы',},
             ],
         },
         {
-            "id": 3,
-            "question": "Базисные условия поставки Инкотермс",
-            "options": [
+            'id': 3,
+            'question': 'Базисные условия поставки Инкотермс',
+            'options': [
                 {
-                    "id": 0,
-                    "value": "Определяют обязанности покупателя и продавца по доставке товара ",
-                    "is_correct": True,
+                    'id': 0,
+                    'value': 'Определяют обязанности покупателя и продавца по доставке товара ',
+                    'is_correct': True,
                 },
                 {
-                    "id": 1,
-                    "value": "Устанавливают момент перехода риска повреждения товара или случайной утери",
-                    "is_correct": True,
+                    'id': 1,
+                    'value': 'Устанавливают момент перехода риска повреждения товара или случайной утери',
+                    'is_correct': True,
                 },
                 {
-                    "id": 2,
-                    "value": "Описывают обязанности, риски, расходы продавцов и покупателей ",
-                    "is_correct": True,
+                    'id': 2,
+                    'value': 'Описывают обязанности, риски, расходы продавцов и покупателей ',
+                    'is_correct': True,
                 },
+                {'id': 3, 'value': 'Формируются на основе практики международной торговли', 'is_correct': True,},
                 {
-                    "id": 3,
-                    "value": "Формируются на основе практики международной торговли",
-                    "is_correct": True,
-                },
-                {
-                    "id": 4,
-                    "value": "Переиздаются и совершенствуются в зависимости от текущей ситуации",
-                    "is_correct": True,
+                    'id': 4,
+                    'value': 'Переиздаются и совершенствуются в зависимости от текущей ситуации',
+                    'is_correct': True,
                 },
             ],
         },
         {
-            "id": 4,
-            "question": "Является ли Инкотермс с правовой точки зрения обязательным документом?",
-            "options": [
-                {
-                    "id": 0,
-                    "value": "Не является",
-                    "is_correct": True,
-                },
-                {"id": 1, "value": "Является"},
+            'id': 4,
+            'question': 'Является ли Инкотермс с правовой точки зрения обязательным документом?',
+            'options': [{'id': 0, 'value': 'Не является', 'is_correct': True,}, {'id': 1, 'value': 'Является'},],
+        },
+        {
+            'id': 5,
+            'question': 'Что включает в себя Инкотермс 2020?',
+            'options': [
+                {'id': 0, 'value': '4 группы - 11 терминов ', 'is_correct': True},
+                {'id': 1, 'value': '4 группы – 12 терминов'},
+                {'id': 2, 'value': '4 группы – 10 терминов'},
+                {'id': 3, 'value': '3 группы – 11 терминов'},
             ],
         },
         {
-            "id": 5,
-            "question": "Что включает в себя Инкотермс 2020?",
-            "options": [
-                {"id": 0, "value": "4 группы - 11 терминов ", "is_correct": True},
-                {"id": 1, "value": "4 группы – 12 терминов"},
-                {"id": 2, "value": "4 группы – 10 терминов"},
-                {"id": 3, "value": "3 группы – 11 терминов"},
+            'id': 6,
+            'question': 'Как обозначается условие поставки «Свободно с завода»?',
+            'options': [
+                {'id': 0, 'value': 'EXW', 'is_correct': True},
+                {'id': 1, 'value': 'FCA'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'FAS'},
             ],
         },
         {
-            "id": 6,
-            "question": "Как обозначается условие поставки «Свободно с завода»?",
-            "options": [
-                {"id": 0, "value": "EXW", "is_correct": True},
-                {"id": 1, "value": "FCA"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "FAS"},
+            'id': 7,
+            'question': 'Как обозначается условие поставки «Франко перевозчик»?',
+            'options': [
+                {'id': 0, 'value': 'FСA', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'FAS'},
             ],
         },
         {
-            "id": 7,
-            "question": "Как обозначается условие поставки «Франко перевозчик»?",
-            "options": [
-                {"id": 0, "value": "FСA", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "FAS"},
+            'id': 8,
+            'question': 'Как обозначается условие поставки «Свободно на борту»?',
+            'options': [
+                {'id': 0, 'value': 'FOB', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FCA'},
+                {'id': 3, 'value': 'FAS'},
             ],
         },
         {
-            "id": 8,
-            "question": "Как обозначается условие поставки «Свободно на борту»?",
-            "options": [
-                {"id": 0, "value": "FOB", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FCA"},
-                {"id": 3, "value": "FAS"},
+            'id': 9,
+            'question': 'Как обозначается условие поставки «Свободно вдоль борта судна»?',
+            'options': [
+                {'id': 0, 'value': 'FAS', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FCA'},
+                {'id': 3, 'value': 'FOB'},
             ],
         },
         {
-            "id": 9,
-            "question": "Как обозначается условие поставки «Свободно вдоль борта судна»?",
-            "options": [
-                {"id": 0, "value": "FAS", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FCA"},
-                {"id": 3, "value": "FOB"},
+            'id': 10,
+            'question': 'Как обозначается условие поставки «Стоимость и фрахт»?',
+            'options': [
+                {'id': 0, 'value': 'CFR', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 10,
-            "question": "Как обозначается условие поставки «Стоимость и фрахт»?",
-            "options": [
-                {"id": 0, "value": "CFR", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 11,
+            'question': 'Как обозначается условие поставки «Перевозка и страхование оплачены до…»?',
+            'options': [
+                {'id': 0, 'value': 'CIP', 'is_correct': True},
+                {'id': 1, 'value': 'CPT'},
+                {'id': 2, 'value': 'CIF'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 11,
-            "question": "Как обозначается условие поставки «Перевозка и страхование оплачены до…»?",
-            "options": [
-                {"id": 0, "value": "CIP", "is_correct": True},
-                {"id": 1, "value": "CPT"},
-                {"id": 2, "value": "CIF"},
-                {"id": 3, "value": "DDP"},
+            'id': 12,
+            'question': 'Как обозначается условие поставки «Перевозка оплачена до…»?',
+            'options': [
+                {'id': 0, 'value': 'CPT', 'is_correct': True},
+                {'id': 1, 'value': 'CIP'},
+                {'id': 2, 'value': 'CIF'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 12,
-            "question": "Как обозначается условие поставки «Перевозка оплачена до…»?",
-            "options": [
-                {"id": 0, "value": "CPT", "is_correct": True},
-                {"id": 1, "value": "CIP"},
-                {"id": 2, "value": "CIF"},
-                {"id": 3, "value": "DDP"},
+            'id': 13,
+            'question': 'Как обозначается условие поставки «Стоимость, страхование и фрахт»?',
+            'options': [
+                {'id': 0, 'value': 'CIF', 'is_correct': True},
+                {'id': 1, 'value': 'CIP'},
+                {'id': 2, 'value': 'CPT'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 13,
-            "question": "Как обозначается условие поставки «Стоимость, страхование и фрахт»?",
-            "options": [
-                {"id": 0, "value": "CIF", "is_correct": True},
-                {"id": 1, "value": "CIP"},
-                {"id": 2, "value": "CPT"},
-                {"id": 3, "value": "DDP"},
+            'id': 14,
+            'question': 'Как обозначается условие поставки «Поставка с уплатой пошлины»?',
+            'options': [
+                {'id': 0, 'value': 'DDP', 'is_correct': True},
+                {'id': 1, 'value': 'CIF'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DPU'},
             ],
         },
         {
-            "id": 14,
-            "question": "Как обозначается условие поставки «Поставка с уплатой пошлины»?",
-            "options": [
-                {"id": 0, "value": "DDP", "is_correct": True},
-                {"id": 1, "value": "CIF"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DPU"},
+            'id': 15,
+            'question': 'Как обозначается условие поставки «Поставка в пункте назначения»?',
+            'options': [
+                {'id': 0, 'value': 'DAP', 'is_correct': True},
+                {'id': 1, 'value': 'CIF'},
+                {'id': 2, 'value': 'DDP'},
+                {'id': 3, 'value': 'DPU'},
             ],
         },
         {
-            "id": 15,
-            "question": "Как обозначается условие поставки «Поставка в пункте назначения»?",
-            "options": [
-                {"id": 0, "value": "DAP", "is_correct": True},
-                {"id": 1, "value": "CIF"},
-                {"id": 2, "value": "DDP"},
-                {"id": 3, "value": "DPU"},
+            'id': 16,
+            'question': 'Как обозначается условие поставки «Поставка в место выгрузки»?',
+            'options': [
+                {'id': 0, 'value': 'DPU', 'is_correct': True},
+                {'id': 1, 'value': 'CIF'},
+                {'id': 2, 'value': 'DDP'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 16,
-            "question": "Как обозначается условие поставки «Поставка в место выгрузки»?",
-            "options": [
-                {"id": 0, "value": "DPU", "is_correct": True},
-                {"id": 1, "value": "CIF"},
-                {"id": 2, "value": "DDP"},
-                {"id": 3, "value": "DAP"},
+            'id': 17,
+            'question': 'По какому условию группа Е Инкотермс обозначает максимальную ответственность продавца?',
+            'options': [
+                {'id': 0, 'value': 'Отгрузка', 'is_correct': True},
+                {'id': 1, 'value': 'Основная перевозка не оплачена'},
+                {'id': 2, 'value': 'Основная перевозка оплачена'},
+                {'id': 3, 'value': 'Прибытие'},
             ],
         },
         {
-            "id": 17,
-            "question": "По какому условию группа Е Инкотермс обозначает максимальную ответственность продавца?",
-            "options": [
-                {"id": 0, "value": "Отгрузка", "is_correct": True},
-                {"id": 1, "value": "Основная перевозка не оплачена"},
-                {"id": 2, "value": "Основная перевозка оплачена"},
-                {"id": 3, "value": "Прибытие"},
+            'id': 18,
+            'question': 'Какое условие группа F Инкотермс возлагает на продавца?',
+            'options': [
+                {'id': 0, 'value': 'Основная перевозка не оплачена', 'is_correct': True,},
+                {'id': 1, 'value': 'Отгрузка'},
+                {'id': 2, 'value': 'Основная перевозка оплачена'},
+                {'id': 3, 'value': 'Прибытие'},
             ],
         },
         {
-            "id": 18,
-            "question": "Какое условие группа F Инкотермс возлагает на продавца?",
-            "options": [
-                {
-                    "id": 0,
-                    "value": "Основная перевозка не оплачена",
-                    "is_correct": True,
-                },
-                {"id": 1, "value": "Отгрузка"},
-                {"id": 2, "value": "Основная перевозка оплачена"},
-                {"id": 3, "value": "Прибытие"},
+            'id': 19,
+            'question': 'Какое условие группа С Инкотермс возлагает на продавца?',
+            'options': [
+                {'id': 0, 'value': 'Основная перевозка оплачена', 'is_correct': True},
+                {'id': 1, 'value': 'Основная перевозка не оплачена'},
+                {'id': 2, 'value': 'Отгрузка'},
+                {'id': 3, 'value': 'Прибытие '},
             ],
         },
         {
-            "id": 19,
-            "question": "Какое условие группа С Инкотермс возлагает на продавца?",
-            "options": [
-                {"id": 0, "value": "Основная перевозка оплачена", "is_correct": True},
-                {"id": 1, "value": "Основная перевозка не оплачена"},
-                {"id": 2, "value": "Отгрузка"},
-                {"id": 3, "value": "Прибытие "},
+            'id': 20,
+            'question': 'По какому условию группа D Инкотермс обозначает максимальную ответственность продавца?',
+            'options': [
+                {'id': 0, 'value': 'Прибытие', 'is_correct': True},
+                {'id': 1, 'value': 'Основная перевозка не оплачена'},
+                {'id': 2, 'value': 'Отгрузка'},
+                {'id': 3, 'value': 'Основная перевозка оплачена'},
             ],
         },
         {
-            "id": 20,
-            "question": "По какому условию группа D Инкотермс обозначает максимальную ответственность продавца?",
-            "options": [
-                {"id": 0, "value": "Прибытие", "is_correct": True},
-                {"id": 1, "value": "Основная перевозка не оплачена"},
-                {"id": 2, "value": "Отгрузка"},
-                {"id": 3, "value": "Основная перевозка оплачена"},
+            'id': 21,
+            'question': 'Термины, применимые для любого вида транспорта',
+            'options': [
+                {'id': 0, 'value': 'EXW, FCA, CIP, CPT, DDP, DAP, DPU', 'is_correct': True,},
+                {'id': 1, 'value': 'EXW, FCA, FOB, CPT, DDP, DAP, DPU'},
+                {'id': 2, 'value': 'FOB, FAS, CFR, CIF, DDP, DAP'},
+                {'id': 3, 'value': 'EXW, FCA, FOB, CPT, DDP, DPU'},
             ],
         },
         {
-            "id": 21,
-            "question": "Термины, применимые для любого вида транспорта",
-            "options": [
-                {
-                    "id": 0,
-                    "value": "EXW, FCA, CIP, CPT, DDP, DAP, DPU",
-                    "is_correct": True,
-                },
-                {"id": 1, "value": "EXW, FCA, FOB, CPT, DDP, DAP, DPU"},
-                {"id": 2, "value": "FOB, FAS, CFR, CIF, DDP, DAP"},
-                {"id": 3, "value": "EXW, FCA, FOB, CPT, DDP, DPU"},
+            'id': 22,
+            'question': 'Термины, применимые только для морского и внутреннего водного транспорта',
+            'options': [
+                {'id': 0, 'value': 'FOB, FAS, CFR, CIF', 'is_correct': True},
+                {'id': 1, 'value': 'EXW, FCA, CIP, CPT'},
+                {'id': 2, 'value': 'EXW, FCA, FOB, CPT'},
+                {'id': 3, 'value': 'EXW, FCA, FOB, CFR'},
             ],
         },
         {
-            "id": 22,
-            "question": "Термины, применимые только для морского и внутреннего водного транспорта",
-            "options": [
-                {"id": 0, "value": "FOB, FAS, CFR, CIF", "is_correct": True},
-                {"id": 1, "value": "EXW, FCA, CIP, CPT"},
-                {"id": 2, "value": "EXW, FCA, FOB, CPT"},
-                {"id": 3, "value": "EXW, FCA, FOB, CFR"},
+            'id': 23,
+            'question': 'Какие термины обязывают страховать ',
+            'options': [
+                {'id': 0, 'value': 'CIF, CIP', 'is_correct': True},
+                {'id': 1, 'value': 'FCA, FOB '},
+                {'id': 2, 'value': 'CIF, FCA '},
+                {'id': 3, 'value': 'CIP, FOB '},
             ],
         },
         {
-            "id": 23,
-            "question": "Какие термины обязывают страховать ",
-            "options": [
-                {"id": 0, "value": "CIF, CIP", "is_correct": True},
-                {"id": 1, "value": "FCA, FOB "},
-                {"id": 2, "value": "CIF, FCA "},
-                {"id": 3, "value": "CIP, FOB "},
+            'id': 24,
+            'question': 'Какой термин накладывает минимальную ответственность на продавца',
+            'options': [
+                {'id': 0, 'value': 'EXW', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 24,
-            "question": "Какой термин накладывает минимальную ответственность на продавца",
-            "options": [
-                {"id": 0, "value": "EXW", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 25,
+            'question': 'Какой термин накладывает максимальную ответственность на продавца',
+            'options': [
+                {'id': 0, 'value': 'DDP', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 25,
-            "question": "Какой термин накладывает максимальную ответственность на продавца",
-            "options": [
-                {"id": 0, "value": "DDP", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 26,
+            'question': 'В каком условии поставки продавец обязан предоставить готовый к отгрузке товар?',
+            'options': [
+                {'id': 0, 'value': 'EXW', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 26,
-            "question": "В каком условии поставки продавец обязан предоставить готовый к отгрузке товар?",
-            "options": [
-                {"id": 0, "value": "EXW", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 27,
+            'question': 'В каком условии покупатель обязан выполнить экспортное, импортное таможенное оформление и доставить товар?',
+            'options': [
+                {'id': 0, 'value': 'EXW', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 27,
-            "question": "В каком условии покупатель обязан выполнить экспортное, импортное таможенное оформление и доставить товар?",
-            "options": [
-                {"id": 0, "value": "EXW", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 28,
+            'question': 'В каком условии риски переходят в момент передачи товара на складе продавца?',
+            'options': [
+                {'id': 0, 'value': 'EXW', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 28,
-            "question": "В каком условии риски переходят в момент передачи товара на складе продавца?",
-            "options": [
-                {"id": 0, "value": "EXW", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 29,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление и отгрузить товар перевозчику, назначенному покупателем?',
+            'options': [
+                {'id': 0, 'value': 'FCA', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 29,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление и отгрузить товар перевозчику, назначенному покупателем?",
-            "options": [
-                {"id": 0, "value": "FCA", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 30,
+            'question': 'В каком условии покупатель обязан доставить товар и выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'FCA', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 30,
-            "question": "В каком условии покупатель обязан доставить товар и выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "FCA", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 31,
+            'question': 'В каком условии риски переходят в момент передачи перевозчику на складе продавца?',
+            'options': [
+                {'id': 0, 'value': 'FCA', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 31,
-            "question": "В каком условии риски переходят в момент передачи перевозчику на складе продавца?",
-            "options": [
-                {"id": 0, "value": "FCA", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 32,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление и разместить товар в порту отгрузки вдоль борта судна указанного покупателем?',
+            'options': [
+                {'id': 0, 'value': 'FAS', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 32,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление и разместить товар в порту отгрузки вдоль борта судна указанного покупателем?",
-            "options": [
-                {"id": 0, "value": "FAS", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 33,
+            'question': 'В каком условии покупатель обязан погрузить товар на судно и доставить в порт разгрузки, а также выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'FAS', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 33,
-            "question": "В каком условии покупатель обязан погрузить товар на судно и доставить в порт разгрузки, а также выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "FAS", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 34,
+            'question': 'В каком условии риски переходят в порту в момент размещения товара вдоль борта судна?',
+            'options': [
+                {'id': 0, 'value': 'FAS', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 34,
-            "question": "В каком условии риски переходят в порту в момент размещения товара вдоль борта судна?",
-            "options": [
-                {"id": 0, "value": "FAS", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 35,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление и разместить товар в порту отгрузки и погрузить на борт судна указанного покупателем?',
+            'options': [
+                {'id': 0, 'value': 'FOB', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 35,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление и разместить товар в порту отгрузки и погрузить на борт судна указанного покупателем?",
-            "options": [
-                {"id": 0, "value": "FOB", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 36,
+            'question': 'В каком условии покупатель обязан доставить товар в порт разгрузки, а также выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'FOB', 'is_correct': True},
+                {'id': 1, 'value': 'EXW'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 36,
-            "question": "В каком условии покупатель обязан доставить товар в порт разгрузки, а также выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "FOB", "is_correct": True},
-                {"id": 1, "value": "EXW"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 37,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление, погрузить товар на борт судна и доставить в порт разгрузки?',
+            'options': [
+                {'id': 0, 'value': 'CFR', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 37,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление, погрузить товар на борт судна и доставить в порт разгрузки?",
-            "options": [
-                {"id": 0, "value": "CFR", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 38,
+            'question': 'В каком условии покупатель обязан разгрузить и принять товар в порту разгрузки, а также выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'CFR', 'is_correct': True},
+                {'id': 1, 'value': 'FOB'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 38,
-            "question": "В каком условии покупатель обязан разгрузить и принять товар в порту разгрузки, а также выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "CFR", "is_correct": True},
-                {"id": 1, "value": "FOB"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "DDP"},
+            'id': 39,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление, застраховать, погрузить товар на борта судна и доставить в порт разгрузки?',
+            'options': [
+                {'id': 0, 'value': 'CIF', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 39,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление, застраховать, погрузить товар на борта судна и доставить в порт разгрузки?",
-            "options": [
-                {"id": 0, "value": "CIF", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 40,
+            'question': 'В каком условии покупатель обязан разгрузить и принять товар в порту разгрузки, а также выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'CIF', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DAP'},
             ],
         },
         {
-            "id": 40,
-            "question": "В каком условии покупатель обязан разгрузить и принять товар в порту разгрузки, а также выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "CIF", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DAP"},
+            'id': 41,
+            'question': 'В каком условии риски переходят в порту отгрузки с момента полной погрузки на борт судна?',
+            'options': [
+                {'id': 0, 'value': 'FOB, CFR, CIF', 'is_correct': True},
+                {'id': 1, 'value': 'CFR, CIF'},
+                {'id': 2, 'value': 'FOB, CIF'},
+                {'id': 3, 'value': 'FOB, CFR'},
             ],
         },
         {
-            "id": 41,
-            "question": "В каком условии риски переходят в порту отгрузки с момента полной погрузки на борт судна?",
-            "options": [
-                {"id": 0, "value": "FOB, CFR, CIF", "is_correct": True},
-                {"id": 1, "value": "CFR, CIF"},
-                {"id": 2, "value": "FOB, CIF"},
-                {"id": 3, "value": "FOB, CFR"},
+            'id': 42,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление, застраховать и доставить груз в согласованное место назначения?',
+            'options': [
+                {'id': 0, 'value': 'CIP', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'CIF'},
             ],
         },
         {
-            "id": 42,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление, застраховать и доставить груз в согласованное место назначения?",
-            "options": [
-                {"id": 0, "value": "CIP", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "CIF"},
+            'id': 43,
+            'question': 'В каком условии риски переходят в момент передачи перевозчику на складе продавца? Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков. При этом страхует груз от транспортных рисков покупателя.',
+            'options': [
+                {'id': 0, 'value': 'CIP', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'CIF'},
             ],
         },
         {
-            "id": 43,
-            "question": "В каком условии риски переходят в момент передачи перевозчику на складе продавца? Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков. При этом страхует груз от транспортных рисков покупателя.",
-            "options": [
-                {"id": 0, "value": "CIP", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "CIF"},
+            'id': 44,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление и доставить груз в согласованное место назначения?',
+            'options': [
+                {'id': 0, 'value': 'CPT', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'CIF'},
             ],
         },
         {
-            "id": 44,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление и доставить груз в согласованное место назначения?",
-            "options": [
-                {"id": 0, "value": "CPT", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "CIF"},
+            'id': 45,
+            'question': 'В каком условии риски переходят в момент передачи перевозчику на складе продавца? Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков.',
+            'options': [
+                {'id': 0, 'value': 'CPT', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'CIF'},
             ],
         },
         {
-            "id": 45,
-            "question": "В каком условии риски переходят в момент передачи перевозчику на складе продавца? Продавец оплачивает транспортировку до места нахождения покупателя, но не несёт транспортных рисков.",
-            "options": [
-                {"id": 0, "value": "CPT", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "CIF"},
+            'id': 46,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление и доставить груз до согласованного пункта назначения?',
+            'options': [
+                {'id': 0, 'value': 'DAP', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 46,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление и доставить груз до согласованного пункта назначения?",
-            "options": [
-                {"id": 0, "value": "DAP", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DDP"},
+            'id': 47,
+            'question': 'В каком условии риски переходят в пункте назначения?',
+            'options': [
+                {'id': 0, 'value': 'DAP', 'is_correct': True},
+                {'id': 1, 'value': 'CFR'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 47,
-            "question": "В каком условии риски переходят в пункте назначения?",
-            "options": [
-                {"id": 0, "value": "DAP", "is_correct": True},
-                {"id": 1, "value": "CFR"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DDP"},
+            'id': 48,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление, доставить товар до места назначения и выгрузить его?',
+            'options': [
+                {'id': 0, 'value': 'DPU', 'is_correct': True},
+                {'id': 1, 'value': 'DAP'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 48,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление, доставить товар до места назначения и выгрузить его?",
-            "options": [
-                {"id": 0, "value": "DPU", "is_correct": True},
-                {"id": 1, "value": "DAP"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DDP"},
+            'id': 49,
+            'question': 'В каком условии покупатель обязан принять товар и выполнить импортное таможенное оформление?',
+            'options': [
+                {'id': 0, 'value': 'CIP CPT DAP DPU', 'is_correct': True},
+                {'id': 1, 'value': 'DAP DPU'},
+                {'id': 2, 'value': 'CIP CPT '},
+                {'id': 3, 'value': 'DDP DPU'},
             ],
         },
         {
-            "id": 49,
-            "question": "В каком условии покупатель обязан принять товар и выполнить импортное таможенное оформление?",
-            "options": [
-                {"id": 0, "value": "CIP CPT DAP DPU", "is_correct": True},
-                {"id": 1, "value": "DAP DPU"},
-                {"id": 2, "value": "CIP CPT "},
-                {"id": 3, "value": "DDP DPU"},
+            'id': 50,
+            'question': 'В каком условии риски переходят в месте назначения после полной выгрузки?',
+            'options': [
+                {'id': 0, 'value': 'DPU', 'is_correct': True},
+                {'id': 1, 'value': 'DAP'},
+                {'id': 2, 'value': 'FOB'},
+                {'id': 3, 'value': 'DDP'},
             ],
         },
         {
-            "id": 50,
-            "question": "В каком условии риски переходят в месте назначения после полной выгрузки?",
-            "options": [
-                {"id": 0, "value": "DPU", "is_correct": True},
-                {"id": 1, "value": "DAP"},
-                {"id": 2, "value": "FOB"},
-                {"id": 3, "value": "DDP"},
+            'id': 51,
+            'question': 'В каком условии продавец обязан выполнить экспортное таможенное оформление, доставить груз до согласованного места назначения и выполнить импортное таможенное оформление с уплатой пошлин?',
+            'options': [
+                {'id': 0, 'value': 'DDP', 'is_correct': True},
+                {'id': 1, 'value': 'DPU'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'FOB'},
             ],
         },
         {
-            "id": 51,
-            "question": "В каком условии продавец обязан выполнить экспортное таможенное оформление, доставить груз до согласованного места назначения и выполнить импортное таможенное оформление с уплатой пошлин?",
-            "options": [
-                {"id": 0, "value": "DDP", "is_correct": True},
-                {"id": 1, "value": "DPU"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "FOB"},
+            'id': 52,
+            'question': 'В каком условии покупатель обязан принять товар?',
+            'options': [
+                {'id': 0, 'value': 'DDP', 'is_correct': True},
+                {'id': 1, 'value': 'DPU'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'FOB'},
             ],
         },
         {
-            "id": 52,
-            "question": "В каком условии покупатель обязан принять товар?",
-            "options": [
-                {"id": 0, "value": "DDP", "is_correct": True},
-                {"id": 1, "value": "DPU"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "FOB"},
-            ],
-        },
-        {
-            "id": 53,
-            "question": "В каком условии риски переходят в месте назначения и все риски несет продавец?",
-            "options": [
-                {"id": 0, "value": "DDP", "is_correct": True},
-                {"id": 1, "value": "DPU"},
-                {"id": 2, "value": "DAP"},
-                {"id": 3, "value": "FOB"},
+            'id': 53,
+            'question': 'В каком условии риски переходят в месте назначения и все риски несет продавец?',
+            'options': [
+                {'id': 0, 'value': 'DDP', 'is_correct': True},
+                {'id': 1, 'value': 'DPU'},
+                {'id': 2, 'value': 'DAP'},
+                {'id': 3, 'value': 'FOB'},
             ],
         },
     ],
-    "logists": [
+    'logists': [
         {
-            "letter": "А",
-            "types": ["TRAIN"],
-            "header": """Компания А предоставляет услуги перевозки грузов железнодорожным транспортом «от двери до двери», проводит выходной контроль товара на заводе в Китае, терминальную обработку на станциях и т.д.""",
-            "body": """Мы не перевозим опасные вещества, скоропортящиеся товары 
+            'letter': 'А',
+            'types': ['TRAIN'],
+            'header': """Компания А предоставляет услуги перевозки грузов железнодорожным транспортом «от двери до двери», проводит выходной контроль товара на заводе в Китае, терминальную обработку на станциях и т.д.""",
+            'body': """Мы не перевозим опасные вещества, скоропортящиеся товары 
 и драгоценные металлы, не экспортируем, не реэкспортируем 
 и не осуществляем их транзит. Работаем в режиме «Импорт 40»: перевозим товары для внутреннего потребления.
 
@@ -1993,11 +1534,11 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Б",
-            "types": ["TRAINS", "CARS"],
-            "header": """Компания Б — ведущий игрок на рынке мультимодальных контейнерных перевозок с приоритетом 
+            'letter': 'Б',
+            'types': ['TRAINS', 'CARS'],
+            'header': """Компания Б — ведущий игрок на рынке мультимодальных контейнерных перевозок с приоритетом 
 на железнодорожную логистику. Достигает лидерских позиций на рынке за счет внедрения современных технологий, а также за счет роста общего российского объема контейнерных перевозок.""",
-            "body": """Наша компания намерена и далее более активно развивать железнодорожные и автомобильные грузоперевозки.
+            'body': """Наша компания намерена и далее более активно развивать железнодорожные и автомобильные грузоперевозки.
 
 В состав совета директоров входят влиятельные эксперты с опытом работы в таких компаниях, как ПАО «ТрансКонтейнер», ПАО «ЛУКОЙЛ», Brunswick Rail.
 
@@ -2038,11 +1579,11 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "В",
-            "types": ["TRAINS", "SHIPS"],
-            "header": """Компания В — это оптимальное сочетание мультимодального оператора контейнерных поездов 
+            'letter': 'В',
+            'types': ['TRAINS', 'SHIPS'],
+            'header': """Компания В — это оптимальное сочетание мультимодального оператора контейнерных поездов 
 и экспедиторской компании с 15-летним опытом и гибким подходом в работе с клиентами. Имеем многолетний опыт безупречной работы на рынке логистических услуг.""",
-            "body": """Ориентированы на долгосрочное взаимовыгодное сотрудничество с партнёрами и клиентами и предлагает весь комплекс Door-to-Door услуг логистического продукта высокого качества и уровня сервисного обслуживания от лица одной компании. 
+            'body': """Ориентированы на долгосрочное взаимовыгодное сотрудничество с партнёрами и клиентами и предлагает весь комплекс Door-to-Door услуг логистического продукта высокого качества и уровня сервисного обслуживания от лица одной компании. 
 
 Наша компания предоставляет клиенту полный набор логистических решений — транспортные, терминально-складские, таможенно-брокерские 
 и координационные. Предлагаемый сервис включает в себя услуги 
@@ -2074,10 +1615,10 @@ raw_practice_one_info = {
 - Морские перевозки""",
         },
         {
-            "letter": "Г",
-            "types": ["TRAINS", "SHIPS", "CARS"],
-            "header": """Компания Г уже более 10 лет занимается железнодорожными, мультимодальными, автомобильными и морскими перевозками.""",
-            "body": """Наша задача:
+            'letter': 'Г',
+            'types': ['TRAINS', 'SHIPS', 'CARS'],
+            'header': """Компания Г уже более 10 лет занимается железнодорожными, мультимодальными, автомобильными и морскими перевозками.""",
+            'body': """Наша задача:
 
 Обеспечение качественной логистикой клиентов «от двери до двери» 
 с полным информационным и документальным сопровождением.
@@ -2153,11 +1694,11 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Д",
-            "types": ["TRAINS", "SHIPS"],
-            "header": """Компания Д — одна из крупнейших транспортно-логистических компаний в России с активами в сфере портового, железнодорожного и интегрированного логистического бизнеса. Диверсифицированный портфель активов позволяет осуществлять доставку грузов 
+            'letter': 'Д',
+            'types': ['TRAINS', 'SHIPS'],
+            'header': """Компания Д — одна из крупнейших транспортно-логистических компаний в России с активами в сфере портового, железнодорожного и интегрированного логистического бизнеса. Диверсифицированный портфель активов позволяет осуществлять доставку грузов 
 «от двери до двери» и контролировать все этапы интермодальной транспортной цепочки.""",
-            "body": """Большая часть операций Группы сосредоточена на Дальнем Востоке России, что позволяет получать дополнительные преимущества от участия в динамично растущих объемах торговых операций между Россией 
+            'body': """Большая часть операций Группы сосредоточена на Дальнем Востоке России, что позволяет получать дополнительные преимущества от участия в динамично растущих объемах торговых операций между Россией 
 и странами Азии.
 
 Является лидером контейнерных перевозок через Дальний Восток РФ 
@@ -2189,10 +1730,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Е",
-            "types": ["TRAINS"],
-            "header": """Группа Компаний Е образована в 2004 году, является одним из крупнейших российских частных транспортных холдингов, который объединяет 31 компанию в разных регионах России и СНГ.""",
-            "body": """Предоставляет клиентам полный комплекс транспортных услуг:
+            'letter': 'Е',
+            'types': ['TRAINS'],
+            'header': """Группа Компаний Е образована в 2004 году, является одним из крупнейших российских частных транспортных холдингов, который объединяет 31 компанию в разных регионах России и СНГ.""",
+            'body': """Предоставляет клиентам полный комплекс транспортных услуг:
 
 - перевозки собственным подвижным составом
 - ремонт вагонов
@@ -2222,12 +1763,12 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "И",
-            "types": ["TRAINS"],
-            "header": """Компания И – российская транспортно-логистическая компания, предоставляющая комплексные решения 
+            'letter': 'И',
+            'types': ['TRAINS'],
+            'header': """Компания И – российская транспортно-логистическая компания, предоставляющая комплексные решения 
 в организации мультимодальных и контейнерных перевозок, автомобильных, железнодорожных перевозок 
 с привлечением собственного и арендованного подвижного состава, услуги терминально-складской и проектной логистики, управления цепями поставок с применением многооборотной тары.""",
-            "body": """Год основания — 2005. 
+            'body': """Год основания — 2005. 
 
 Компания работает с крупнейшими промышленными предприятиями, торговыми сетями России и СНГ, грузовладельцами из Китая, стран ЮВА, Балтии и Восточной Европы.
 
@@ -2252,10 +1793,10 @@ raw_practice_one_info = {
 из Китая.""",
         },
         {
-            "letter": "К",
-            "types": ["TRAINS"],
-            "header": """Компания К — российская транспортная компания, основной род деятельности которой — организация перевозок грузов железнодорожным транспортом.""",
-            "body": """Свою миссию компания видит в максимальном упрощении для клиента процесса перемещения его груза из точки А в точку В, при этом в любой момент времени заказчик должен получить ответ на любой вопрос 
+            'letter': 'К',
+            'types': ['TRAINS'],
+            'header': """Компания К — российская транспортная компания, основной род деятельности которой — организация перевозок грузов железнодорожным транспортом.""",
+            'body': """Свою миссию компания видит в максимальном упрощении для клиента процесса перемещения его груза из точки А в точку В, при этом в любой момент времени заказчик должен получить ответ на любой вопрос 
 о перевозке, как осуществляющейся, так и потенциально для него возможной. Компания хочет в своем бизнесе быть, прежде всего, удобной 
 и комфортной для партнеров, а также открытой для нового сотрудничества.
 
@@ -2269,12 +1810,12 @@ raw_practice_one_info = {
 с грузом, его порожнем рейсе или о производимых с вагонами ремонтных работах.""",
         },
         {
-            "letter": "Л",
-            "types": ["AIRPLANES", "CARS",],
-            "header": """Компания Л — мультисервисный оператор логистических услуг, эксперт в сфере комплексных решений 
+            'letter': 'Л',
+            'types': ['AIRPLANES', 'CARS',],
+            'header': """Компания Л — мультисервисный оператор логистических услуг, эксперт в сфере комплексных решений 
 и организации грузоперевозок на территории России 
 и за рубежом.""",
-            "body": """Компания основана в 2001 году.
+            'body': """Компания основана в 2001 году.
 
 Филиальная сеть насчитывает свыше 300 отделений в России, Азербайджане, Армении, Беларуси, Казахстане, Узбекистане, Таджикистане, Киргизии, Турции и Китае.
 
@@ -2354,10 +1895,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "М",
-            "types": ["TRAINS"],
-            "header": """Компания М — Логистическая экосистема для российской экономики и международных партнеров с применением инновационных транспортно-логистических решений с 2010 года.""",
-            "body": """Мультимодальный сервис
+            'letter': 'М',
+            'types': ['TRAINS'],
+            'header': """Компания М — Логистическая экосистема для российской экономики и международных партнеров с применением инновационных транспортно-логистических решений с 2010 года.""",
+            'body': """Мультимодальный сервис
 
 Организация доставки грузов в универсальных контейнерах железнодорожным транспортом и в мультимодальном сообщении. Мы осуществляем логистическое обслуживание международной торговли 
 и производства на всем евразийском пространстве.
@@ -2404,10 +1945,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Н",
-            "types": ["AIRPLANES", "CARS", "TRAINS", "SHIPS"],
-            "header": """Компания Н — Международная команда экспертов в сфере управления цепями поставок с опытом решения задач любой сложности""",
-            "body": """- Застрахованная профессиональная ответственность
+            'letter': 'Н',
+            'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
+            'header': """Компания Н — Международная команда экспертов в сфере управления цепями поставок с опытом решения задач любой сложности""",
+            'body': """- Застрахованная профессиональная ответственность
 - Собственные склады
 - Таможенный перевозчик
 - Аттестованы на перевозку опасных грузов
@@ -2467,10 +2008,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "О",
-            "types": ["AIRPLANES", "CARS", "TRAINS", "SHIPS"],
-            "header": """Компания О — Транспортно-логистическая компания """,
-            "body": """Уже более 26 лет является надежным Партнером на рынке логистических 
+            'letter': 'О',
+            'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
+            'header': """Компания О — Транспортно-логистическая компания """,
+            'body': """Уже более 26 лет является надежным Партнером на рынке логистических 
 и транспортных услуг. Предлагает комплексный сервис, включающий организацию международных перевозок различными видами транспорта, импортно-экспортное сопровождение, таможенные услуги, складские услуги, страхование грузов, проектную логистику, а также торговые услуги.
 
 Высококвалифицированные сотрудники компании находят оптимальные логистические решения исходя из индивидуальных потребностей каждого Клиента.
@@ -2530,12 +2071,12 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "П",
-            "types": ["CARS", "TRAINS"],
-            "header": """Компания П — Наша команда успешно осуществляет доставку грузов по всей территории России, СНГ и Европе, 
+            'letter': 'П',
+            'types': ['CARS', 'TRAINS'],
+            'header': """Компания П — Наша команда успешно осуществляет доставку грузов по всей территории России, СНГ и Европе, 
 в том числе сложные маршруты в Воркуту, на о. Сахалин, 
 на Курильские острова в Ирландию.""",
-            "body": """Мы находимся в Санкт-Петербурге на Северном таможенном посту. 
+            'body': """Мы находимся в Санкт-Петербурге на Северном таможенном посту. 
 У нас есть склад и вся необходимая техника для перегрузки Ваших грузов. При необходимости производим таможенное оформление и сертификацию товаров.
 
 Перевозим негабаритный груз. Перевозим грузы как таможенный перевозчик, осуществляем экспресс доставку в Европу (работаем со всей Европой). Работаем с карнетом АТА. Доставка грузов FTL и LTL. Перевозка грузов контейнером авто+ж/д+авто. Находим лучшее решение, исходя 
@@ -2548,11 +2089,11 @@ raw_practice_one_info = {
 Мы настроены на долгосрочные и успешные отношения с нашим клиентом.""",
         },
         {
-            "letter": "Р",
-            "types": ["TRAINS"],
-            "header": """Компания Р – Лидер трансъевразийских железнодорожных контейнерных перевозок, предоставляющий комплексные услуги на перевозку грузов на самом протяженном участке Шелкового пути от границ с Китаем до границ 
+            'letter': 'Р',
+            'types': ['TRAINS'],
+            'header': """Компания Р – Лидер трансъевразийских железнодорожных контейнерных перевозок, предоставляющий комплексные услуги на перевозку грузов на самом протяженном участке Шелкового пути от границ с Китаем до границ 
 с Европой, крупнейший оператор транзитных контейнерных перевозок в сообщении Китай-Европа-Китай по территории России, Казахстана и Беларуси.""",
-            "body": """Созданная в 2018 году выступает оператором транзитных контейнерных сервисов и транспортирует грузы в сообщении Китай–Европа–Китай 
+            'body': """Созданная в 2018 году выступает оператором транзитных контейнерных сервисов и транспортирует грузы в сообщении Китай–Европа–Китай 
 в составе регулярных контейнерных поездов через территорию России, Казахстана и Беларуси.
 
 - Наша миссия
@@ -2612,10 +2153,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "С",
-            "types": ["AIRPLANES", "CARS", "TRAINS", "SHIPS"],
-            "header": """Компания С входит в состав инновационной транспортно-экспедиторской группы компаний, основанной в 1973 году в Германии, на предприятиях которой, на сегодняшний день, в мире работают более 600 высококвалифицированных, мультиязычных сотрудников.""",
-            "body": """Виды перевозок:
+            'letter': 'С',
+            'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
+            'header': """Компания С входит в состав инновационной транспортно-экспедиторской группы компаний, основанной в 1973 году в Германии, на предприятиях которой, на сегодняшний день, в мире работают более 600 высококвалифицированных, мультиязычных сотрудников.""",
+            'body': """Виды перевозок:
 
 1) Автоперевозки
 
@@ -2716,12 +2257,12 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Т",
-            "types": ["AIRPLANES", "CARS", "TRAINS", "SHIPS"],
-            "header": """Компания Т — предоставляет комплексные решения 
+            'letter': 'Т',
+            'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
+            'header': """Компания Т — предоставляет комплексные решения 
 по перевозке и таможенному оформлению любых видов грузов различными видами транспорта в режимах импорта и экспорта. 
 """,
-            "body": """Мы обеспечиваем:	
+            'body': """Мы обеспечиваем:	
 
 - Высококвалифицированных специалистов;
 - Персонального менеджера 24х7 Online;
@@ -2750,12 +2291,12 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Ф",
-            "types": ["AIRPLANES", "CARS", "TRAINS", "SHIPS"],
-            "header": """Компания Ф с 1967 года доставляет товары в нужное время, в нужное место, с пользой для всех. Мы сотрудничаем 
+            'letter': 'Ф',
+            'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
+            'header': """Компания Ф с 1967 года доставляет товары в нужное время, в нужное место, с пользой для всех. Мы сотрудничаем 
 с партнерами и клиентами в секторах потребительских товаров, розничной торговли, красоты и косметики, промышленного производства и здравоохранения, чтобы действовать сообща, создавая модели ответственной цепочки поставок. Мы расширяем границы, чтобы к 2030 году стать лидером устойчивых омниканальных цепочек поставок.
 """,
-            "body": """Мы являемся «пионерами» в области пулинга транспортных средств 
+            'body': """Мы являемся «пионерами» в области пулинга транспортных средств 
 и концепции под одной крышей one-roof. Мы продвигаем экологичные решения для копакинга и склады с нулевым выбросом углерода. Мы прилагаем все усилия, чтобы оптимизировать способы использования ресурсов, постоянно отслеживая и уменьшая углеродный след. Мы развиваем инновационную и устойчивую омниканальную дистрибуцию при помощи наших городских решений и предложения для готовой продукции в больших объемах. И мы не останавливаемся на достигнутом! Где бы мы ни находились, мы становимся надежным партнером 
 для локальных компаний. Это было бы невозможно без нашей коллективной внутренней страсти и энергии, которую мы разделяем, создавая и реализовывая наши проекты. Вот почему мы ежедневно стараемся улучшать нашу рабочую среду и благополучие наших команд.
 
@@ -2768,10 +2309,10 @@ raw_practice_one_info = {
 """,
         },
         {
-            "letter": "Ц",
-            "types": ["TRAINS"],
-            "header": """Компания Ц — независимый оператор грузовых железнодорожных перевозок, лидирующий по количеству инновационного парка на сети РЖД.""",
-            "body": """Направления деятельности
+            'letter': 'Ц',
+            'types': ['TRAINS'],
+            'header': """Компания Ц — независимый оператор грузовых железнодорожных перевозок, лидирующий по количеству инновационного парка на сети РЖД.""",
+            'body': """Направления деятельности
 
 - предоставление подвижного состава под перевозку различных номенклатур грузов как во внутрироссийском, так и в международном сообщении;
 
@@ -2835,31 +2376,19 @@ raw_practice_one_info = {
 """,
         },
     ],
-    "all_incoterms": [
-        "EXW",
-        "FCA",
-        "FAS",
-        "FOB",
-        "CFR",
-        "CIF",
-        "CIP",
-        "CPT",
-        "DAP",
-        "DPU",
-        "DDP",
-    ],
-    "hints": {
-        "EXW": "Покупатель может столкнуться с трудностями при выполнении экспортных формальностей",
-        "FCA": "Предусматривает два возможных места отгрузки: принадлежащее продавцу (склад) или указанное в договоре место (терминал) Следует точно определить пункт в месте доставки",
-        "CPT": "Следует максимально точно определить место поставки (переход рисков) и место назначения, до которого продавец оплачивает доставку",
-        "CIP": "Следует максимально точно определить место поставки (переход рисков) и место назначения, до которого продавец оплачивает доставку",
-        "DAP": "Следует максимально точно согласовать место назначения",
-        "DPU": "Следует максимально точно согласовать место назначения и возможность обеспечить выгрузку",
-        "DDP": "Следует согласовать возможность исполнения всех таможенных формальностей",
-        "FAS": "Следует максимально точно определить согласованное место загрузки в порту отправления ",
-        "FOB": "Нецелесообразно использовать, если товар передается перевозчику до того момента, как он попадет на борт судна",
-        "CFR": "Следует точно указать согласованное место в порту назначения ",
-        "CIF": "Продавец обязан предоставить страховой полис. Покупатель может потребовать более высокий уровень покрытия",
+    'all_incoterms': ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CIP', 'CPT', 'DAP', 'DPU', 'DDP',],
+    'hints': {
+        'EXW': 'Покупатель может столкнуться с трудностями при выполнении экспортных формальностей',
+        'FCA': 'Предусматривает два возможных места отгрузки: принадлежащее продавцу (склад) или указанное в договоре место (терминал) Следует точно определить пункт в месте доставки',
+        'CPT': 'Следует максимально точно определить место поставки (переход рисков) и место назначения, до которого продавец оплачивает доставку',
+        'CIP': 'Следует максимально точно определить место поставки (переход рисков) и место назначения, до которого продавец оплачивает доставку',
+        'DAP': 'Следует максимально точно согласовать место назначения',
+        'DPU': 'Следует максимально точно согласовать место назначения и возможность обеспечить выгрузку',
+        'DDP': 'Следует согласовать возможность исполнения всех таможенных формальностей',
+        'FAS': 'Следует максимально точно определить согласованное место загрузки в порту отправления ',
+        'FOB': 'Нецелесообразно использовать, если товар передается перевозчику до того момента, как он попадет на борт судна',
+        'CFR': 'Следует точно указать согласованное место в порту назначения ',
+        'CIF': 'Продавец обязан предоставить страховой полис. Покупатель может потребовать более высокий уровень покрытия',
     },
 }
 
@@ -2867,25 +2396,20 @@ logists2 = [
     {
         'letter': 'Р',
         'types': ['TRAINS'],
-        'header': """Компания Р – Лидер трансъевразийских железнодорожных контейнерных перевозок, предоставляющий комплексные услуги на перевозку грузов на самом протяженном участке Шелкового пути от границ с Китаем до границ 
-с Европой, крупнейший оператор транзитных контейнерных перевозок в сообщении Китай-Европа-Китай по территории России, Казахстана и Беларуси.""",
+        'header': """Компания Р – Лидер трансъевразийских железнодорожных контейнерных перевозок, предоставляющий комплексные услуги на перевозку грузов на самом протяженном участке Шелкового пути от границ с Китаем до границ с Европой, крупнейший оператор транзитных контейнерных перевозок в сообщении Китай-Европа-Китай по территории России, Казахстана и Беларуси.""",
         'body': [
             {
                 'type': 'text',
                 'texts': [
-                    """Созданная в 2018 году выступает оператором транзитных контейнерных сервисов и транспортирует грузы в сообщении Китай–Европа–Китай 
-в составе регулярных контейнерных поездов через территорию России, Казахстана и Беларуси."""
+                    """Созданная в 2018 году выступает оператором транзитных контейнерных сервисов и транспортирует грузы в сообщении Китай–Европа–Китай в составе регулярных контейнерных поездов через территорию России, Казахстана и Беларуси."""
                 ],
             },
             {'type': 'dash', 'texts': ['Наша миссия']},
             {
                 'type': 'text',
                 'texts': [
-                    """Развитие транзитного потенциала ЕАЭС через внедрение высокотехнологичных логистических сервисов, требующих скоординированной политики железных дорог и регуляторов 
-на пространстве колеи 1520 мм"""
-                    """Компания предоставляет комплекс транспортно-логистических услуг 
-по перевозке контейнеров отправителя (Shipper Owned Container — SOC) 
-в составе регулярных контейнерных поездов по МТК «Восток-Запад»."""
+                    """Развитие транзитного потенциала ЕАЭС через внедрение высокотехнологичных логистических сервисов, требующих скоординированной политики железных дорог и регуляторов на пространстве колеи 1520 мм"""
+                    """Компания предоставляет комплекс транспортно-логистических услуг по перевозке контейнеров отправителя (Shipper Owned Container — SOC) в составе регулярных контейнерных поездов по МТК «Восток-Запад»."""
                 ],
             },
             {'type': 'dash', 'texts': ['Транзит']},
@@ -2927,12 +2451,10 @@ logists2 = [
                     'Кратный рост экспорта из Беларуси',
                     'Первый контракт с оплатой в китайских юанях',
                     'Пилотные отправки полносоставных рефрижераторных поездов в сообщении Китай-Россия',
-                    """- Экологические инициативы с нашим участием: Казахстан – проект 
-по восстановлению тугайного леса на территории «Иле-Балхаш»; Россия – проект по восстановлению численности зубров в Северной Осетии"""
+                    'Экологические инициативы с нашим участием: Казахстан – проект по восстановлению тугайного леса на территории «Иле-Балхаш»; Россия – проект по восстановлению численности зубров в Северной Осетии'
                     'Выход в финал премии «Формула движения» в номинации «Лучшее решение в области грузовой логистики»',
                     'Вошли в числе 400 крупнейших компаний России',
-                    """Генеральный директор— в списке 250 лучших топ-менеджеров России 
-(по версии ИД «Коммерсант»)""",
+                    'Генеральный директор— в списке 250 лучших топ-менеджеров России (по версии ИД «Коммерсант»)',
                 ],
             },
         ],
@@ -2940,24 +2462,17 @@ logists2 = [
     {
         'letter': 'П',
         'types': ['CARS', 'TRAINS'],
-        'header': """Компания П — Наша команда успешно осуществляет доставку грузов по всей территории России, СНГ и Европе, 
-    в том числе сложные маршруты в Воркуту, на о. Сахалин, 
-    на Курильские острова в Ирландию.""",
+        'header': """Компания П — Наша команда успешно осуществляет доставку грузов по всей территории России, СНГ и Европе, в том числе сложные маршруты в Воркуту, на о. Сахалин, на Курильские острова в Ирландию.""",
         'body': [
             {
                 'type': 'text',
                 'texts': [
-                    """Мы находимся в Санкт-Петербурге на Северном таможенном посту. 
-    У нас есть склад и вся необходимая техника для перегрузки Ваших грузов. При необходимости производим таможенное оформление и сертификацию товаров.
-
-    Перевозим негабаритный груз. Перевозим грузы как таможенный перевозчик, осуществляем экспресс доставку в Европу (работаем со всей Европой). Работаем с карнетом АТА. Доставка грузов FTL и LTL. Перевозка грузов контейнером авто+ж/д+авто. Находим лучшее решение, исходя 
-    из поставленных задач клиента.
-
-    Услуги перевозки грузов по России, международная логистика, таможенное оформление, страхование, сертификация товаров.
-
-    В 90% случаев лучшие цены и сроки. Работаем с грузами от 100 кг.
-
-    Мы настроены на долгосрочные и успешные отношения с нашим клиентом.""",
+                    'Мы находимся в Санкт-Петербурге на Северном таможенном посту',
+                    'У нас есть склад и вся необходимая техника для перегрузки Ваших грузов. При необходимости производим таможенное оформление и сертификацию товаров.',
+                    'Перевозим негабаритный груз. Перевозим грузы как таможенный перевозчик, осуществляем экспресс доставку в Европу (работаем со всей Европой). Работаем с карнетом АТА. Доставка грузов FTL и LTL. Перевозка грузов контейнером авто+ж/д+авто. Находим лучшее решение, исходя из поставленных задач клиента.',
+                    'Услуги перевозки грузов по России, международная логистика, таможенное оформление, страхование, сертификация товаров.',
+                    'В 90% случаев лучшие цены и сроки. Работаем с грузами от 100 кг.',
+                    'Мы настроены на долгосрочные и успешные отношения с нашим клиентом.',
                 ],
             }
         ],
@@ -2965,31 +2480,22 @@ logists2 = [
     {
         'letter': 'Ф',
         'types': ['AIRPLANES', 'CARS', 'TRAINS', 'SHIPS'],
-        'header': """Компания Ф с 1967 года доставляет товары в нужное время, в нужное место, с пользой для всех. Мы сотрудничаем 
-с партнерами и клиентами в секторах потребительских товаров, розничной торговли, красоты и косметики, промышленного производства и здравоохранения, чтобы действовать сообща, создавая модели ответственной цепочки поставок. Мы расширяем границы, чтобы к 2030 году стать лидером устойчивых омниканальных цепочек поставок.
-""",
+        'header': 'Компания Ф с 1967 года доставляет товары в нужное время, в нужное место, с пользой для всех. Мы сотрудничаем с партнерами и клиентами в секторах потребительских товаров, розничной торговли, красоты и косметики, промышленного производства и здравоохранения, чтобы действовать сообща, создавая модели ответственной цепочки поставок. Мы расширяем границы, чтобы к 2030 году стать лидером устойчивых омниканальных цепочек поставок.',
         'body': [
             {
                 'type': 'text',
                 'texts': [
-                    """Мы являемся «пионерами» в области пулинга транспортных средств 
-и концепции под одной крышей one-roof. Мы продвигаем экологичные решения для копакинга и склады с нулевым выбросом углерода. Мы прилагаем все усилия, чтобы оптимизировать способы использования ресурсов, постоянно отслеживая и уменьшая углеродный след. Мы развиваем инновационную и устойчивую омниканальную дистрибуцию при помощи наших городских решений и предложения для готовой продукции в больших объемах. И мы не останавливаемся на достигнутом! Где бы мы ни находились, мы становимся надежным партнером 
-для локальных компаний. Это было бы невозможно без нашей коллективной внутренней страсти и энергии, которую мы разделяем, создавая и реализовывая наши проекты. Вот почему мы ежедневно стараемся улучшать нашу рабочую среду и благополучие наших команд.
-
-Мы оказываем полный спектр транспортно-логистических услуг 
-и разрабатываем индивидуальные логистические решения для реализации ваших задач в сфере логистики. В рамках нашего комплекса логистических услуг мы предлагаем складские услуги и обработку товаров и грузов на складах, транспортные услуги, услуги таможенного оформления, IT-решения и комплексные решения для сегмента e-commerce.
-
-Наша цель — помочь вам повысить эффективность бизнеса, снизить затраты и обеспечить надежность во всей цепи поставок.
-
-Свяжитесь с нами, чтобы обсудить ваши потребности в логистических услугах. Мы готовы предложить вам оптимальные решения, адаптированные под требования вашего бизнеса.
-"""
+                    'Мы являемся «пионерами» в области пулинга транспортных средств и концепции под одной крышей one-roof. Мы продвигаем экологичные решения для копакинга и склады с нулевым выбросом углерода. Мы прилагаем все усилия, чтобы оптимизировать способы использования ресурсов, постоянно отслеживая и уменьшая углеродный след. Мы развиваем инновационную и устойчивую омниканальную дистрибуцию при помощи наших городских решений и предложения для готовой продукции в больших объемах. И мы не останавливаемся на достигнутом! Где бы мы ни находились, мы становимся надежным партнером для локальных компаний. Это было бы невозможно без нашей коллективной внутренней страсти и энергии, которую мы разделяем, создавая и реализовывая наши проекты. Вот почему мы ежедневно стараемся улучшать нашу рабочую среду и благополучие наших команд.',
+                    'Мы оказываем полный спектр транспортно-логистических услуг и разрабатываем индивидуальные логистические решения для реализации ваших задач в сфере логистики. В рамках нашего комплекса логистических услуг мы предлагаем складские услуги и обработку товаров и грузов на складах, транспортные услуги, услуги таможенного оформления, IT-решения и комплексные решения для сегмента e-commerce.',
+                    'Наша цель — помочь вам повысить эффективность бизнеса, снизить затраты и обеспечить надежность во всей цепи поставок.',
+                    'Свяжитесь с нами, чтобы обсудить ваши потребности в логистических услугах. Мы готовы предложить вам оптимальные решения, адаптированные под требования вашего бизнеса.',
                 ],
             }
         ],
     },
 ]
 
-raw_practice_one_info["logists"] = logists2
+raw_practice_one_info['logists'] = logists2
 
 
 practice_one_info = PR1ClassInfo(**raw_practice_one_info)

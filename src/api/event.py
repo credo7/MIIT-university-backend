@@ -134,12 +134,12 @@ async def create_checkpoint(
                 computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
             ).checkpoint(event, checkpoint_dto)
 
-    print(f"checkpoint_response={checkpoint_response}")
+    print(f'checkpoint_response={checkpoint_response}')
 
     try:
         state.update_connected_computer_checkpoint(checkpoint_dto.computer_id, checkpoint_response.next_step)
     except:
-        pass # Потом убрать!
+        pass  # Потом убрать!
 
     await broadcast_connected_computers()
 
