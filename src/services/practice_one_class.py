@@ -113,7 +113,6 @@ class PracticeOneClass:
             current_step_response.to_country = pr1_class_event.to_country
             current_step_response.product_price = pr1_class_event.product_price
 
-            random.shuffle(pr1_class_event.bets)
             current_step_response.bets = pr1_class_event.bets
         elif pr1_class_event.current_step.code == 'SELECT_LOGIST':
             current_step_response.logists = pr1_class_event.logists

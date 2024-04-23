@@ -50,6 +50,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
         surname=user_dto.surname,
         group_id=user_dto.group_id,
         group_name=group['name'],
+        student_id=user_dto.student_id,
     )
 
     inserted_user = db[CollectionNames.USERS.value].insert_one(new_user.dict())

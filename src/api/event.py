@@ -56,8 +56,6 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
     )
     state.upsert_connected_computer(connected_computer)
 
-    print(f'EVENT_ID is {event.id}')
-
     return StartEventResponse(event_id=event.id)
 
 

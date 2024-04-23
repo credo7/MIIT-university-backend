@@ -18,7 +18,7 @@ db: Database = get_db()
 
 
 def search_users_by_group(user_search: UserSearch):
-    filter = {}
+    filter = {'role': 'STUDENT'}
     if user_search.search:
         names = user_search.search.split()
 
@@ -63,7 +63,7 @@ def search_users_by_group(user_search: UserSearch):
             }
 
     if user_search.group_id is not None:
-        filter['group_id'] = ObjectId(user_search.group_id)
+        filter['group_id'] = user_search.group_id
 
     if user_search.group_name is not None:
         filter['group_name'] = user_search.group_name

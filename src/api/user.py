@@ -1,10 +1,13 @@
 import logging
+import copy
 from typing import List
 
 import pymongo
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pymongo.database import Database
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 
 from db.mongo import get_db, CollectionNames
 import schemas
@@ -32,15 +35,10 @@ async def get_users(
 @router.patch('/edit', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def edit(
     user_update: schemas.UserUpdate,
-    current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+    current_user: schemas.FullUser = Depends(oauth2.get_current_user),
     db: Database = Depends(get_db),
 ):
     try:
-        user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(current_teacher.id)})
-
-        if not user_db:
-            raise HTTPException(status_code=404, detail='User not found')
-
         group_filter = {}
         if user_update.group_id:
             group_filter['_id'] = ObjectId(user_update.group_id)
@@ -54,8 +52,35 @@ async def edit(
             user_update.group_id = str(group_db['_id'])
             user_update.group_name = group_db['name']
 
-        user_db = db[CollectionNames.GROUPS.value].find_one_and_update(
-            {'_id': ObjectId(current_teacher.id)}, {'$set': user_update.dict()}
+        user_update_dict = {}
+        required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id', 'group_name']
+        required_to_change = current_user.fix_for_approve_fields
+        for field, value in user_update.dict().items():
+            if field in required_fields and value is not None:
+
+                if required_to_change:
+                    if 'group' in field and 'group' in required_to_change:
+                        required_to_change.remove('group')
+                    if field in required_to_change:
+                        required_to_change.remove(field)
+
+                user_update_dict[field] = value
+
+        if required_to_change:
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content=jsonable_encoder(
+                    {
+                        'detail': 'Заполнены не все требуемые поля!',
+                        'rest_fields': [field if field != 'group' else 'group_id' for field in required_to_change],
+                    }
+                ),
+            )
+
+        user_db = db[CollectionNames.USERS.value].find_one_and_update(
+            {'_id': ObjectId(current_user.id)},
+            {'$set': {**user_update_dict, 'fix_for_approve_fields': None}},
+            return_document=pymongo.ReturnDocument.AFTER,
         )
 
         logger.info(f'user updated {user_db}')
@@ -86,6 +111,36 @@ async def approve_user(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
+@router.post('/request-edits', status_code=status.HTTP_200_OK)
+async def request_edits(
+    body: schemas.RequestEditsBody,
+    _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+    db: Database = Depends(get_db),
+):
+    fix_for_approve_fields = [
+        field_name for field_name, field_value in body.__dict__.items() if field_value and field_name != 'user_id'
+    ]
+
+    if len(fix_for_approve_fields) == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Поля не заданы.')
+
+    user_db = db[CollectionNames.USERS.value].find_one_and_update(
+        {'_id': ObjectId(body.user_id), 'approved': False}, {'$set': {'fix_for_approve_fields': fix_for_approve_fields}}
+    )
+
+    if not user_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Студент не найден либо уже подтвержден')
+
+
+@router.get('/check-approval', response_model=schemas.CheckApprovalResponse)
+async def check_approval(current_user: schemas.FullUser = Depends(oauth2.get_current_user),):
+    if current_user.approved:
+        return schemas.CheckApprovalResponse(is_approved=True)
+    if current_user.fix_for_approve_fields:
+        return schemas.CheckApprovalResponse(is_approved=False, fields_to_be_fixed=current_user.fix_for_approve_fields)
+    return schemas.CheckApprovalResponse(is_approved=False)
+
+
 @router.get('/unapproved', status_code=status.HTTP_200_OK, response_model=List[schemas.UserToApprove])
 async def get_unapproved_users(
     group_id: str = None,
@@ -93,7 +148,7 @@ async def get_unapproved_users(
     db: Database = Depends(get_db),
 ):
     try:
-        filter = {'approved': False}
+        filter = {'approved': False, 'fix_for_approve_fields': None}
         if group_id:
             filter['group_id'] = group_id
         unapproved_users_db = db[CollectionNames.USERS.value].find(filter)
@@ -102,34 +157,52 @@ async def get_unapproved_users(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
-@router.patch(
-    '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserCredentials,
-)
-async def change_password(
-    user_id: str,
-    _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
-    db: Database = Depends(get_db),
+@router.post('/forgot-password')
+async def forgot_password(
+    body: schemas.ForgotPasswordBody, db: Database = Depends(get_db),
 ):
-    try:
-        new_password = utils.generate_password()
+    new_password = utils.generate_password()
 
-        hash_password = utils.hash(new_password)
+    hash_password = utils.hash(new_password)
 
-        user_db = db[CollectionNames.USERS.value].find_one_and_update(
-            {'_id': ObjectId(user_id)}, {'$set': {'password': hash_password}}
-        )
+    user_db = db[CollectionNames.USERS.value].find_one_and_update(
+        {'username': body.username, 'student_id': body.student_id}, {'$set': {'password': hash_password}}
+    )
 
-        if not user_db:
-            raise HTTPException(status_code=404, detail='Пользователь не найден')
+    if user_db is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с таким данными не найден')
 
-        logger.info(f"password change for user with id {user_db['_id']}")
-
-        return schemas.UserCredentials(username=user_db['username'], password=new_password)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+    return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
 
 
-@router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
+# @router.patch(
+#     '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserCredentials,
+# )
+# async def change_password(
+#     user_id: str,
+#     _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+#     db: Database = Depends(get_db),
+# ):
+#     try:
+#         new_password = utils.generate_password()
+#
+#         hash_password = utils.hash(new_password)
+#
+#         user_db = db[CollectionNames.USERS.value].find_one_and_update(
+#             {'_id': ObjectId(user_id)}, {'$set': {'password': hash_password}}
+#         )
+#
+#         if not user_db:
+#             raise HTTPException(status_code=404, detail='Пользователь не найден')
+#
+#         logger.info(f"password change for user with id {user_db['_id']}")
+#
+#         return schemas.UserCredentials(username=user_db['username'], password=new_password)
+#     except Exception as e:
+#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+
+
+@router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.GetUserResponse)
 async def get_user(id: str, db: Database = Depends(get_db)):
 
     user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(id)})
@@ -137,7 +210,57 @@ async def get_user(id: str, db: Database = Depends(get_db)):
     if not user_db:
         raise HTTPException(status_code=404, detail='User not found')
 
-    return normalize_mongo(user_db, schemas.UserOut, return_dict=True)
+    user = normalize_mongo(user_db, schemas.UserOut)
+
+    history = []
+
+    events = db[CollectionNames.EVENTS.value].find(
+        {'is_finished': True, 'users_ids': {'$in': [user.id]}, "test_results": {"$exists": True}}
+    ).sort('created_at', -1)
+
+    for event_db in events:
+        event = normalize_mongo(event_db, schemas.EventInfo)
+
+        print({"event_id": event.id, "type": event.event_type, "event_mode": event.event_mode})
+        history_element = schemas.UserHistoryElement(
+            id=event.id,
+            type=event.event_type,
+            mode=event.event_mode,
+        )
+
+        if event.event_type == schemas.EventType.PR1 and event.event_mode == schemas.EventMode.CLASS:
+            incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
+            for step in event.steps_results:
+                if user.id in step.users_ids:
+                    if step.fails >= 3:
+                        incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
+
+            best = schemas.TestCorrectsAndErrors(correct=0, error=20)
+            for test_result in event.test_results:
+                current = schemas.TestCorrectsAndErrors(correct=0, error=0)
+                for step in test_result:
+                    if step.fails >= 3:
+                        current.error += 1
+                    else:
+                        current.correct += 1
+                if current.correct > best.correct:
+                    best = copy.deepcopy(current)
+
+            print(f"incoterms={incoterms}")
+            history_element.incoterms = incoterms
+            history_element.test = best
+            history.append(history_element)
+
+    return schemas.GetUserResponse(
+        id=user.id,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        surname=user.surname,
+        username=user.username,
+        group_id=user.group_id,
+        group_name=user.group_name,
+        history=history,
+    )
 
 
 @router.delete('/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.ResponseMessage)

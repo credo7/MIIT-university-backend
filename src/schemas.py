@@ -31,6 +31,11 @@ class AnswerStatus(str, enum.Enum):
     FAILED = 'FAILED'
 
 
+class CorrectOrError(str, enum.Enum):
+    ERROR = 'ERROR'
+    CORRECT = 'CORRECT'
+
+
 class TextType(str, enum.Enum):
     text = 'text'
     dash = 'dash'
@@ -227,11 +232,36 @@ class UserBase(BaseModel):
     first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
+    student_id: str
+
+
+class ForgotPasswordBody(BaseModel):
+    username: str
+    student_id: str
+
+
+class ForgotPasswordResponse(BaseModel):
+    username: str
+    new_password: str
 
 
 class UserCreateBody(UserBase):
     password: constr(min_length=8, max_length=35)
     group_id: str
+
+
+class RequestEditsBody(BaseModel):
+    user_id: str
+    first_name: Optional[bool] = False
+    last_name: Optional[bool] = False
+    surname: Optional[bool] = False
+    student_id: Optional[bool] = False
+    group: Optional[bool] = False
+
+
+class CheckApprovalResponse(BaseModel):
+    is_approved: bool
+    fields_to_be_fixed: Optional[list[str]] = []
 
 
 class UserEventHistory(BaseModel):
@@ -257,18 +287,21 @@ class UserCreateDB(UserCreateBody):
 class FullUser(UserCreateDB):
     id: str
     approved: bool
+    fix_for_approve_fields: Optional[list[str]] = None
 
 
 class UserOut(UserBase):
     id: str
     first_name: str
     last_name: str
+    username: str
     surname: Optional[str] = None
     approved: bool = False
     group_name: Optional[str] = None
     group_id: Optional[str] = None
     role: UserRole = UserRole.STUDENT.value
     incoterms: dict[Incoterm, int] = {}
+    fix_for_approve_fields: Optional[list[str]] = None
 
 
 class UserEvent(BaseModel):
@@ -420,6 +453,7 @@ class EventInfo(BaseModel):
     steps_results: list[EventStepResult] = []
     results: list[EventResult] = []
     current_step: Union[Step, str]
+    test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
 
 
 class BetsRolePR1(str, enum.Enum):
@@ -882,8 +916,11 @@ class UserCredentials(BaseModel):
     password: str
 
 
-class UserUpdate(UserBase):
-    id: int
+class UserUpdate(BaseModel):
+    first_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    last_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
+    student_id: Optional[str]
     group_id: Optional[str] = None
     group_name: Optional[str] = None
     username: Optional[str] = None
@@ -894,11 +931,35 @@ class ResponseMessage(BaseModel):
 
 
 class UserToApprove(BaseModel):
-    id: int
+    id: str
     first_name: str
     last_name: str
     surname: Optional[str] = None
     group_name: str
+
+
+class TestCorrectsAndErrors(BaseModel):
+    correct: int
+    error: int
+
+
+class UserHistoryElement(BaseModel):
+    id: str
+    type: EventType
+    mode: EventMode
+    incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
+    test: Optional[TestCorrectsAndErrors] = None
+
+
+class GetUserResponse(BaseModel):
+    id: str
+    first_name: str
+    last_name: str
+    surname: Optional[str] = None
+    username: str
+    group_id: str
+    group_name: str
+    history: list[UserHistoryElement] = []
 
 
 class UserChangePassword(BaseModel):
