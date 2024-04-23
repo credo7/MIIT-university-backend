@@ -8,6 +8,7 @@ from passlib.context import CryptContext
 from pydantic.main import BaseModel
 from transliterate import translit
 from pymongo.cursor import Cursor
+import pymongo
 
 from db.mongo import CollectionNames, Database, get_db
 from schemas import UserSearch, ConnectedComputer
@@ -17,7 +18,7 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 db: Database = get_db()
 
 
-def search_users_by_group(user_search: UserSearch):
+def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
     filter = {'role': 'STUDENT'}
     if user_search.search:
         names = user_search.search.split()
@@ -68,7 +69,10 @@ def search_users_by_group(user_search: UserSearch):
     if user_search.group_name is not None:
         filter['group_name'] = user_search.group_name
 
-    return db[CollectionNames.USERS.value].find(filter)
+    if sort is None or sort == "AZ":
+        return db[CollectionNames.USERS.value].find(filter).sort("last_name", pymongo.ASCENDING)
+    else:
+        return db[CollectionNames.USERS.value].find(filter).sort("last_name", pymongo.DESCENDING)
 
 
 def hash(password: str):

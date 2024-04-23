@@ -24,10 +24,12 @@ async def get_users(
     search: str = Query(None, description='Search by first name, last name, or surname'),
     group_id: str = Query(None, description='Filter by group ID'),
     group_name: str = Query(None, description='Filter by group name'),
+    sort: str = Query(None, description='AZ or ZA'),
     _current_user: schemas.FullUser = Depends(oauth2.get_current_user),
 ):
     found_users = utils.search_users_by_group(
-        schemas.UserSearch(search=search, group_id=group_id, group_name=group_name)
+        schemas.UserSearch(search=search, group_id=group_id, group_name=group_name),
+        sort
     )
     return normalize_mongo(found_users, schemas.UserOut)
 
@@ -215,7 +217,14 @@ async def get_user(id: str, db: Database = Depends(get_db)):
     history = []
 
     events = db[CollectionNames.EVENTS.value].find(
-        {'is_finished': True, 'users_ids': {'$in': [user.id]}, "test_results": {"$exists": True}}
+        {
+            'is_finished': True,
+            'users_ids': {'$in': [user.id]},
+            '$or': [
+                {"event_mode": "CONTROL"},
+                {"$and": [{"event_mode": "CLASS"}, {"tests_results": {"$exists": True}}]}
+            ]
+        }
     ).sort('created_at', -1)
 
     for event_db in events:
@@ -228,25 +237,43 @@ async def get_user(id: str, db: Database = Depends(get_db)):
             mode=event.event_mode,
         )
 
-        if event.event_type == schemas.EventType.PR1 and event.event_mode == schemas.EventMode.CLASS:
-            incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
-            for step in event.steps_results:
-                if user.id in step.users_ids:
+        if event.event_type == schemas.EventType.PR1:
+            if event.event_mode == schemas.EventMode.CLASS:
+                incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
+                for step in event.steps_results:
+                    if user.id in step.users_ids:
+                        if step.fails >= 3:
+                            incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
+
+                best = schemas.TestCorrectsAndErrors(correct=0, error=20)
+                for test_result in event.test_results:
+                    current = schemas.TestCorrectsAndErrors(correct=0, error=0)
+                    for step in test_result:
+                        if step.fails >= 3:
+                            current.error += 1
+                        else:
+                            current.correct += 1
+                    if current.correct > best.correct:
+                        best = copy.deepcopy(current)
+            else:
+                print("HERE")
+                incoterms = {
+                    event.steps_results[0].incoterm: schemas.CorrectOrError.CORRECT,
+                    event.steps_results[1].incoterm: schemas.CorrectOrError.CORRECT,
+                    event.steps_results[2].incoterm: schemas.CorrectOrError.CORRECT
+                }
+                for step in event.steps_results[:3]:
                     if step.fails >= 3:
                         incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
 
-            best = schemas.TestCorrectsAndErrors(correct=0, error=20)
-            for test_result in event.test_results:
-                current = schemas.TestCorrectsAndErrors(correct=0, error=0)
-                for step in test_result:
-                    if step.fails >= 3:
-                        current.error += 1
+                best = schemas.TestCorrectsAndErrors(correct=0, error=0)
+                for step in event.steps_results[3:]:
+                    if step.fails > 0:
+                        best.error += 1
                     else:
-                        current.correct += 1
-                if current.correct > best.correct:
-                    best = copy.deepcopy(current)
+                        best.correct += 1
 
-            print(f"incoterms={incoterms}")
+
             history_element.incoterms = incoterms
             history_element.test = best
             history.append(history_element)
