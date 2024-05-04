@@ -39,7 +39,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
 
     if candidate:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=f'User with username {username} already exists',
+            status_code=status.HTTP_409_CONFLICT, detail={"error": "Пользователь уже существует"},
         )
 
     new_user = schemas.UserCreateDB(
