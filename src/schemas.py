@@ -947,7 +947,7 @@ class UserHistoryElement(BaseModel):
     id: str
     type: EventType
     mode: EventMode
-    datetime: datetime
+    created_at: datetime
     incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
     test: Optional[TestCorrectsAndErrors] = None
 
