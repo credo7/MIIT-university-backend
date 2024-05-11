@@ -222,7 +222,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
             'users_ids': {'$in': [user.id]},
             '$or': [
                 {"event_mode": "CONTROL"},
-                {"$and": [{"event_mode": "CLASS"}, {"tests_results": {"$exists": True}}]}
+                {"$and": [{"event_mode": "CLASS"}, {"test_results": {"$exists": True}}]}
             ]
         }
     ).sort('created_at', -1)
