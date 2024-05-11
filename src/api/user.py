@@ -235,6 +235,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
             id=event.id,
             type=event.event_type,
             mode=event.event_mode,
+            created_at=event.created_at
         )
 
         if event.event_type == schemas.EventType.PR1:
