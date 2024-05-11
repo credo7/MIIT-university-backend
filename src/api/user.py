@@ -257,7 +257,6 @@ async def get_user(id: str, db: Database = Depends(get_db)):
                     if current.correct > best.correct:
                         best = copy.deepcopy(current)
             else:
-                print("HERE")
                 incoterms = {
                     event.steps_results[0].incoterm: schemas.CorrectOrError.CORRECT,
                     event.steps_results[1].incoterm: schemas.CorrectOrError.CORRECT,
@@ -273,6 +272,21 @@ async def get_user(id: str, db: Database = Depends(get_db)):
                         best.error += 1
                     else:
                         best.correct += 1
+
+                fails_points_mapping = {
+                    0:3,
+                    1:2,
+                    2:1,
+                    3:0
+                }
+
+                incoterm_points_mapping = {
+                    event.steps_results[0].incoterm: fails_points_mapping[event.steps_results[0].fails],
+                    event.steps_results[1].incoterm: fails_points_mapping[event.steps_results[1].fails],
+                    event.steps_results[2].incoterm: fails_points_mapping[event.steps_results[2].fails]
+                }
+
+                history_element.incoterm_points_mapping = incoterm_points_mapping
 
 
             history_element.incoterms = incoterms
