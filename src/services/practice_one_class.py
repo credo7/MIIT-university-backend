@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from typing import List, Dict, Optional, Type, Union
 from bson import ObjectId
 
@@ -451,6 +452,7 @@ class PracticeOneClass:
             event.current_step = next_step
             if next_step.code == 'FINISHED':
                 event.is_finished = True
+                event.finished_at = datetime.now()
             checkpoint_response.next_step = next_step
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})

@@ -948,6 +948,7 @@ class UserHistoryElement(BaseModel):
     type: EventType
     mode: EventMode
     created_at: datetime
+    finished_at: datetime
     incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
     incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
     test: Optional[TestCorrectsAndErrors] = None
