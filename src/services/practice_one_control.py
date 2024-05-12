@@ -238,7 +238,7 @@ class PracticeOneControl:
                 checkpoint_response.next_step = finished_step
                 event.current_step = finished_step
                 event.is_finished = True
-                event.is_finished = datetime.now()
+                event.finished_at = datetime.now()
             else:
                 next_step = Step(
                     id=3 + test_question_index + 2,
