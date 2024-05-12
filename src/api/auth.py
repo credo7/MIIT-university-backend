@@ -55,12 +55,12 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
     new_user = schemas.UserCreateDB(
         username=username,
         password=hashed_password,
-        first_name=user_dto.first_name,
-        last_name=user_dto.last_name,
-        surname=user_dto.surname,
+        first_name=user_dto.first_name.capitalize(),
+        last_name=user_dto.last_name.capitalize(),
+        surname=user_dto.surname.capitalize() if user_dto.surname is not None else None,
         group_id=user_dto.group_id,
         group_name=group['name'],
-        student_id=user_dto.student_id,
+        student_id=user_dto.student_id.upper(),
     )
 
     inserted_user = db[CollectionNames.USERS.value].insert_one(new_user.dict())

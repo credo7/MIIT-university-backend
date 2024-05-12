@@ -930,12 +930,19 @@ class ResponseMessage(BaseModel):
     message: str
 
 
+class ChangePasswordBody(BaseModel):
+    last_name: str
+    student_id: str
+    new_password: str
+
+
 class UserToApprove(BaseModel):
     id: str
     first_name: str
     last_name: str
     surname: Optional[str] = None
     group_name: str
+    student_id: Optional[str] = None
 
 
 class TestCorrectsAndErrors(BaseModel):

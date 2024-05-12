@@ -154,27 +154,43 @@ async def get_unapproved_users(
         if group_id:
             filter['group_id'] = group_id
         unapproved_users_db = db[CollectionNames.USERS.value].find(filter)
-        return normalize_mongo(unapproved_users_db, schemas.UserOut, return_dict=True)
+        return normalize_mongo(unapproved_users_db, schemas.UserToApprove)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
-@router.post('/forgot-password')
-async def forgot_password(
-    body: schemas.ForgotPasswordBody, db: Database = Depends(get_db),
-):
-    new_password = utils.generate_password()
+# @router.post('/forgot-password')
+# async def forgot_password(
+#     body: schemas.ForgotPasswordBody, db: Database = Depends(get_db),
+# ):
+#     new_password = utils.generate_password()
+#
+# hash_password = utils.hash(new_password)
+#
+#     user_db = db[CollectionNames.USERS.value].find_one_and_update(
+#         {'username': body.username, 'student_id': body.student_id}, {'$set': {'password': hash_password}}
+#     )
+#
+#     if user_db is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с таким данными не найден')
+#
+#     return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
 
-    hash_password = utils.hash(new_password)
+@router.post('/change-password', status_code=status.HTTP_200_OK)
+async def change_password(body: schemas.ChangePasswordBody, db: Database = Depends(get_db)):
+    user_db = db[CollectionNames.USERS.value].find_one({
+        "last_name": body.last_name.capitalize(),
+        "student_id": body.student_id.upper()
+    })
 
-    user_db = db[CollectionNames.USERS.value].find_one_and_update(
-        {'username': body.username, 'student_id': body.student_id}, {'$set': {'password': hash_password}}
-    )
+    hash_password = utils.hash(body.new_password)
 
     if user_db is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с таким данными не найден')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден")
 
-    return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
+    user = normalize_mongo(user_db, schemas.UserOut)
+
+    db[CollectionNames.USERS.value].update_one({"_id": ObjectId(user.id)}, {"$set": {"password": hash_password}})
 
 
 # @router.patch(
