@@ -22,7 +22,7 @@ from schemas import (
     CurrentStepResponse,
     IncotermInfoSummarize,
     Incoterm,
-    PR1ControlEvent,
+    PR1ControlEvent, AllowedModes,
 )
 from db.mongo import get_db, CollectionNames
 from services.create_event import create_event
@@ -57,6 +57,26 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
     state.upsert_connected_computer(connected_computer)
 
     return StartEventResponse(event_id=event.id)
+
+
+@router.get("/allowed")
+async def get_allowed_modes(
+        users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
+) -> list[AllowedModes]:
+    allowed_modes = [AllowedModes.PR1_CLASS, AllowedModes.PR1_CONTROL, AllowedModes.PR2_CLASS]
+
+    for user_id in users_ids:
+        at_least_one_finished_pr1_class = db[CollectionNames.EVENTS.value].find_one({
+            "users_ids": { "$in": [user_id] },
+            "event_type": "PR1",
+            "event_mode": "CLASS",
+            "is_finished": True
+        })
+        if at_least_one_finished_pr1_class is None:
+            allowed_modes.remove(AllowedModes.PR1_CONTROL)
+            allowed_modes.remove(AllowedModes.PR2_CLASS)
+
+    return allowed_modes
 
 
 @router.get('/active')

@@ -176,7 +176,7 @@ async def get_unapproved_users(
 #
 #     return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
 
-@router.post('/change-password', status_code=status.HTTP_200_OK)
+@router.post('/change-password', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def change_password(body: schemas.ChangePasswordBody, db: Database = Depends(get_db)):
     user_db = db[CollectionNames.USERS.value].find_one({
         "last_name": body.last_name.capitalize(),
@@ -191,6 +191,8 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
     user = normalize_mongo(user_db, schemas.UserOut)
 
     db[CollectionNames.USERS.value].update_one({"_id": ObjectId(user.id)}, {"$set": {"password": hash_password}})
+
+    return user
 
 
 # @router.patch(
@@ -257,6 +259,11 @@ async def get_user(id: str, db: Database = Depends(get_db)):
 
         if event.event_type == schemas.EventType.PR1:
             if event.event_mode == schemas.EventMode.CLASS:
+                for step in event.steps_results:
+                    if step.step_code == "DESCRIBE_OPTION":
+                        history_element.description = step.description
+                        break
+
                 incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
                 for step in event.steps_results:
                     if user.id in step.users_ids:

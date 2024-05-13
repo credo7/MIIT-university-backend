@@ -42,6 +42,13 @@ class TextType(str, enum.Enum):
     enumerated = 'enumerated'
 
 
+class AllowedModes(str, enum.Enum):
+    PR1_CLASS = "PR1_CLASS"
+    PR1_CONTROL = "PR1_CONTROL"
+    PR2_CLASS = "PR2_CLASS"
+
+
+
 class PR1ClassBetType(str, enum.Enum):
     COMMON = 'COMMON'
     BUYER = 'BUYER'
@@ -959,6 +966,7 @@ class UserHistoryElement(BaseModel):
     incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
     incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
     test: Optional[TestCorrectsAndErrors] = None
+    description: Optional[str] = None
 
 
 class GetUserResponse(BaseModel):
