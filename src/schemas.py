@@ -190,13 +190,27 @@ class StartEventResponse(BaseModel):
     event_id: str
 
 
+class UserBase(BaseModel):
+    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
+    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
+    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
+    student_id: str
+
+
+class MiniUser(UserBase):
+    id: str
+    group_name: str
+    group_id: str
+
+
 class ConnectedComputer(BaseModel):
     id: int
-    users_ids: list[str]
+    users: list[MiniUser]
     event_type: Optional[EventType] = None
     event_mode: Optional[EventMode] = None
     is_connected: Optional[bool] = False
-    step: Optional[GeneralStep] = None
+    step_code: Optional[str] = None
+    percentage: int = 0
     is_searching_someone: bool = False
 
 
@@ -233,13 +247,6 @@ class Lesson(BaseModel):
     event_mode: Optional[EventMode] = None
     event_type: Optional[EventType] = None
     created_at: datetime = datetime.now()
-
-
-class UserBase(BaseModel):
-    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
-    student_id: str
 
 
 class ForgotPasswordBody(BaseModel):

@@ -22,7 +22,7 @@ from schemas import (
     CurrentStepResponse,
     IncotermInfoSummarize,
     Incoterm,
-    PR1ControlEvent, AllowedModes,
+    PR1ControlEvent, AllowedModes, MiniUser,
 )
 from db.mongo import get_db, CollectionNames
 from services.create_event import create_event
@@ -288,6 +288,37 @@ async def continue_work(
         if event.event_mode == EventMode.CLASS.value:
             pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
             PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
+
+
+@router.get('/computers-states', response_model=list[ConnectedComputer])
+async def get_all_computers_states(db: Database = Depends(get_db)):
+    users_db = db[CollectionNames.USERS.value].find({"role": "STUDENT"}).sort({"created_at": -1}).limit(3)
+    users = normalize_mongo(users_db, MiniUser)
+
+    connected_computers = [
+        ConnectedComputer(
+            id=1,
+            users=[users[0], users[1]],
+            event_type=EventType.PR1,
+            event_mode=EventMode.CLASS,
+            is_connected=True,
+            step_code="FCA_BUYER",
+            percentage=5,
+            is_searching_someone=False
+        ),
+        ConnectedComputer(
+            id=7,
+            users=[users[2]],
+            event_type=EventType.PR1,
+            event_mode=EventMode.CONTROL,
+            is_connected=False,
+            step_code="INCOTERM_DAP",
+            percentage=33,
+            is_searching_someone=False
+        )
+    ]
+
+    return connected_computers
 
 
 @router.get('/{event_id}')
