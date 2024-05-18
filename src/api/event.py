@@ -47,14 +47,14 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
 
     event = create_event(event_dto=start_event_dto, users_ids=users_ids)
 
-    connected_computer = ConnectedComputer(
-        id=start_event_dto.computer_id,
-        users_ids=event.users_ids,
-        event_type=event.event_type,
-        event_mode=event.event_mode,
-        step=event.current_step,
-    )
-    state.upsert_connected_computer(connected_computer)
+    # connected_computer = ConnectedComputer(
+    #     id=start_event_dto.computer_id,
+    #     users_ids=event.users_ids,
+    #     event_type=event.event_type,
+    #     event_mode=event.event_mode,
+    #     step=event.current_step,
+    # )
+    # state.upsert_connected_computer(connected_computer)
 
     return StartEventResponse(event_id=event.id)
 
