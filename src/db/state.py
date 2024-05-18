@@ -6,7 +6,6 @@ from schemas import ConnectedComputer, Lesson, ConnectedComputerEdit, EventStatu
 from services.connection_manager import ConnectionManager
 
 
-
 class State:
     connected_computers: Dict[int, ConnectedComputer] = {}
     manager = ConnectionManager()
