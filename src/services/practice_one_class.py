@@ -33,7 +33,7 @@ from schemas import (
     Step,
     StepRole,
     CurrentStepResponse,
-    IncotermInfoSummarize,
+    IncotermInfoSummarize, PR1ClassStep,
 )
 from services.utils import normalize_mongo, format_with_spaces
 
@@ -46,6 +46,10 @@ class PracticeOneClass:
 
     def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
         variables = self.prepare_event_variables()
+
+        current_step = Step(
+            id=0, code=f'SELECT_LOGIST', name=f'Выбор логиста', role=StepRole.ALL
+        )
 
         event = PR1ClassEvent(
             computer_id=self.computer_id,
@@ -60,7 +64,7 @@ class PracticeOneClass:
             product_price=variables.product_price,
             bets=variables.bets,
             tests=variables.tests,
-            current_step=variables.zero_step,
+            current_step=current_step,
         )
 
         event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())

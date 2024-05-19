@@ -1,5 +1,6 @@
 from pydantic import BaseSettings
 
+
 class Settings(BaseSettings):
     api_port: int
     database_url: str

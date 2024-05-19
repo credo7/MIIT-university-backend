@@ -40,16 +40,17 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
     candidate = db[CollectionNames.USERS.value].find_one({'username': username})
     while candidate:
         if (
-                candidate["first_name"] == user_dto.first_name and
-                candidate["last_name"] == user_dto.last_name and
-                candidate["surname"] == user_dto.surname and
-                candidate["group_id"] == user_dto.group_id
+            candidate['first_name'] == user_dto.first_name
+            and candidate['last_name'] == user_dto.last_name
+            and candidate['surname'] == user_dto.surname
+            and candidate['group_id'] == user_dto.group_id
         ):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={
-                "error": "Пользователь с таким именем, фамилией, отчеством и группой уже существует"
-            })
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={'error': 'Пользователь с таким именем, фамилией, отчеством и группой уже существует'},
+            )
 
-        username += f"_{random.choice(string.digits)}"
+        username += f'_{random.choice(string.digits)}'
         candidate = db[CollectionNames.USERS.value].find_one({'username': username})
 
     new_user = schemas.UserCreateDB(

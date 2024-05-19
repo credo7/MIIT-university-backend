@@ -69,10 +69,10 @@ def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
     if user_search.group_name is not None:
         filter['group_name'] = user_search.group_name
 
-    if sort is None or sort == "AZ":
-        return db[CollectionNames.USERS.value].find(filter).sort("last_name", pymongo.ASCENDING)
+    if sort is None or sort == 'AZ':
+        return db[CollectionNames.USERS.value].find(filter).sort('last_name', pymongo.ASCENDING)
     else:
-        return db[CollectionNames.USERS.value].find(filter).sort("last_name", pymongo.DESCENDING)
+        return db[CollectionNames.USERS.value].find(filter).sort('last_name', pymongo.DESCENDING)
 
 
 def hash(password: str):
@@ -145,7 +145,7 @@ def change_mongo_instance(obj: Union[List, Dict], exclude: Optional[List[str]] =
 T = TypeVar('T')
 
 
-def normalize_mongo(db_obj, pydantic_schema: T, return_dict: bool = False) -> T:
+def normalize_mongo(db_obj, pydantic_schema: T, return_dict: bool = False) -> Union[T, list[T]]:
     if isinstance(db_obj, Cursor):
         db_obj = list(db_obj)
     if isinstance(db_obj, list):
@@ -179,9 +179,14 @@ def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
         return str(inserted.inserted_id)
 
 
-def raise_if_users_already_connected(connected_computers: Dict[int, ConnectedComputer], users_ids: List[str]):
+def raise_if_users_already_connected(
+    connected_computers: Dict[int, ConnectedComputer], users_ids: List[str], ignore_computer_id: Optional[int] = None
+):
     all_connected_users_ids = []
     for computer_id, computer in connected_computers.items():
+        if ignore_computer_id is not None and computer_id == ignore_computer_id:
+            continue
+
         all_connected_users_ids.extend(computer.users_ids)
 
     for user_id in users_ids:

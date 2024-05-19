@@ -1,12 +1,12 @@
-import random
+import asyncio
 import logging
 from bson import ObjectId
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.database import Database
 
+import schemas
 from constants.practice_one_info import practice_one_info
-from db.state import state
 from schemas import (
     StartEventDto,
     CheckpointData,
@@ -18,24 +18,22 @@ from schemas import (
     CheckpointResponse,
     ConnectedComputer,
     Step,
-    EventStatus,
     CurrentStepResponse,
-    IncotermInfoSummarize,
     Incoterm,
-    PR1ControlEvent, AllowedModes, MiniUser,
+    PR1ControlEvent,
+    AllowedModes,
+    MiniUser,
 )
 from db.mongo import get_db, CollectionNames
+from services import oauth2
 from services.create_event import create_event
-from services.event import EventService
 from services.oauth2 import extract_users_ids_rest
 from services.practice_one_class import PracticeOneClass
 from services.practice_one_control import PracticeOneControl
 from services.utils import normalize_mongo
-from services.ws import broadcast_connected_computers
+from db.state import WebsocketServiceState
 
 router = APIRouter(tags=['Events'], prefix='/events')
-
-event_service = EventService(db=get_db())
 
 logger = logging.getLogger(__name__)
 
@@ -47,31 +45,32 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
 
     event = create_event(event_dto=start_event_dto, users_ids=users_ids)
 
-    # connected_computer = ConnectedComputer(
-    #     id=start_event_dto.computer_id,
-    #     users_ids=event.users_ids,
-    #     event_type=event.event_type,
-    #     event_mode=event.event_mode,
-    #     step=event.current_step,
-    # )
-    # state.upsert_connected_computer(connected_computer)
+    connected_computer = ConnectedComputer(
+        id=start_event_dto.computer_id,
+        users_ids=event.users_ids,
+        event_type=event.event_type,
+        event_mode=event.event_mode,
+        step_code=event.current_step.code if isinstance(event.current_step, Step) else event.current_step,
+        event_id=event.id
+    )
+
+    WebsocketServiceState.upsert_connected_computer(connected_computer)
+    print(f"WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}")
+    await WebsocketServiceState.safe_broadcast_all_connected_computers()
 
     return StartEventResponse(event_id=event.id)
 
 
-@router.get("/allowed")
+@router.get('/allowed')
 async def get_allowed_modes(
-        users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
+    users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
 ) -> list[AllowedModes]:
     allowed_modes = [AllowedModes.PR1_CLASS, AllowedModes.PR1_CONTROL, AllowedModes.PR2_CLASS]
 
     for user_id in users_ids:
-        at_least_one_finished_pr1_class = db[CollectionNames.EVENTS.value].find_one({
-            "users_ids": { "$in": [user_id] },
-            "event_type": "PR1",
-            "event_mode": "CLASS",
-            "is_finished": True
-        })
+        at_least_one_finished_pr1_class = db[CollectionNames.EVENTS.value].find_one(
+            {'users_ids': {'$in': [user_id]}, 'event_type': 'PR1', 'event_mode': 'CLASS', 'is_finished': True}
+        )
         if at_least_one_finished_pr1_class is None:
             allowed_modes.remove(AllowedModes.PR1_CONTROL)
             allowed_modes.remove(AllowedModes.PR2_CLASS)
@@ -154,12 +153,17 @@ async def create_checkpoint(
 
     print(f'checkpoint_response={checkpoint_response}')
 
-    try:
-        state.update_connected_computer_checkpoint(checkpoint_dto.computer_id, checkpoint_response.next_step)
-    except:
-        pass  # Потом убрать!
+    connected_computer = ConnectedComputer(
+        id=event_info.computer_id,
+        users_ids=event_info.users_ids,
+        event_id=event_info.id,
+        event_type=event_info.event_type,
+        event_mode=event_info.event_mode,
+        step_code=event_info.current_step.code if isinstance(event_info.current_step, Step) else event_info.current_step,
+    )
 
-    await broadcast_connected_computers()
+    WebsocketServiceState.upsert_connected_computer(connected_computer)
+    await WebsocketServiceState.safe_broadcast_all_connected_computers()
 
     return checkpoint_response
 
@@ -290,35 +294,154 @@ async def continue_work(
             PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
 
 
-@router.get('/computers-states', response_model=list[ConnectedComputer])
+@router.get('/computers-states', response_model=list[schemas.ConnectedComputerFrontResponse])
 async def get_all_computers_states(db: Database = Depends(get_db)):
-    users_db = db[CollectionNames.USERS.value].find({"role": "STUDENT"}).sort({"created_at": -1}).limit(3)
-    users = normalize_mongo(users_db, MiniUser)
+    pr1_class_percentages = {
+        "SELECT_LOGIST":2,
+        "EXW_BUYER":6,
+        "EXW_SELLER":8,
+        "FCA_BUYER":10,
+        "FCA_SELLER":12,
+        "CPT_BUYER":14,
+        "CPT_SELLER":16,
+        "CIP_BUYER":18,
+        "CIP_SELLER":20,
+        "DAP_BUYER":22,
+        "DAP_SELLER":24,
+        "DPU_BUYER":26,
+        "DPU_SELLER":28,
+        "DDP_BUYER":30,
+        "DDP_SELLER":32,
+        "FAS_BUYER":34,
+        "FAS_SELLER":36,
+        "FOB_BUYER":38,
+        "FOB_SELLER":40,
+        "CFR_BUYER":42,
+        "CFR_SELLER":44,
+        "CIF_BUYER":46,
+        "CIF_SELLER":48,
+        "OPTIONS_COMPARISON":50,
+        "CONDITIONS_SELECTION":54,
+        "DESCRIBE_OPTION":58,
+        "TEST_1":60,
+        "TEST_2":62,
+        "TEST_3":64,
+        "TEST_4":66,
+        "TEST_5":68,
+        "TEST_6":70,
+        "TEST_7":72,
+        "TEST_8":74,
+        "TEST_9":76,
+        "TEST_10":78,
+        "TEST_11":80,
+        "TEST_12":82,
+        "TEST_13":84,
+        "TEST_14":86,
+        "TEST_15":88,
+        "TEST_16":90,
+        "TEST_17":92,
+        "TEST_18":94,
+        "TEST_19":96,
+        "TEST_20":98,
+        "FINISHED":100
+    }
 
-    connected_computers = [
-        ConnectedComputer(
-            id=1,
-            users=[users[0], users[1]],
-            event_type=EventType.PR1,
-            event_mode=EventMode.CLASS,
-            is_connected=True,
-            step_code="FCA_BUYER",
-            percentage=5,
-            is_searching_someone=False
-        ),
-        ConnectedComputer(
-            id=7,
-            users=[users[2]],
-            event_type=EventType.PR1,
-            event_mode=EventMode.CONTROL,
-            is_connected=False,
-            step_code="INCOTERM_DAP",
-            percentage=33,
-            is_searching_someone=False
+    def get_pr1_control_percentage(db: Database, event_id: str, step_code: str):
+        pr1_control_percentage = {
+            1:5,
+            2:20,
+            3:40,
+            "TEST_1":60,
+            "TEST_2":62,
+            "TEST_3":64,
+            "TEST_4":66,
+            "TEST_5":68,
+            "TEST_6":70,
+            "TEST_7":72,
+            "TEST_8":74,
+            "TEST_9":76,
+            "TEST_10":78,
+            "TEST_11":80,
+            "TEST_12":82,
+            "TEST_13":84,
+            "TEST_14":86,
+            "TEST_15":88,
+            "TEST_16":90,
+            "TEST_17":92,
+            "TEST_18":94,
+            "TEST_19":96,
+            "TEST_20":98,
+            "FINISHED":100,
+        }
+
+        if step_code in pr1_control_percentage:
+            return pr1_control_percentage[step_code]
+
+        event_db = db[CollectionNames.EVENTS.value].find_one({
+            "_id": ObjectId(event_id)
+        })
+
+        if event_db is None:
+            logger.info("Такого не должно быть #4556")
+            return 0
+
+        pr1_control_event = normalize_mongo(event_db, PR1ControlEvent)
+
+        step_index = len(pr1_control_event.steps_results)
+
+        if step_index in pr1_control_event:
+            return pr1_control_percentage[step_index]
+        else:
+            logger.info("Такого не должно быть #4599")
+            return 0
+
+    connected_computers = []
+
+    for connected_computer in WebsocketServiceState.connected_computers.values():
+        mini_users = []
+        for user_id in connected_computer.users_ids:
+            user_db = db[CollectionNames.USERS.value].find_one({
+                "_id": ObjectId(user_id)
+            })
+
+            if user_db is None:
+                logger.info("Не найден пользователь, такого не может быть. /computers-states")
+                continue
+
+            user = normalize_mongo(user_db, schemas.MiniUser)
+            mini_users.append(user)
+
+        if connected_computer.event_id is None or connected_computer.step_code is None:
+            print(connected_computer)
+            percentage = 0
+        elif connected_computer.event_type == EventType.PR1:
+            if connected_computer.event_mode == EventMode.CLASS:
+                percentage = pr1_class_percentages[connected_computer.step_code]
+            else:
+                percentage = get_pr1_control_percentage(db, connected_computer.event_id, connected_computer.step_code)
+        else:
+            percentage = 0
+            logger.info("Мы находимся в else, такого не может быть. #4445")
+
+        connected_computers.append(
+            schemas.ConnectedComputerFrontResponse(
+                **connected_computer.dict(),
+                users=mini_users,
+                percentage=percentage
+            )
         )
-    ]
 
     return connected_computers
+
+
+@router.post("/finish-events-by-teacher")
+async def finish_events_by_teacher(
+        _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+):
+    await WebsocketServiceState.safe_broadcast("FINISHED")
+    await asyncio.sleep(2)
+    await WebsocketServiceState.clean_all_connected_computers_and_active_connections()
+    await WebsocketServiceState.safe_broadcast_all_connected_computers()
 
 
 @router.get('/{event_id}')

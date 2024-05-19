@@ -151,7 +151,7 @@ def get_current_user_socket(token: str, db: Database = get_db()):
     return user
 
 
-def extract_ws_info(headers: Headers) -> (bool, List[schemas.UserOut]):
+def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
     """Extract users_ids by bearer tokens from ws headers"""
     db = get_db()
 
@@ -192,9 +192,10 @@ def extract_ws_info(headers: Headers) -> (bool, List[schemas.UserOut]):
         logger.info(f'users = {users}')
         raise Exception('Вы пытаетесь авторизоваться с одного и того же аккаунта дважды')
 
-    is_teacher = users[0].role == schemas.UserRole.TEACHER
+    for user in users:
+        if user.role == 'TEACHER':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail='Вебсокет предназначен только для студентов'
+            )
 
-    if is_teacher:
-        logger.info(f'Учитель с id {users[0].id} присоединился')
-
-    return is_teacher, users
+    return users

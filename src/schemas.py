@@ -43,10 +43,9 @@ class TextType(str, enum.Enum):
 
 
 class AllowedModes(str, enum.Enum):
-    PR1_CLASS = "PR1_CLASS"
-    PR1_CONTROL = "PR1_CONTROL"
-    PR2_CLASS = "PR2_CLASS"
-
+    PR1_CLASS = 'PR1_CLASS'
+    PR1_CONTROL = 'PR1_CONTROL'
+    PR2_CLASS = 'PR2_CLASS'
 
 
 class PR1ClassBetType(str, enum.Enum):
@@ -205,7 +204,19 @@ class MiniUser(UserBase):
 
 class ConnectedComputer(BaseModel):
     id: int
+    users_ids: list[str]
+    event_id: Optional[str]
+    event_type: Optional[EventType] = None
+    event_mode: Optional[EventMode] = None
+    is_connected: Optional[bool] = False
+    step_code: Optional[str] = None
+    is_searching_someone: bool = False
+
+
+class ConnectedComputerFrontResponse(BaseModel):
+    id: int
     users: list[MiniUser]
+    event_id: Optional[str] = None
     event_type: Optional[EventType] = None
     event_mode: Optional[EventMode] = None
     is_connected: Optional[bool] = False
