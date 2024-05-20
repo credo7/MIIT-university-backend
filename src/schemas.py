@@ -394,6 +394,7 @@ class RejectInvite(BaseModel):
 
 class GroupOut(GroupBase):
     id: str
+    is_hidden: Optional[bool] = False
 
 
 class EventCheckpoint(BaseModel):

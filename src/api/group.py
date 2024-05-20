@@ -1,6 +1,7 @@
 import logging
-from typing import List
+from typing import List, Optional
 
+from bson import ObjectId
 from fastapi import APIRouter, Depends, status, HTTPException
 from pymongo.database import Database
 
@@ -37,8 +38,28 @@ async def create(
     return group
 
 
+@router.post("/hide/{group_id}", status_code=status.HTTP_200_OK)
+async def hide_group(group_id: str, db: Database = Depends(get_db)):
+    group_db = db[CollectionNames.GROUPS.value].find_one_and_update({"_id": ObjectId(group_id)}, {
+        "$set": {"is_hidden": True}
+    })
+
+    if not group_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Группа не найдена')
+
+
+@router.post("/make-visible/{group_id}", status_code=status.HTTP_200_OK)
+async def unhide_group(group_id: str, db: Database = Depends(get_db)):
+    group_db = db[CollectionNames.GROUPS.value].find_one_and_update({"_id": ObjectId(group_id)}, {
+        "$set": {"is_hidden": False}
+    })
+
+    if not group_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Группа не найдена')
+
+
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])
-async def get_groups(db: Database = Depends(get_db)):
-    groups_db = db[CollectionNames.GROUPS.value].find()
+async def get_groups(show_hidden: Optional[bool] = False, db: Database = Depends(get_db)):
+    groups_db = db[CollectionNames.GROUPS.value].find({} if show_hidden else {"is_hidden": {"$ne": True}})
     groups = normalize_mongo(groups_db, schemas.GroupOut)
     return groups
