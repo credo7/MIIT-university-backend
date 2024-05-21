@@ -282,7 +282,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
                 for test_result in event.test_results:
                     current = schemas.TestCorrectsAndErrors(correct=0, error=0)
                     for step in test_result:
-                        if step.fails >= 3:
+                        if step.fails > 0:
                             current.error += 1
                         else:
                             current.correct += 1
