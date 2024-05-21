@@ -146,8 +146,19 @@ class PracticeOneClass:
                         role=StepRole.ALL,
                     )
 
+            print(f"steps={practice_one_info.steps[0]}")
+            print(f"current_step={event.current_step}")
+
             # Если этот чекпоинт завершен, то обновляем current_step
-            current_step_index = practice_one_info.steps.index(event.current_step)
+            current_step_index = None
+            for index, step in enumerate(practice_one_info.steps):
+                if step.code == event.current_step.code:
+                    current_step_index = index
+                    break
+
+            print(f"current_step_index={current_step_index}")
+
+            # current_step_index = practice_one_info.steps.index(event.current_step)
             if len(practice_one_info.steps) >= current_step_index + 2:
                 return practice_one_info.steps[current_step_index + 1]
             else:
