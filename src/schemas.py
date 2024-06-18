@@ -522,7 +522,7 @@ class Logist(BaseModel):
     letter: str
     types: list[str]
     header: str
-    body: list[BodyText]
+    body: str
 
 
 class OptionPR1(BaseModel):
@@ -554,7 +554,7 @@ class PR1ClassVariables(BaseModel):
     to_country: str
     product_price: int
     bets: list[PracticeOneBet]
-    logists: list[Logist]
+    logists: Optional[list[Logist]]
     tests: list[list[TestQuestionPR1]]
     zero_step: Step
 

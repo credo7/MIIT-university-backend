@@ -2495,7 +2495,7 @@ logists2 = [
     },
 ]
 
-raw_practice_one_info['logists'] = logists2
+# raw_practice_one_info['logists'] = logists2
 
 
 practice_one_info = PR1ClassInfo(**raw_practice_one_info)

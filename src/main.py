@@ -29,7 +29,6 @@ app.include_router(group.router)
 app.include_router(user.router)
 app.include_router(event.router)
 app.include_router(dev.router)
-# app.include_router(lesson.router)
 app.include_router(ws.router)
 
 
