@@ -15,6 +15,7 @@ from schemas import (
     EventType,
     EventMode,
     PR1ClassEvent,
+    PR2ClassEvent,
     CheckpointResponse,
     ConnectedComputer,
     Step,
@@ -30,6 +31,7 @@ from services.create_event import create_event
 from services.oauth2 import extract_users_ids_rest
 from services.practice_one_class import PracticeOneClass
 from services.practice_one_control import PracticeOneControl
+from services.practice_two_class import PracticeTwoClass
 from services.utils import normalize_mongo
 from db.state import WebsocketServiceState
 
@@ -43,7 +45,23 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
     if not users_ids:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Юзеры не найдены')
 
-    event = create_event(event_dto=start_event_dto, users_ids=users_ids)
+    if start_event_dto.type == EventType.PR1 and start_event_dto.mode == EventMode.CLASS:
+        event = PracticeOneClass(
+            computer_id=start_event_dto.computer_id, users_ids=users_ids
+        ).create(start_event_dto)
+    elif start_event_dto.type == EventType.PR1 and start_event_dto.mode == EventMode.CONTROL:
+        event = PracticeOneControl(
+            computer_id=start_event_dto.computer_id, users_ids=users_ids
+        ).create(start_event_dto)
+    elif start_event_dto.type == EventType.PR2 and start_event_dto.mode == EventMode.CLASS:
+        event = PracticeTwoClass(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(
+            start_event_dto
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'Неизвестный режим. type={start_event_dto.type}. mode={start_event_dto.mode}'
+        )
 
     connected_computer = ConnectedComputer(
         id=start_event_dto.computer_id,
@@ -105,20 +123,27 @@ async def get_current_step(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вариант не найден')
 
     event = normalize_mongo(event_db, EventInfo)
-    if event.event_type != EventType.PR1:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для PR1')
 
-    if event.event_type == EventType.PR1:
-        if event.event_mode == EventMode.CLASS:
-            pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
-            return PracticeOneClass(computer_id=pr1_class_event.computer_id, users_ids=users_ids).get_current_step(
-                pr1_class_event
-            )
-        elif event.event_mode == EventMode.CONTROL:
-            pr1_control_event = normalize_mongo(event_db, PR1ControlEvent)
-            return PracticeOneControl(computer_id=pr1_control_event.computer_id, users_ids=users_ids).get_current_step(
-                pr1_control_event
-            )
+    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CLASS:
+        pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
+        return PracticeOneClass(computer_id=pr1_class_event.computer_id, users_ids=users_ids).get_current_step(
+            pr1_class_event
+        )
+    elif event.event_type == EventType.PR1 and event.event_mode == EventMode.CONTROL:
+        pr1_control_event = normalize_mongo(event_db, PR1ControlEvent)
+        return PracticeOneControl(computer_id=pr1_control_event.computer_id, users_ids=users_ids).get_current_step(
+            pr1_control_event
+        )
+    elif event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
+        pr2_class_event = normalize_mongo(event_db, PR2ClassEvent)
+        return PracticeTwoClass(computer_id=pr2_class_event.computer_id, users_ids=users_ids).get_current_step(
+            pr2_class_event
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'Неизвестный режим. type={event.event_type}. mode={event.event_mode}'
+        )
 
 
 @router.post('/checkpoint', response_model=CheckpointResponse, status_code=status.HTTP_201_CREATED)
@@ -150,6 +175,11 @@ async def create_checkpoint(
             checkpoint_response = PracticeOneControl(
                 computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
             ).checkpoint(event, checkpoint_dto)
+    if event_info.event_type == EventType.PR2 and event_info.event_mode == EventMode.CLASS:
+        event = normalize_mongo(event_db, PR2ClassEvent)
+        checkpoint_response = PracticeTwoClass(
+            computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
+        ).checkpoint(event, checkpoint_dto)
 
     print(f'checkpoint_response={checkpoint_response}')
 
@@ -446,6 +476,7 @@ async def finish_events_by_teacher(
 
 @router.get('/{event_id}')
 async def get_event(event_id: str, db: Database = Depends(get_db)):
+    print(f"event_id={event_id}")
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:

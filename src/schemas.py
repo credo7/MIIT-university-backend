@@ -60,6 +60,80 @@ class CheckpointResponseStatus(str, enum.Enum):
     FAILED = 'FAILED'
 
 
+class PR2PointsCodes(str, enum.Enum):
+    CHINA_SHIJIAZHUANG_DEPARTURE_POINT = 'CHINA_SHIJIAZHUANG_DEPARTURE_POINT'
+    CHINA_JINAN_DEPARTURE_POINT = 'CHINA_JINAN_DEPARTURE_POINT'
+    CHINA_YIWU_DEPARTURE_POINT = 'CHINA_YIWU_DEPARTURE_POINT'
+    CHINA_BAODING_DEPARTURE_POINT = 'CHINA_BAODING_DEPARTURE_POINT'
+    JAPAN_KYOTO_DEPARTURE_POINT = 'JAPAN_KYOTO_DEPARTURE_POINT'
+    JAPAN_AYABE_DEPARTURE_POINT = 'JAPAN_AYABE_DEPARTURE_POINT'
+    JAPAN_ASAGO_DEPARTURE_POINT = 'JAPAN_ASAGO_DEPARTURE_POINT'
+    JAPAN_MATSUMOTO_DEPARTURE_POINT = 'JAPAN_MATSUMOTO_DEPARTURE_POINT'
+    SOUTH_KOREA_SUWON_SI_DEPARTURE_POINT = 'SOUTH_KOREA_SUWON_SI_DEPARTURE_POINT'
+    SOUTH_KOREA_DAEJEON_DEPARTURE_POINT = 'SOUTH_KOREA_DAEJEON_DEPARTURE_POINT'
+    SOUTH_KOREA_CHANGWON_SI_DEPARTURE_POINT = 'SOUTH_KOREA_CHANGWON_SI_DEPARTURE_POINT'
+    SOUTH_KOREA_GWANGJU_DEPARTURE_POINT = 'SOUTH_KOREA_GWANGJU_DEPARTURE_POINT'
+    POLAND_LODZ_DESTINATION_POINT = 'POLAND_LODZ_DESTINATION_POINT'
+    POLAND_OSTRAVA_DESTINATION_POINT = 'POLAND_OSTRAVA_DESTINATION_POINT'
+    GERMAN_LEIPZIG_DESTINATION_POINT = 'GERMAN_LEIPZIG_DESTINATION_POINT'
+    GERMAN_AUGSBURG_DESTINATION_POINT = 'GERMAN_AUGSBURG_DESTINATION_POINT'
+    FRANCE_LYON_DESTINATION_POINT = 'FRANCE_LYON_DESTINATION_POINT'
+    FRANCE_ROUEN_DESTINATION_POINT = 'FRANCE_ROUEN_DESTINATION_POINT'
+    NETHERLANDS_UTRETCH_DESTINATION_POINT = 'NETHERLANDS_UTRETCH_DESTINATION_POINT'
+    NETHERLANDS_HARLEM_DESTINATION_POINT = 'NETHERLANDS_HARLEM_DESTINATION_POINT'
+    BELGIUM_LEUVEN_DESTINATION_POINT = 'BELGIUM_LEUVEN_DESTINATION_POINT'
+    BELGIUM_GENT_DESTINATION_POINT = 'BELGIUM_GENT_DESTINATION_POINT'
+    CZECH_PARDUBICE_DESTINATION_POINT = 'CZECH_PARDUBICE_DESTINATION_POINT'
+    CZECH_PILSEN_DESTINATION_POINT = 'CZECH_PILSEN_DESTINATION_POINT'
+    AUSTRIA_LINZ_DESTINATION_POINT = 'AUSTRIA_LINZ_DESTINATION_POINT'
+    AUSTRIA_SAINT_POLTEN_DESTINATION_POINT = 'AUSTRIA_SAINT_POLTEN_DESTINATION_POINT'
+    CHINA_GUANGZHOU_PORT = 'CHINA_GUANGZHOU_PORT'
+    CHINA_NINGBO_PORT = 'CHINA_NINGBO_PORT'
+    CHINA_CHONGQING_PORT = 'CHINA_CHONGQING_PORT'
+    CHINA_QINGDAO_PORT = 'CHINA_QINGDAO_PORT'
+    JAPAN_AKITA_PORT = 'JAPAN_AKITA_PORT'
+    JAPAN_YOKOHAMA_PORT = 'JAPAN_YOKOHAMA_PORT'
+    JAPAN_KOBE_PORT = 'JAPAN_KOBE_PORT'
+    JAPAN_NAGOYA_PORT = 'JAPAN_NAGOYA_PORT'
+    SOUTH_KOREA_PUSAN_PORT = 'SOUTH_KOREA_PUSAN_PORT'
+    SOUTH_KOREA_INCHON_PORT = 'SOUTH_KOREA_INCHON_PORT'
+    RUSSIA_VLADIVOSTOK_PORT = 'RUSSIA_VLADIVOSTOK_PORT'
+    RUSSIA_VOSTOCHNYI_PORT = 'RUSSIA_VOSTOCHNYI_PORT'
+    BELARUS_BREST_BORDER = 'BELARUS_BREST_BORDER'
+    KAZAKHSTAN_DOSTIK_BORDER = 'KAZAKHSTAN_DOSTIK_BORDER'
+    UZBEKISTAN_ALTUNKUL_BORDER = 'UZBEKISTAN_ALTUNKUL_BORDER'
+    RUSSIA_NAUSHKI_BORDER = 'RUSSIA_NAUSHKI_BORDER'
+    RUSSIA_ZABAIKALSK_BORDER = 'RUSSIA_ZABAIKALSK_BORDER'
+    FAKE_INDIA_MUMBAI_PORT = 'FAKE_INDIA_MUMBAI_PORT'
+    FAKE_IRAN_BENDER_ABBAS_PORT = 'FAKE_IRAN_BENDER_ABBAS_PORT'
+    FAKE_GEORGIA_POTI_PORT = 'FAKE_GEORGIA_POTI_PORT'
+    FAKE_ROMANIA_CONSTANCA_PORT = 'FAKE_ROMANIA_CONSTANCA_PORT'
+    FAKE_BULGAR_BURGAS_PORT = 'FAKE_BULGAR_BURGAS_PORT'
+    FAKE_RUSSIA_KALININGRAD_PORT = 'FAKE_RUSSIA_KALININGRAD_PORT'
+    FAKE_RUSSIA_SPB_PORT = 'FAKE_RUSSIA_SPB_PORT'
+    FAKE_RUSSIA_ARCHANGELSK_PORT = 'FAKE_RUSSIA_ARCHANGELSK_PORT'
+    FAKE_RUSSIA_PETROPAVLIK_PORT = 'FAKE_RUSSIA_PETROPAVLIK_PORT'
+    FAKE_EGYPT_ALEKSANDIA_PORT = 'FAKE_EGYPT_ALEKSANDIA_PORT'
+    FAKE_FRANCE_MARSEL_PORT = 'FAKE_FRANCE_MARSEL_PORT'
+    FAKE_GERMAN_GAMBURG_PORT = 'FAKE_GERMAN_GAMBURG_PORT'
+    FAKE_NETHERLANDS_ROTERDAM_PORT = 'FAKE_NETHERLANDS_ROTERDAM_PORT'
+    FAKE_RUSSIA_NOVOROSSISK_PORT = 'FAKE_RUSSIA_NOVOROSSISK_PORT'
+    FAKE_RUSSIA_ASTRACHAN_PORT = 'FAKE_RUSSIA_ASTRACHAN_PORT'
+    FAKE_BELARUS_MINSK_TERMINAL = 'FAKE_BELARUS_MINSK_TERMINAL'
+    FAKE_RUSSIA_EKB_TERMINAL = 'FAKE_RUSSIA_EKB_TERMINAL'
+    FAKE_RUSSIA_TOMSK_TERMINAL = 'FAKE_RUSSIA_TOMSK_TERMINAL'
+    FAKE_RUSSIA_NOVOSIB_TERMINAL = 'FAKE_RUSSIA_NOVOSIB_TERMINAL'
+    FAKE_RUSSIA_KRASNOYARSK_TERMINAL = 'FAKE_RUSSIA_KRASNOYARSK_TERMINAL'
+    FAKE_RUSSIA_IRKUTSK_TERMINAL = 'FAKE_RUSSIA_IRKUTSK_TERMINAL'
+    FAKE_RUSSIA_HABAROVSK_TERMINAL = 'FAKE_RUSSIA_HABAROVSK_TERMINAL'
+    FAKE_RUSSIA_ORENBURG_TERMINAL = 'FAKE_RUSSIA_ORENBURG_TERMINAL'
+    FAKE_RUSSIA_SAMARA_TERMINAL = 'FAKE_RUSSIA_SAMARA_TERMINAL'
+    FAKE_RUSSIA_SARATOV_TERMINAL = 'FAKE_RUSSIA_SARATOV_TERMINAL'
+    FAKE_RUSSIA_KAZAN_TERMINAL = 'FAKE_RUSSIA_KAZAN_TERMINAL'
+    FAKE_RUSSIA_NIZNOVGOROD_TERMINAL = 'FAKE_RUSSIA_NIZNOVGOROD_TERMINAL'
+    FAKE_RUSSIA_YAKUTSK_TERMINAL = 'FAKE_RUSSIA_YAKUTSK_TERMINAL'
+
+
 class Incoterm(str, enum.Enum):
     EXW = 'EXW'
     FCA = 'FCA'
@@ -145,6 +219,46 @@ class PR1ControlStep(str, enum.Enum):
     TEST_8 = 'TEST_8'
     TEST_9 = 'TEST_9'
     TEST_10 = 'TEST_10'
+
+
+class PR2ClassStep(str, enum.Enum):
+    SCREEN_1_INSTRUCTION_WITH_LEGEND = 'SCREEN_1_INSTRUCTION_WITH_LEGEND'
+    SCREEN_2_SOURCE_DATA_MINI_ROUTES = 'SCREEN_2_TASK_DESCRIPTION'
+    SCREEN_3_SOURCE_DATA_FULL_ROUTES = 'SCREEN_3_SOURCE_DATA_FULL_ROUTES'
+    SCREEN_4_20_FOOT_CONTAINER_1_LOADING_VOLUME = 'SCREEN_4_20_FOOT_CONTAINER_1_LOADING_VOLUME'
+    SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME = 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME'
+    SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER = 'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER'
+    SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION = 'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION'
+    SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY = 'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY'
+    SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME = 'SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME'
+    SCREEN_4_40_FOOT_CONTAINER_2_PACKAGE_VOLUME = 'SCREEN_4_40_FOOT_CONTAINER_2_PACKAGE_VOLUME'
+    SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER = 'SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER'
+    SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION = 'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION'
+    SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY = 'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY'
+    SCREEN_6_DESCRIBE_CONTAINER_SELECTION = 'SCREEN_6_DESCRIBE_CONTAINER_SELECTION'
+    SCREEN_7_20_CONTAINERS_NUMBER = 'SCREEN_7_20_CONTAINERS_NUMBER'
+    SCREEN_7_40_CONTAINERS_NUMBER = 'SCREEN_7_40_CONTAINERS_NUMBER'
+    SCREEN_8_SOURCE_DATA_CHOOSE = 'SCREEN_8_SOURCE_DATA_CHOOSE'
+    SCREEN_9_MAP_ROUTE_1 = 'SCREEN_9_MAP_ROUTE_1'
+    SCREEN_9_MAP_ROUTE_2 = 'SCREEN_9_MAP_ROUTE_2'
+    SCREEN_9_MAP_ROUTE_3 = 'SCREEN_9_MAP_ROUTE_3'
+    SCREEN_9_MAP_ROUTE_4 = 'SCREEN_9_MAP_ROUTE_4'
+    SCREEN_9_MAP_ROUTE_5 = 'SCREEN_9_MAP_ROUTE_5'
+    SCREEN_9_MAP_ROUTE_6 = 'SCREEN_9_MAP_ROUTE_6'
+    SCREEN_9_MAP_ROUTE_7 = 'SCREEN_9_MAP_ROUTE_7'
+    SCREEN_9_MAP_ROUTE_8 = 'SCREEN_9_MAP_ROUTE_8'
+    SCREEN_11_RISKS_1 = 'SCREEN_11_RISKS_1'
+    SCREEN_11_RISKS_2 = 'SCREEN_11_RISKS_2'
+    SCREEN_11_RISKS_3 = 'SCREEN_11_RISKS_3'
+    SCREEN_11_RISKS_4 = 'SCREEN_11_RISKS_4'
+    SCREEN_11_RISKS_5 = 'SCREEN_11_RISKS_5'
+    SCREEN_11_RISKS_6 = 'SCREEN_11_RISKS_6'
+    SCREEN_11_RISKS_7 = 'SCREEN_11_RISKS_7'
+    SCREEN_11_RISKS_8 = 'SCREEN_11_RISKS_8'
+    SCREEN_11_FULL_ROUTES_WITH_PLS = 'SCREEN_11_FULL_ROUTES_WITH_PLS'
+    SCREEN_12_OPTIMAL_RESULTS = 'SCREEN_12_OPTIMAL_RESULTS'
+    SCREEN_13_OPTIMAL_WITH_RISKS = 'SCREEN_13_OPTIMAL_WITH_RISKS'
+    SCREEN_14_CHOOSE_LOGIST = 'SCREEN_14_CHOOSE_LOGIST'
 
 
 class WSCommandTypes(str, enum.Enum):
@@ -430,8 +544,8 @@ class StepRole(str, enum.Enum):
 class Step(BaseModel):
     id: int
     code: str
-    name: str
-    role: StepRole
+    name: Optional[str]
+    role: Optional[StepRole] = None
 
 
 class SubResult(BaseModel):
@@ -932,6 +1046,21 @@ class PR1ClassInfo(BaseModel):
     hints: dict[Incoterm, str]
 
 
+class PR2Point(BaseModel):
+    code: str
+    country: str
+    city: str
+    type: str
+    is_fake: bool
+
+
+class PR2ClassInfo(BaseModel):
+    legend: str
+    explanation: str
+    steps_codes: list[str]
+    all_points: list[PR2Point]
+
+
 class PR1ControlInfo(BaseModel):
     steps: list[Step]
     control_test_questions: list[TestQuestionPR1]
@@ -1006,7 +1135,7 @@ class UserChangePassword(BaseModel):
 class CheckpointData(BaseModel):
     computer_id: int
     event_id: str
-    step_code: Union[PR1ClassStep, PR1ControlStep]
+    step_code: Union[PR1ClassStep, PR1ControlStep, PR2ClassStep]
     text: Optional[str]
     answer_ids: Optional[list[int]] = []
     chosen_index: Optional[int]
@@ -1076,6 +1205,81 @@ class PR1ClassEvent(EventInfo):
     results: Optional[list[PR1ClassResults]] = []
 
 
+class PackageSize(BaseModel):
+    length: float
+    width: float
+    height: float
+
+
+class BestPL(BaseModel):
+    index: int
+    value: int
+
+
+class MiniRoute(BaseModel):
+    from_country: str
+    to_country: str
+    weight_in_ton: int
+    best_pls: list[BestPL]
+    tons: int
+    n_40_foot_containers: int
+
+
+class FullRoute(BaseModel):
+    through: str
+    country_from: str
+    weight_in_tons: int
+    country_to: str
+    points: list[PR2Point]
+    three_pls_bets: list[Optional[int]]
+
+
+class PR2Risk(BaseModel):
+    text: str
+    code: str
+
+
+class PR2SourceData(BaseModel):
+    mini_routes: list[MiniRoute]
+    full_routes: list[FullRoute]
+    package_size: PackageSize
+    package_weight_in_ton: float
+    number_of_packages_in_20_foot_container: int
+    number_of_packages_in_40_foot_container: int
+
+
+class PR2ClassEvent(EventInfo):
+    legend: str
+    explanation: str
+    source_data: PR2SourceData
+
+
+class FormulaRow(BaseModel):
+    name: str
+    formula: str
+
+
+class ContainerResult(BaseModel):
+    header: str
+    rows: list[FormulaRow]
+
+
+class PLRoute(BaseModel):
+    supply_chain: str
+    route_number: int
+    through: str
+    provider: str
+    containers_num: int
+    pl_bet: int
+    delivery_price_formula: str
+
+
+class PLOption(BaseModel):
+    name: str
+    formula: str
+    right_indexes: list[int]
+
+
 class CurrentStepResponse(BaseModel):
     is_finished: bool = False
     current_step: Optional[Union[Step, str]]
@@ -1093,6 +1297,47 @@ class CurrentStepResponse(BaseModel):
     right_formula: Optional[str]
     right_formula_with_nums: Optional[str]
     image_name: Optional[str]
+    explanation: Optional[str]
+    transport_package_info_text: Optional[str]
+    screen_texts: Optional[list[str]]
+    mini_routes: Optional[list[MiniRoute]]
+    full_routes: Optional[list[FullRoute]]
+    suggested_services: Optional[list[PR2Point]]
+    container_foots: Optional[int]
+    container_length: Optional[float]
+    container_width: Optional[float]
+    container_height: Optional[float]
+    container_load_capacity: Optional[float]
+
+    loading_volume: Optional[float]
+    package_volume: Optional[float]
+    number_of_packages_in_container: Optional[int]
+
+    package_length: Optional[float]
+    package_width: Optional[float]
+    package_height: Optional[float]
+    package_weight_in_ton: Optional[float]
+
+    containers_results: Optional[list[ContainerResult]]
+
+    points_codes_to_show: Optional[list[PR2PointsCodes]]
+
+    start_point_code: Optional[PR2PointsCodes]
+    end_point_code: Optional[PR2PointsCodes]
+    route_length: Optional[int]
+    right_route_codes: Optional[list[PR2PointsCodes]]
+
+    current_route: Optional[FullRoute]
+    risks: Optional[list[PR2Risk]]
+
+    pl_routes: Optional[list[PLRoute]]
+
+    pl_options: Optional[list[PLOption]]
+
+    pl1_formula: Optional[str]
+    pl2_formula: Optional[str]
+    pl3_formula: Optional[str]
+    combo_formula: Optional[str]
 
 
 class CheckpointResponse(BaseModel):

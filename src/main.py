@@ -38,4 +38,4 @@ app.add_middleware(ErrorLogHandlingMiddleware)
 import uvicorn
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=settings.api_port)
+    uvicorn.run(app, host='0.0.0.0', port=80)  # settings.api_port)

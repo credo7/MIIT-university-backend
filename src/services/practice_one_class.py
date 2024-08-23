@@ -33,7 +33,8 @@ from schemas import (
     Step,
     StepRole,
     CurrentStepResponse,
-    IncotermInfoSummarize, PR1ClassStep,
+    IncotermInfoSummarize,
+    PR1ClassStep,
 )
 from services.utils import normalize_mongo, format_with_spaces
 
@@ -47,9 +48,7 @@ class PracticeOneClass:
     def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
         variables = self.prepare_event_variables()
 
-        current_step = Step(
-            id=0, code=f'SELECT_LOGIST', name=f'Выбор логиста', role=StepRole.ALL
-        )
+        current_step = Step(id=0, code=f'SELECT_LOGIST', name=f'Выбор логиста', role=StepRole.ALL)
 
         event = PR1ClassEvent(
             computer_id=self.computer_id,
@@ -146,8 +145,8 @@ class PracticeOneClass:
                         role=StepRole.ALL,
                     )
 
-            print(f"steps={practice_one_info.steps[0]}")
-            print(f"current_step={event.current_step}")
+            print(f'steps={practice_one_info.steps[0]}')
+            print(f'current_step={event.current_step}')
 
             # Если этот чекпоинт завершен, то обновляем current_step
             current_step_index = None
@@ -156,7 +155,7 @@ class PracticeOneClass:
                     current_step_index = index
                     break
 
-            print(f"current_step_index={current_step_index}")
+            print(f'current_step_index={current_step_index}')
 
             # current_step_index = practice_one_info.steps.index(event.current_step)
             if len(practice_one_info.steps) >= current_step_index + 2:
