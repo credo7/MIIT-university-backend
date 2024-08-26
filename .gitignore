@@ -132,8 +132,10 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+db
 app/.env
 .venv
+.venv/
 env/
 venv/
 ENV/
@@ -171,3 +173,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 /db/
+/.venv/

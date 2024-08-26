@@ -1,0 +1,356 @@
+{
+  "bets": [
+    {
+      "name": "Упаковка и маркировка товара на складе продавца",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": [],
+        "seller": [
+          "EXW",
+          "FCA",
+          "CPT",
+          "CIP",
+          "DAP",
+          "DPU",
+          "DDP",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF"
+        ]
+      }
+    },
+    {
+      "name": "Погрузка на транспортное средство внутренней перевозки (Pre-Carriage)",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": ["EXW"],
+        "seller": [
+          "FCA",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "DPU",
+          "DAP",
+          "CPT",
+          "CIP",
+          "DDP"
+        ]
+      }
+    },
+    {
+      "name": "Внутренняя перевозка",
+      "value": {
+        "min": 1000,
+        "max": 9900,
+        "step": 100
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA"],
+        "seller": [
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "DPU",
+          "DAP",
+          "CPT",
+          "CIP",
+          "DDP"
+        ]
+      }
+    },
+    {
+      "name": "Выгрузка с транспортного средства внутренней перевозки",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA"],
+        "seller": [
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "DPU",
+          "DAP",
+          "CPT",
+          "CIP",
+          "DDP"
+        ]
+      }
+    },
+    {
+      "name": "Экспортное таможенное оформление",
+      "value": {
+        "min": 100,
+        "max": 990,
+        "step": 10
+      },
+      "incoterms": {
+        "buyer": ["EXW"],
+        "seller": [
+          "FCA",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "DPU",
+          "DAP",
+          "CPT",
+          "CIP",
+          "DDP"
+        ]
+      }
+    },
+    {
+      "name": "Погрузка на транспортное средство основной перевозки (Main Carriage)",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA", "FAS"],
+        "seller": ["FOB", "CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+      }
+    },
+    {
+      "name": "Основная перевозка (морской фрахт)",
+      "value": {
+        "min": 10000,
+        "max": 99000,
+        "step": 1000
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA", "FAS", "FOB"],
+        "seller": ["CFR", "CIF", "DPU", "DAP", "CPT", "CIP", "DDP"]
+      }
+    },
+    {
+      "name": "Основная перевозка (наземная, авиа)",
+      "value": {
+        "min": 10000,
+        "max": 99000,
+        "step": 1000
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA"],
+        "seller": ["DPU", "DAP", "CPT", "CIP", "DDP"]
+      }
+    },
+    {
+      "name": "Страхование",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": [],
+        "seller": ["CIP", "CIF"]
+      }
+    },
+    {
+      "name": "Выгрузка с транспортного средства основной перевозки ",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "CPT", "CIP"],
+        "seller": ["DAP", "DPU", "DDP"]
+      }
+    },
+    {
+      "name": "Погрузка на транспортное средство перевозки до места назначения (On-carriage)",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "CPT", "CIP"],
+        "seller": ["DAP", "DPU", "DDP"]
+      }
+    },
+    {
+      "name": "Импортное таможенное оформление",
+      "value": {
+        "min": 100,
+        "max": 990,
+        "step": 10
+      },
+      "incoterms": {
+        "buyer": [
+          "EXW",
+          "FCA",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "CPT",
+          "CIP",
+          "DAP",
+          "DPU"
+        ],
+        "seller": ["DDP"]
+      }
+    },
+    {
+      "name": "Перевозка до места назначения ",
+      "value": {
+        "min": 1000,
+        "max": 9900,
+        "step": 100
+      },
+      "incoterms": {
+        "buyer": ["EXW", "FCA", "FAS", "FOB", "CFR", "CIF", "CPT", "CIP"],
+        "seller": ["DAP", "DPU", "DDP"]
+      }
+    },
+    {
+      "name": "Выгрузка из транспортного средства в месте назначения",
+      "value": {
+        "min": 10,
+        "max": 95,
+        "step": 5
+      },
+      "incoterms": {
+        "buyer": [
+          "EXW",
+          "FCA",
+          "FAS",
+          "FOB",
+          "CFR",
+          "CIF",
+          "DDP",
+          "DAP",
+          "CPT",
+          "CIP"
+        ],
+        "seller": ["DPU"]
+      }
+    }
+  ],
+  "steps": [
+  {
+    "index": 1,
+    "code": "BUYER_TABLE_1",
+    "name": "",
+    "role": "BUYER"
+  },
+  {
+    "index": 2,
+    "code": "SELLER_TABLE_1",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 3,
+    "code": "BUYER_TABLE_2",
+    "name": "BUYER",
+    "role": ""
+  },
+  {
+    "index": 4,
+    "code": "SELLER_TABLE_2",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 5,
+    "code": "BUYER_TABLE_3",
+    "name": "",
+    "role": "BUYER"
+  },
+  {
+    "index": 6,
+    "code": "SELLER_TABLE_3",
+    "name": "",
+    "role": "SELLER"
+  },
+  {
+    "index": 7,
+    "code": "RIGHT_OPTION",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 8,
+    "code": "TESTS_1",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 9,
+    "code": "TESTS_2",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 10,
+    "code": "TESTS_3",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 11,
+    "code": "TESTS_4",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 12,
+    "code": "TESTS_5",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 13,
+    "code": "TESTS_6",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 14,
+    "code": "TESTS_7",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 15,
+    "code": "TESTS_8",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 16,
+    "code": "TESTS_9",
+    "name": "",
+    "role": "ALL"
+  },
+  {
+    "index": 17,
+    "code": "TESTS_10",
+    "name": "",
+    "role": "ALL"
+  }
+],
+  "legend_pattern": "Российский Покупатель рассматривает заключение контракта с иностранным Продавцом на поставку партии товара ({0}) из {1} в {2}. Стоимость партии товара – {3} у.е.",
+  "test_questions": [],
+  "logists": [],
+  "all_incoterms": ["EXW", "FCA", "CPT", "CIP", "DAP", "DPU", "DDP", "FAS", "FOB", "CFR", "CIF"]
+}

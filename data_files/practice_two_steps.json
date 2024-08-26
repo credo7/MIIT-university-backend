@@ -1,0 +1,44 @@
+[
+  {
+    "index": 1,
+    "type": 2,
+    "code": "BETS_TABLE",
+    "name": ""
+  },
+  {
+    "index": 2,
+    "type": 2,
+    "code": "CONTAINER_CALCULATIONS_TABLE",
+    "name": ""
+  },
+  {
+    "index": 3,
+    "type": 2,
+    "code": "CONTAINERS_COUNT_TABLE",
+    "name": ""
+  },
+  {
+    "index": 4,
+    "type": 2,
+    "code": "MAP_ROUTES_TABLE",
+    "name": ""
+  },
+  {
+    "index": 5,
+    "type": 2,
+    "code": "BETS_DAYS_RISKS_TABLE",
+    "name": ""
+  },
+  {
+    "index": 6,
+    "type": 2,
+    "code": "ROUTES_CALCULATIONS_TABLE",
+    "name": ""
+  },
+  {
+    "index": 7,
+    "type": 2,
+    "code": "TOTAL_PRICES_TABLE",
+    "name": ""
+  }
+]
