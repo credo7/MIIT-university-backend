@@ -7,7 +7,7 @@ from constants.pr2_class_info import pr2_class_info
 from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
-    CheckpointResponse, EventStepResult, EventInfo
+    CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus
 from services.utils import normalize_mongo
 
 
@@ -20,6 +20,27 @@ class PracticeTwoClass:
     @staticmethod
     def _get_next_code_by_id(index):
         return pr2_class_info.steps_codes[index]
+
+    @staticmethod
+    def handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step):
+        last_step_result = event.steps_results[-1]
+        is_last_attempt = (event.current_step.code == last_step_result.step_code and last_step_result.fails == 2)
+
+        if event.current_step.code != last_step_result.step_code:
+            event.steps_results.append(
+                EventStepResult(step_code=event.current_step.code, users_ids=event.users_ids, fails=0))
+
+        if is_last_attempt or not is_failed:
+            event.current_step = next_step
+            checkpoint_response.next_step = next_step
+
+        if is_failed:
+            checkpoint_response.status = (
+                CheckpointResponseStatus.FAILED.value if is_last_attempt
+                else CheckpointResponseStatus.TRY_AGAIN.value
+            )
+        else:
+            checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
     def checkpoint(self, event: Union[PR2ClassEvent, Type[PR2ClassEvent]], checkpoint_dto: CheckpointData):
         checkpoint_response = CheckpointResponse()
@@ -50,290 +71,374 @@ class PracticeTwoClass:
             event.current_step = next_step
 
         if checkpoint_dto.step_code == 'SCREEN_3_SOURCE_DATA_FULL_ROUTES':
-            next_step = Step(
-                id=3,
-                code=self._get_next_code_by_id(3),
-            )
-            checkpoint_response.next_step = next_step
-            event.steps_results.append(
-                EventStepResult(step_code=event.current_step.code, users_ids=event.users_ids, fails=0, )
-            )
-            event.current_step = next_step
+            next_step = Step(id=3, code=self._get_next_code_by_id(3))
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_1_LOADING_VOLUME':
-            next_step = Step(
-                id=4,
-                code=self._get_next_code_by_id(4),
-            )
-            checkpoint_response.next_step = next_step
-            event.steps_results.append(
-                EventStepResult(step_code=event.current_step.code, users_ids=event.users_ids, fails=0, )
-            )
-            event.current_step = next_step
+            next_step = Step(id=4, code=self._get_next_code_by_id(4))
+
+            is_failed = checkpoint_dto.formula not in [
+                '5.9*2.33*2.35',
+                '5.9*2.33*2.35',
+                '2.33*5.9*2.35',
+                '2.33*2.35*5.9',
+                '5.9*2.33*2.35',
+                '5.9*2.35*2.33',
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME':
-            next_step = Step(
-                id=5,
-                code=self._get_next_code_by_id(5),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=5, code=self._get_next_code_by_id(5),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.package_size.length}*{event.source_data.package_size.width}*{event.source_data.package_size.height}",
+                f"{event.source_data.package_size.length}*{event.source_data.package_size.height}*{event.source_data.package_size.width}",
+                f"{event.source_data.package_size.height}*{event.source_data.package_size.width}*{event.source_data.package_size.length}",
+                f"{event.source_data.package_size.height}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
+                f"{event.source_data.package_size.width}*{event.source_data.package_size.height}*{event.source_data.package_size.length}",
+                f"{event.source_data.package_size.width}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER':
-            next_step = Step(
-                id=6,
-                code=self._get_next_code_by_id(6),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=6, code=self._get_next_code_by_id(6),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"5.9/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
+                f"5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
+                f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}",
+                f"2.35/{event.source_data.package_size.height}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+                f"2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}*5.9/{event.source_data.package_size.length}",
+                f"2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION':
-            next_step = Step(
-                id=7,
-                code=self._get_next_code_by_id(7),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=7, code=self._get_next_code_by_id(7),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.transport_package_volume}/{event.source_data.loading_volume_20_foot_container}*{event.source_data.number_of_packages_in_20_foot_container}",
+                f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.transport_package_volume}/{event.source_data.loading_volume_20_foot_container}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY':
-            next_step = Step(
-                id=8,
-                code=self._get_next_code_by_id(8),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=8, code=self._get_next_code_by_id(8),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}/21.8",
+                f"{event.source_data.package_weight_in_ton}/21.8*{event.source_data.number_of_packages_in_20_foot_container}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME':
-            next_step = Step(
-                id=9,
-                code=self._get_next_code_by_id(9),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=9, code=self._get_next_code_by_id(9),)
+
+            is_failed = checkpoint_dto.formula not in [
+                '12*2.33*2.35',
+                '12*2.33*2.35',
+                '2.33*12*2.35',
+                '2.33*2.35*12',
+                '12*2.33*2.35',
+                '12*2.35*2.33',
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_2_PACKAGE_VOLUME':
-            next_step = Step(
-                id=10,
-                code=self._get_next_code_by_id(10),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=10, code=self._get_next_code_by_id(10),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.package_size.length}*{event.source_data.package_size.width}*{event.source_data.package_size.height}",
+                f"{event.source_data.package_size.length}*{event.source_data.package_size.height}*{event.source_data.package_size.width}",
+                f"{event.source_data.package_size.height}*{event.source_data.package_size.width}*{event.source_data.package_size.length}",
+                f"{event.source_data.package_size.height}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
+                f"{event.source_data.package_size.width}*{event.source_data.package_size.height}*{event.source_data.package_size.length}",
+                f"{event.source_data.package_size.width}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER':
-            next_step = Step(
-                id=11,
-                code=self._get_next_code_by_id(11),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=11, code=self._get_next_code_by_id(11),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"12/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
+                f"12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
+                f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}",
+                f"2.35/{event.source_data.package_size.height}*12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+                f"2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}*12/{event.source_data.package_size.length}",
+                f"2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION':
-            next_step = Step(
-                id=12,
-                code=self._get_next_code_by_id(12),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=12, code=self._get_next_code_by_id(12),)
+
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.transport_package_volume}/{event.source_data.loading_volume_40_foot_container}*{event.source_data.number_of_packages_in_40_foot_container}",
+                f"{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.transport_package_volume}/{event.source_data.loading_volume_40_foot_container}",
+            ]
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY':
-            next_step = Step(
-                id=13,
-                code=self._get_next_code_by_id(13),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            next_step = Step(id=13, code=self._get_next_code_by_id(13),)
 
-        if checkpoint_dto.step_code == 'SCREEN_6_DESCRIBE_CONTAINER_SELECTION':
-            next_step = Step(
-                id=14,
-                code=self._get_next_code_by_id(14),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            is_failed = checkpoint_dto.formula not in [
+                f"{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}/21.8",
+                f"{event.source_data.package_weight_in_ton}/21.8*{event.source_data.number_of_packages_in_40_foot_container}",
+            ]
 
-        if checkpoint_dto.step_code == 'SCREEN_7_20_CONTAINERS_NUMBER':
-            next_step = Step(
-                id=15,
-                code=self._get_next_code_by_id(15),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_7_40_CONTAINERS_NUMBER':
-            next_step = Step(
-                id=16,
-                code=self._get_next_code_by_id(16),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
+            next_step = Step(id=14, code=self._get_next_code_by_id(14),)
 
-        if checkpoint_dto.step_code == 'SCREEN_8_SOURCE_DATA_CHOOSE':
-            next_step = Step(
-                id=17,
-                code=self._get_next_code_by_id(17),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_1':
-            next_step = Step(
-                id=18,
-                code=self._get_next_code_by_id(18),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_6_20_CONTAINERS_NUMBER':
+            next_step = Step(id=15, code=self._get_next_code_by_id(15),)
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_2':
-            next_step = Step(
-                id=19,
-                code=self._get_next_code_by_id(19),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            if len(checkpoint_dto.formulas) < 5:
+                raise Exception("Ожидается 5 формул")
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_3':
-            next_step = Step(
-                id=20,
-                code=self._get_next_code_by_id(20),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            right_answers = [
+                [
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                 ],
+                [
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
+                ]
+            ]
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_4':
-            next_step = Step(
-                id=21,
-                code=self._get_next_code_by_id(21),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            is_failed = False
+            for i, formula in enumerate(checkpoint_dto.formulas):
+                if formula not in right_answers[i]:
+                    is_failed = True
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_5':
-            next_step = Step(
-                id=22,
-                code=self._get_next_code_by_id(22),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_6':
-            next_step = Step(
-                id=23,
-                code=self._get_next_code_by_id(23),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER':
+            next_step = Step(id=16, code=self._get_next_code_by_id(16),)
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_7':
-            next_step = Step(
-                id=24,
-                code=self._get_next_code_by_id(24),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            if len(checkpoint_dto.formulas) < 5:
+                raise Exception("Ожидается 5 формул")
 
-        if checkpoint_dto.step_code == 'SCREEN_9_MAP_ROUTE_8':
-            next_step = Step(
-                id=25,
-                code=self._get_next_code_by_id(25),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            right_answers = [
+                [
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ],
+                [
+                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
+                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
+            ]
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_1':
-            next_step = Step(
-                id=26,
-                code=self._get_next_code_by_id(26),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            is_failed = False
+            for i, formula in enumerate(checkpoint_dto.formulas):
+                if formula not in right_answers[i]:
+                    is_failed = True
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_2':
-            next_step = Step(
-                id=27,
-                code=self._get_next_code_by_id(27),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_3':
-            next_step = Step(
-                id=28,
-                code=self._get_next_code_by_id(28),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
+            next_step = Step(id=17, code=self._get_next_code_by_id(17),)
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_4':
-            next_step = Step(
-                id=29,
-                code=self._get_next_code_by_id(29),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            right_departure_points_codes = [
+                event.source_data.full_routes[0].points[0].code,
+                event.source_data.full_routes[4].points[0].code,
+                event.source_data.full_routes[6].points[0].code
+            ]
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_5':
-            next_step = Step(
-                id=30,
-                code=self._get_next_code_by_id(30),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            right_destination_points_codes = [
+                event.source_data.full_routes[0].points[-1].code,
+                event.source_data.full_routes[4].points[-1].code,
+                event.source_data.full_routes[5].points[-1].code,
+                event.source_data.full_routes[6].points[-1].code,
+                event.source_data.full_routes[7].points[-1].code,
+            ]
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_6':
-            next_step = Step(
-                id=31,
-                code=self._get_next_code_by_id(31),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            right_ports_codes = set([p for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
+            right_borders_codes = set()
+            for r in event.source_data.full_routes:
+                for p in r.points:
+                    if p.type == "PORT":
+                        right_ports_codes.add(p.code)
+                    if p.type == "BORDER":
+                        right_borders_codes.add(p.code)
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_7':
-            next_step = Step(
-                id=32,
-                code=self._get_next_code_by_id(32),
+            is_failed = (
+                    len(checkpoint_dto.source_data_choose_screen.departure_points_codes) != 3 or
+                    len(checkpoint_dto.source_data_choose_screen.destination_points_codes) != 5 or
+                    len(checkpoint_dto.source_data_choose_screen.ports_points_codes) != len(right_ports_codes) or
+                    len(checkpoint_dto.source_data_choose_screen.borders_points_codes) != len(right_borders_codes)
             )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
 
-        if checkpoint_dto.step_code == 'SCREEN_11_RISKS_8':
-            next_step = Step(
-                id=33,
-                code=self._get_next_code_by_id(33),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            if (
+                checkpoint_dto.source_data_choose_screen.departure_points_codes != right_departure_points_codes or
+                checkpoint_dto.source_data_choose_screen.destination_points_codes != right_destination_points_codes or
+                set(checkpoint_dto.source_data_choose_screen.ports_points_codes) != right_ports_codes or
+                set(checkpoint_dto.source_data_choose_screen.borders_points_codes) != right_borders_codes
+            ):
+                is_failed = True
 
-        if checkpoint_dto.step_code == 'SCREEN_11_FULL_ROUTES_WITH_PLS':
-            next_step = Step(
-                id=34,
-                code=self._get_next_code_by_id(34),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_RESULTS':
-            next_step = Step(
-                id=35,
-                code=self._get_next_code_by_id(35),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_1':
+            next_step = Step(id=18, code=self._get_next_code_by_id(18),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[0].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_13_OPTIMAL_WITH_RISKS':
-            next_step = Step(
-                id=36,
-                code=self._get_next_code_by_id(36),
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_2':
+            next_step = Step(id=19, code=self._get_next_code_by_id(19),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[1].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        if checkpoint_dto.step_code == 'SCREEN_14_CHOOSE_LOGIST':
-            next_step = Step(
-                id=-1,
-                code='FINISH',
-            )
-            checkpoint_response.next_step = next_step
-            event.current_step = next_step
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
+            next_step = Step(id=20, code=self._get_next_code_by_id(20),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[2].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_4':
+            next_step = Step(id=21, code=self._get_next_code_by_id(21),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[3].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_5':
+            next_step = Step(id=22, code=self._get_next_code_by_id(22),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[4].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_6':
+            next_step = Step(id=23, code=self._get_next_code_by_id(23),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[5].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_7':
+            next_step = Step(id=24, code=self._get_next_code_by_id(24),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[6].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
+            next_step = Step(id=25, code=self._get_next_code_by_id(25),)
+            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[7].points]
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_1':
+            next_step = Step(id=26, code=self._get_next_code_by_id(26),)
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_2':
+            next_step = Step(id=27, code=self._get_next_code_by_id(27),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_3':
+            next_step = Step(id=28, code=self._get_next_code_by_id(28),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_4':
+            next_step = Step(id=29, code=self._get_next_code_by_id(29),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_5':
+            next_step = Step(id=30, code=self._get_next_code_by_id(30),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_6':
+            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_7':
+            next_step = Step(id=32, code=self._get_next_code_by_id(32),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_8':
+            next_step = Step(id=33, code=self._get_next_code_by_id(33),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
+            next_step = Step(id=34, code=self._get_next_code_by_id(34),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS':
+            next_step = Step(id=35, code=self._get_next_code_by_id(35),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
+            next_step = Step(id=36, code=self._get_next_code_by_id(36),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
+            next_step = Step(id=-1, code='FINISH',)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
@@ -398,19 +503,11 @@ class PracticeTwoClass:
         package_size = self.get_random_package_size()
         package_weight_in_ton = random.randint(1, 9) / 10
 
-        print(f"package_size.length={package_size.length}")
-        print(f"package_size.width={package_size.width}")
-        print(f"package_size.height={package_size.height}")
-
         n_of_transport_packages_in_container_20 = math.floor(
             (5.9 / package_size.length)
             * (2.33 / package_size.width)
             * (2.35 / package_size.height)
         )
-
-        print(f"package_size.length={package_size.length}")
-        print(f"package_size.width={package_size.width}")
-        print(f"package_size.height={package_size.height}")
 
         n_of_transport_packages_in_container_40 = math.floor(
             (12 / package_size.length)
@@ -493,13 +590,18 @@ class PracticeTwoClass:
             )
         ]
 
+        transport_package_volume = package_size.length * package_size.width * package_size.height
+
         source_data = PR2SourceData(
             mini_routes=mini_routes,
             full_routes=full_routes,
             package_size=package_size,
             package_weight_in_ton=random.randint(1, 9) / 10,
+            transport_package_volume=round(transport_package_volume, 2),
             number_of_packages_in_20_foot_container=n_of_transport_packages_in_container_20,
             number_of_packages_in_40_foot_container=n_of_transport_packages_in_container_40,
+            loading_volume_20_foot_container=32.3,
+            loading_volume_40_foot_container=65.7
         )
 
         legend = """Компания имеет производственные мощности в Китае, отправляя свою продукцию в Европу преимущественно морским транспортом в 20-футовых контейнерах с продолжительностью доставки более 40 суток.

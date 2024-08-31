@@ -483,11 +483,18 @@ async def get_event(event_id: str, db: Database = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
 
     event = normalize_mongo(event_db, EventInfo)
-    if event.event_type != EventType.PR1:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail='Пока работает только для PR1')
 
-    if event.event_mode == EventMode.CLASS:
+    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CLASS:
         return normalize_mongo(event_db, PR1ClassEvent)
 
-    if event.event_mode == EventMode.CONTROL:
+    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CONTROL:
         return normalize_mongo(event_db, PR1ControlEvent)
+
+    if event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
+        return normalize_mongo(event_db, PR2ClassEvent)
+
+    if event.event_type != EventType.PR1:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=f'Мод либо тип не найдены. event_type={event.event_type}. event_mode={event.event_mode}'
+        )
