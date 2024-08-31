@@ -597,7 +597,7 @@ class PracticeTwoClass:
             full_routes=full_routes,
             package_size=package_size,
             package_weight_in_ton=random.randint(1, 9) / 10,
-            transport_package_volume=transport_package_volume,
+            transport_package_volume=round(transport_package_volume, 2),
             number_of_packages_in_20_foot_container=n_of_transport_packages_in_container_20,
             number_of_packages_in_40_foot_container=n_of_transport_packages_in_container_40,
             loading_volume_20_foot_container=32.3,
