@@ -1236,13 +1236,13 @@ class PracticeTwoClass:
             'что устраивает компанию'
             'Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты',
         ]
-        all_point_names = []
+        all_point_names = set()
         for r in event.source_data.full_routes:
             for p in r.points:
-                all_point_names.append(p.city)
+                all_point_names.add(p.city)
         step_response.screen_texts.append(
             f"Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты (порт, погранпереход, терминал): "
-            f"{', '.join(all_point_names)}"
+            f"{', '.join(list(all_point_names))}"
         )
 
         step_response.full_routes = event.source_data.full_routes
