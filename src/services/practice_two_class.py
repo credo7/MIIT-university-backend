@@ -1233,71 +1233,19 @@ class PracticeTwoClass:
         step_response.screen_texts = [
             'На основе аналитики рынка ускоренных железнодорожных и интермодальных контейнерных сервисов'
             '"Door to Door", выбраны предложения ставок логистических провайдеров 3PL. Срок доставки по любому из маршрутов не превышает 25 суток,'
-            'что устраивает компанию',
-            'Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты'
+            'что устраивает компанию'
+            'Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты',
         ]
+        all_point_names = []
+        for r in event.source_data.full_routes:
+            for p in r.points:
+                all_point_names.append(p.city)
+        step_response.screen_texts.append(
+            f"Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты (порт, погранпереход, терминал): "
+            f"{', '.join(all_point_names)}"
+        )
 
         step_response.full_routes = event.source_data.full_routes
-
-        # suggested_services_points = list()
-        # for route in event.source_data.full_routes:
-        #     suggested_services_points.append(route.points[0])
-        #     if route.points[-1] not in suggested_services_points:
-        #         suggested_services_points.append(route.points[1])
-
-        # constant_objects = [
-        #     'Мумбаи',
-        #     'Бендер - Аббас',
-        #     'Поти',
-        #     'Констанца',
-        #     'Бургас',
-        #     'Калининград',
-        #     'Санкт - Петербург',
-        #     'Архангельск',
-        #     'Петропавловск - Камчатский',
-        #     'Александрия',
-        #     'Марсель',
-        #     'Гамбург',
-        #     'Роттердам',
-        #     'Новороссийск',
-        #     'Астрахань'
-        # ]
-        #
-        # borders = [
-        #     'Брест',
-        #     'Алтынкуль' if 'Алтынкуль' in event.source_data.full_routes[2].points else 'Достык',
-        #     'Наушки',
-        #     'Забайкальск'
-        # ]
-        #
-        # constant_objects_2 = [
-        #     'Минск',
-        #     'Екатеринбург',
-        #     'Новосибирск',
-        #     'Томск',
-        #     'Красноярск',
-        #     'Иркутск',
-        #     'Хабаровск',
-        #     'Оренбург',
-        #     'Самара',
-        #     'Омск',
-        #     'Саратов',
-        #     'Казань',
-        #     'Нижний Новгород',
-        #     'Якутск'
-        # ]
-        #
-        # rest_points_codes = [*constant_objects, *borders, *constant_objects_2]
-        #
-        # points = []
-        # for point in pr2_class_info.all_points:
-        #     if point.city in rest_points_codes:
-        #         points.append(point)
-        #
-        # step_response.suggested_services = [
-        #     *suggested_services_points,
-        #     *points
-        # ]
 
         return step_response
 
