@@ -59,6 +59,9 @@ class PracticeTwoClass:
             )
             event.current_step = next_step
 
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
         if checkpoint_dto.step_code == 'SCREEN_2_TASK_DESCRIPTION':
             next_step = Step(
                 id=2,
@@ -69,6 +72,9 @@ class PracticeTwoClass:
                 EventStepResult(step_code=event.current_step.code, users_ids=event.users_ids, fails=0, )
             )
             event.current_step = next_step
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
         if checkpoint_dto.step_code == 'SCREEN_3_SOURCE_DATA_FULL_ROUTES':
             next_step = Step(id=3, code=self._get_next_code_by_id(3))
