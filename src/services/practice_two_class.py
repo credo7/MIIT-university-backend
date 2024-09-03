@@ -35,12 +35,15 @@ class PracticeTwoClass:
             checkpoint_response.next_step = next_step
 
         if is_failed:
+            event.steps_results[-1].fails += 1
             checkpoint_response.status = (
                 CheckpointResponseStatus.FAILED.value if is_last_attempt
                 else CheckpointResponseStatus.TRY_AGAIN.value
             )
         else:
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
+
+        checkpoint_response.fails = event.steps_results[-1].fails
 
     def checkpoint(self, event: Union[PR2ClassEvent, Type[PR2ClassEvent]], checkpoint_dto: CheckpointData):
         checkpoint_response = CheckpointResponse()
@@ -61,6 +64,7 @@ class PracticeTwoClass:
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Тут ошибиться невозможно. Просто скипается'
 
         if checkpoint_dto.step_code == 'SCREEN_2_TASK_DESCRIPTION':
             next_step = Step(
@@ -75,12 +79,14 @@ class PracticeTwoClass:
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Тут ошибиться невозможно. Просто скипается'
 
         if checkpoint_dto.step_code == 'SCREEN_3_SOURCE_DATA_FULL_ROUTES':
             next_step = Step(id=3, code=self._get_next_code_by_id(3))
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Тут ошибиться невозможно. Просто скипается'
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_1_LOADING_VOLUME':
             next_step = Step(id=4, code=self._get_next_code_by_id(4))
@@ -96,10 +102,17 @@ class PracticeTwoClass:
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
+            checkpoint_response.hint = """
+            Заполняем поле formula
+            
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих:
+            ['5.9*2.33*2.35', '5.9*2.33*2.35', '2.33*5.9*2.35', '2.33*2.35*5.9', '5.9*2.33*2.35', '5.9*2.35*2.33']
+            """
+
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME':
             next_step = Step(id=5, code=self._get_next_code_by_id(5),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.width}*{event.source_data.package_size.height}",
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.height}*{event.source_data.package_size.width}",
                 f"{event.source_data.package_size.height}*{event.source_data.package_size.width}*{event.source_data.package_size.length}",
@@ -108,12 +121,20 @@ class PracticeTwoClass:
                 f"{event.source_data.package_size.width}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+            
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER':
             next_step = Step(id=6, code=self._get_next_code_by_id(6),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"5.9/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
                 f"5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
                 f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}",
@@ -122,32 +143,56 @@ class PracticeTwoClass:
                 f"2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+            
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION':
             next_step = Step(id=7, code=self._get_next_code_by_id(7),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.transport_package_volume}/{event.source_data.loading_volume_20_foot_container}*{event.source_data.number_of_packages_in_20_foot_container}",
                 f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.transport_package_volume}/{event.source_data.loading_volume_20_foot_container}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY':
             next_step = Step(id=8, code=self._get_next_code_by_id(8),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}/21.8",
                 f"{event.source_data.package_weight_in_ton}/21.8*{event.source_data.number_of_packages_in_20_foot_container}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME':
             next_step = Step(id=9, code=self._get_next_code_by_id(9),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 '12*2.33*2.35',
                 '12*2.33*2.35',
                 '2.33*12*2.35',
@@ -156,12 +201,20 @@ class PracticeTwoClass:
                 '12*2.35*2.33',
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_2_PACKAGE_VOLUME':
             next_step = Step(id=10, code=self._get_next_code_by_id(10),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.width}*{event.source_data.package_size.height}",
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.height}*{event.source_data.package_size.width}",
                 f"{event.source_data.package_size.height}*{event.source_data.package_size.width}*{event.source_data.package_size.length}",
@@ -170,12 +223,20 @@ class PracticeTwoClass:
                 f"{event.source_data.package_size.width}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER':
             next_step = Step(id=11, code=self._get_next_code_by_id(11),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"12/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
                 f"12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
                 f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}",
@@ -184,27 +245,51 @@ class PracticeTwoClass:
                 f"2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION':
             next_step = Step(id=12, code=self._get_next_code_by_id(12),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.transport_package_volume}/{event.source_data.loading_volume_40_foot_container}*{event.source_data.number_of_packages_in_40_foot_container}",
                 f"{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.transport_package_volume}/{event.source_data.loading_volume_40_foot_container}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY':
             next_step = Step(id=13, code=self._get_next_code_by_id(13),)
 
-            is_failed = checkpoint_dto.formula not in [
+            right_formulas = [
                 f"{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}/21.8",
                 f"{event.source_data.package_weight_in_ton}/21.8*{event.source_data.number_of_packages_in_40_foot_container}",
             ]
 
+            is_failed = checkpoint_dto.formula not in right_formulas
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+
+            Проверяем, что checkpoint_dto.formula = какому-либо значению из этих: {right_formulas}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
             next_step = Step(id=14, code=self._get_next_code_by_id(14),)
@@ -212,10 +297,14 @@ class PracticeTwoClass:
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
+            checkpoint_response.hint = f"""
+            Заполняем поле text
+            """
+
         if checkpoint_dto.step_code == 'SCREEN_6_20_CONTAINERS_NUMBER':
             next_step = Step(id=15, code=self._get_next_code_by_id(15),)
 
-            if len(checkpoint_dto.formulas) < 5:
+            if checkpoint_dto.formulas is None or len(checkpoint_dto.formulas) < 5:
                 raise Exception("Ожидается 5 формул")
 
             right_answers = [
@@ -239,10 +328,6 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
                     f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
                 ],
-                [
-                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                ]
             ]
 
             is_failed = False
@@ -251,6 +336,15 @@ class PracticeTwoClass:
                     is_failed = True
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Нужно заполнить поле formulas
+            
+            То есть 5 формул стрингами в формате: ["5+7", "5+5", ...]
+            
+            Правильные ответы ( для каждой формулы по два варианта ):
+            {right_answers}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER':
             next_step = Step(id=16, code=self._get_next_code_by_id(16),)
@@ -279,10 +373,6 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
                     f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
                 ],
-                [
-                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[5].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ]
             ]
 
             is_failed = False
@@ -292,8 +382,31 @@ class PracticeTwoClass:
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
+            checkpoint_response.hint = f"""
+            Нужно заполнить поле formulas
+
+            То есть 5 формул стрингами в формате: ["5+7", "5+5", ...]
+
+            Правильные ответы ( для каждой формулы по два варианта ):
+            {right_answers}
+            """
+
         if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
             next_step = Step(id=17, code=self._get_next_code_by_id(17),)
+
+            if checkpoint_dto.source_data_choose_screen is None or None in [
+                checkpoint_dto.source_data_choose_screen.departure_points_codes,
+                checkpoint_dto.source_data_choose_screen.destination_points_codes,
+                checkpoint_dto.source_data_choose_screen.ports_points_codes,
+                checkpoint_dto.source_data_choose_screen.borders_points_codes
+            ]:
+                raise Exception(
+                    f"Должны быть заполнены "
+                    f"source_data_choose_screen.departure_points_codes,"
+                    f" source_data_choose_screen.destination_points_codes, "
+                    f"source_data_choose_screen.ports_points_codes, "
+                    f"source_data_choose_screen.borders_points_codes"
+                )
 
             right_departure_points_codes = [
                 event.source_data.full_routes[0].points[0].code,
@@ -309,7 +422,7 @@ class PracticeTwoClass:
                 event.source_data.full_routes[7].points[-1].code,
             ]
 
-            right_ports_codes = set([p for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
+            right_ports_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
             right_borders_codes = set()
             for r in event.source_data.full_routes:
                 for p in r.points:
@@ -335,116 +448,190 @@ class PracticeTwoClass:
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
+            checkpoint_response.hint = f"""
+            Нужно заполнить поля:
+            source_data_choose_screen.departure_points_codes
+            source_data_choose_screen.destination_points_codes
+            source_data_choose_screen.ports_points_codes
+            source_data_choose_screen.borders_points_codes
+            
+            Все они несут в себя лист из стрингов, стринги это коды точек
+
+            Правильные ответы:
+            right_departure_points_codes={right_departure_points_codes}
+            right_destination_points_codes={right_destination_points_codes}
+            right_ports_codes={right_ports_codes}
+            right_borders_codes={right_borders_codes}
+            """
+
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_1':
             next_step = Step(id=18, code=self._get_next_code_by_id(18),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[0].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_2':
             next_step = Step(id=19, code=self._get_next_code_by_id(19),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[1].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
             next_step = Step(id=20, code=self._get_next_code_by_id(20),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[2].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_4':
             next_step = Step(id=21, code=self._get_next_code_by_id(21),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[3].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_5':
             next_step = Step(id=22, code=self._get_next_code_by_id(22),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[4].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_6':
             next_step = Step(id=23, code=self._get_next_code_by_id(23),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[5].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_7':
             next_step = Step(id=24, code=self._get_next_code_by_id(24),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[6].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
             next_step = Step(id=25, code=self._get_next_code_by_id(25),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[7].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f"""
+            Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
+            
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            """
 
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_1':
-            next_step = Step(id=26, code=self._get_next_code_by_id(26),)
+        if checkpoint_dto.step_code == 'SCREEN_9_FORMED_ROUTES_TABLE':
+            next_step = Step(id=26, code=self._get_next_code_by_id(26), )
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Скипаем, инфо скрин'
 
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_2':
-            next_step = Step(id=27, code=self._get_next_code_by_id(27),)
-
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
+            next_step = Step(id=26, code=self._get_next_code_by_id(27),)
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_3':
-            next_step = Step(id=28, code=self._get_next_code_by_id(28),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_4':
-            next_step = Step(id=29, code=self._get_next_code_by_id(29),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_5':
-            next_step = Step(id=30, code=self._get_next_code_by_id(30),)
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
+            next_step = Step(id=27, code=self._get_next_code_by_id(28),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_6':
-            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_7':
-            next_step = Step(id=32, code=self._get_next_code_by_id(32),)
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
+            next_step = Step(id=28, code=self._get_next_code_by_id(29),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_9_RISKS_8':
-            next_step = Step(id=33, code=self._get_next_code_by_id(33),)
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
+            next_step = Step(id=29, code=self._get_next_code_by_id(30),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
+            next_step = Step(id=30, code=self._get_next_code_by_id(31),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
+            next_step = Step(id=31, code=self._get_next_code_by_id(32),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
+            next_step = Step(id=32, code=self._get_next_code_by_id(33),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
+            next_step = Step(id=33, code=self._get_next_code_by_id(34),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
-            next_step = Step(id=34, code=self._get_next_code_by_id(34),)
+            next_step = Step(id=34, code=self._get_next_code_by_id(35),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS':
-            next_step = Step(id=35, code=self._get_next_code_by_id(35),)
+            next_step = Step(id=35, code=self._get_next_code_by_id(36),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'В доработке! Как только так сразу'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=36, code=self._get_next_code_by_id(36),)
+            next_step = Step(id=36, code=self._get_next_code_by_id(37),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы, уверенный скип'
 
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
             next_step = Step(id=-1, code='FINISH',)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint =  'Заполняем поле text и заканчиваем эту лабуду'
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
@@ -676,57 +863,57 @@ class PracticeTwoClass:
         ):
             return self._get_screen_4_40_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_6_DESCRIBE_CONTAINER_SELECTION':
+        elif event.current_step.code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
             return self._get_describe_container_selection(event)
 
-        elif event.current_step.code == 'SCREEN_7_20_CONTAINERS_NUMBER':
+        elif event.current_step.code == 'SCREEN_6_20_CONTAINERS_NUMBER':
             return self._get_containers_number_20_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_7_40_CONTAINERS_NUMBER':
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER':
             return self._get_containers_number_40_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_8_SOURCE_DATA_CHOOSE':
+        elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
             return self._get_source_data_choose_step_response(event)
 
         elif event.current_step.code in (
-                'SCREEN_9_MAP_ROUTE_1',
-                'SCREEN_9_MAP_ROUTE_2',
-                'SCREEN_9_MAP_ROUTE_3',
-                'SCREEN_9_MAP_ROUTE_4',
-                'SCREEN_9_MAP_ROUTE_5',
-                'SCREEN_9_MAP_ROUTE_6',
-                'SCREEN_9_MAP_ROUTE_7',
-                'SCREEN_9_MAP_ROUTE_8'
+                'SCREEN_8_MAP_ROUTE_1',
+                'SCREEN_8_MAP_ROUTE_2',
+                'SCREEN_8_MAP_ROUTE_3',
+                'SCREEN_8_MAP_ROUTE_4',
+                'SCREEN_8_MAP_ROUTE_5',
+                'SCREEN_8_MAP_ROUTE_6',
+                'SCREEN_8_MAP_ROUTE_7',
+                'SCREEN_8_MAP_ROUTE_8'
         ):
             return self._get_map_route_step_response(event, int(event.current_step.code[-1]))
 
-        elif event.current_step.code == 'SCREEN_10_FORMED_ROUTES_TABLE':
+        elif event.current_step.code == 'SCREEN_9_FORMED_ROUTES_TABLE':
             return self._get_formed_routes_table_step_response(event)
 
         elif event.current_step.code in [
-            'SCREEN_11_RISKS_1',
-            'SCREEN_11_RISKS_2',
-            'SCREEN_11_RISKS_3',
-            'SCREEN_11_RISKS_4',
-            'SCREEN_11_RISKS_5',
-            'SCREEN_11_RISKS_6',
-            'SCREEN_11_RISKS_7',
-            'SCREEN_11_RISKS_8',
+            'SCREEN_10_RISKS_1',
+            'SCREEN_10_RISKS_2',
+            'SCREEN_10_RISKS_3',
+            'SCREEN_10_RISKS_4',
+            'SCREEN_10_RISKS_5',
+            'SCREEN_10_RISKS_6',
+            'SCREEN_10_RISKS_7',
+            'SCREEN_10_RISKS_8',
         ]:
             return self._get_risks_step_response(event, int(event.current_step.code[-1]))
 
-        elif event.current_step.code == 'SCREEN_11_FULL_ROUTES_WITH_PLS':
+        elif event.current_step.code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
             return self._get_full_routes_with_pls_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_12_OPTIMAL_RESULTS':
+        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS':
             return self._get_optimal_results_step_response(event)
 
         # TODO
-        elif event.current_step.code == 'SCREEN_13_OPTIMAL_WITH_RISKS':
+        elif event.current_step.code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
             return self._get_optimal_with_risks_step_response(event)
 
         # TODO
-        elif event.current_step.code == 'SCREEN_14_CHOOSE_LOGIST':
+        elif event.current_step.code == 'SCREEN_13_CHOOSE_LOGIST':
             return self._get_choose_logist_step_response(event)
 
         raise Exception(f"Такой current_step.code не найден. {event.current_step.code}")
