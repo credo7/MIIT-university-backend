@@ -1123,7 +1123,7 @@ class PracticeTwoClass:
                         PLRoute(
                             supply_chain=f"{route.country_from - route.country_to}",
                             route_number=counter,
-                            through=f"через {route.through}",
+                            through=f"{route.through}",
                             provider=f"3PL{i}",
                             containers_num=n_containers,
                             pl_bet=pl,
@@ -1543,7 +1543,7 @@ class PracticeTwoClass:
 
         n_40_foot_containers = math.ceil(routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton))
         china_route_1 = FullRoute(
-            through="Россию",
+            through="через Россию",
             country_from="Китай",
             country_to=random_destination_country_for_china,
             weight_in_tons=routes_tons[0],
@@ -1558,7 +1558,7 @@ class PracticeTwoClass:
         )
 
         china_route_2 = FullRoute(
-            through="Монголию",
+            through="через Монголию",
             country_from="Китай",
             country_to=random_destination_country_for_china,
             weight_in_tons=routes_tons[0],
@@ -1573,7 +1573,7 @@ class PracticeTwoClass:
         )
 
         china_route_3 = FullRoute(
-            through="Казахстан",
+            through="через Казахстан",
             country_from="Китай",
             country_to=random_destination_country_for_china,
             weight_in_tons=routes_tons[0],
@@ -1588,7 +1588,7 @@ class PracticeTwoClass:
         )
 
         china_route_4 = FullRoute(
-            through="морской торговый порт  (МТП) России",
+            through="через морской торговый порт  (МТП) России",
             country_from="Китай",
             country_to=random_destination_country_for_china,
             weight_in_tons=routes_tons[0],
