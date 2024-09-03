@@ -1364,8 +1364,8 @@ class PracticeTwoClass:
             step_response.container_length * step_response.container_width * step_response.container_height, 2
         )
 
-        step_response.package_volume = (
-                step_response.package_height * step_response.package_width * step_response.package_height
+        step_response.package_volume = round(
+                step_response.package_height * step_response.package_width * step_response.package_height, 2
         )
 
         step_response.number_of_packages_in_container = math.floor(
@@ -1404,8 +1404,8 @@ class PracticeTwoClass:
             step_response.container_length * step_response.container_width * step_response.container_height, 2
         )
 
-        step_response.package_volume = (
-                step_response.package_height * step_response.package_width * step_response.package_height
+        step_response.package_volume = round(
+                step_response.package_height * step_response.package_width * step_response.package_height, 2
         )
 
         step_response.number_of_packages_in_container = math.floor(
@@ -1426,8 +1426,7 @@ class PracticeTwoClass:
         step_response.screen_texts = [
             'На основе аналитики рынка ускоренных железнодорожных и интермодальных контейнерных сервисов '
             '"Door to Door", выбраны предложения ставок логистических провайдеров 3PL. Срок доставки по любому из маршрутов не превышает 25 суток, '
-            'что устраивает компанию. '
-            'Предложенные сервисы осуществляются в 40-футовых контейнерах через следующие пункты',
+            'что устраивает компанию.'
         ]
         all_point_names = set()
         for r in event.source_data.full_routes:
@@ -1451,7 +1450,7 @@ class PracticeTwoClass:
 
         step_response.screen_texts = [
             'Оптимальные маршруты цепей поставок продукции',
-            'На основании изучения рынка и заключённых договоров на поставку продукции сформированы 5 новых цепей поставок продукции ежемесячно'
+            'На основании изучения рынка и заключённых договоров на поставку продукции сформированы 5 новых цепей поставок продукции ежемесячно '
             'при разных условиях инкотермс:',
             'Продукция предоставляется к перевозке в сформированных на подоннах транспорных пакетах'
         ]
