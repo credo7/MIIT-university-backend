@@ -92,12 +92,12 @@ class PracticeTwoClass:
             next_step = Step(id=4, code=self._get_next_code_by_id(4))
 
             is_failed = checkpoint_dto.formula not in [
-                '5.9*2.33*2.35',
+                '5.9*2.35*2.33',
                 '5.9*2.33*2.35',
                 '2.33*5.9*2.35',
                 '2.33*2.35*5.9',
-                '5.9*2.33*2.35',
-                '5.9*2.35*2.33',
+                '2.33*2.35*5.9',
+                '2.33*2.35*5.9',
             ]
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -106,7 +106,7 @@ class PracticeTwoClass:
             Заполняем поле formula
             
             Проверяем, что checkpoint_dto.formula = какому-либо значению из этих:
-            ['5.9*2.33*2.35', '5.9*2.33*2.35', '2.33*5.9*2.35', '2.33*2.35*5.9', '5.9*2.33*2.35', '5.9*2.35*2.33']
+            ['5.9*2.35*2.33','5.9*2.33*2.35','2.33*5.9*2.35','2.33*2.35*5.9','2.33*2.35*5.9','2.33*2.35*5.9',]
             """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME':
@@ -197,8 +197,8 @@ class PracticeTwoClass:
                 '12*2.33*2.35',
                 '2.33*12*2.35',
                 '2.33*2.35*12',
-                '12*2.33*2.35',
-                '12*2.35*2.33',
+                '2.35*12*2.33',
+                '2.35*2.33*12',
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
