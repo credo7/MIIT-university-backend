@@ -96,8 +96,8 @@ class PracticeTwoClass:
                 '5.9*2.33*2.35',
                 '2.33*5.9*2.35',
                 '2.33*2.35*5.9',
-                '2.33*2.35*5.9',
-                '2.33*2.35*5.9',
+                '2.35*5.9*2.33',
+                '2.35*2.33*5.9',
             ]
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -106,7 +106,7 @@ class PracticeTwoClass:
             Заполняем поле formula
             
             Проверяем, что checkpoint_dto.formula = какому-либо значению из этих:
-            ['5.9*2.35*2.33','5.9*2.33*2.35','2.33*5.9*2.35','2.33*2.35*5.9','2.33*2.35*5.9','2.33*2.35*5.9',]
+            ['5.9*2.35*2.33','5.9*2.33*2.35','2.33*5.9*2.35','2.33*2.35*5.9','2.35*5.9*2.33','2.35*2.33*5.9',]
             """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME':
@@ -116,7 +116,7 @@ class PracticeTwoClass:
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.width}*{event.source_data.package_size.height}",
                 f"{event.source_data.package_size.length}*{event.source_data.package_size.height}*{event.source_data.package_size.width}",
                 f"{event.source_data.package_size.height}*{event.source_data.package_size.width}*{event.source_data.package_size.length}",
-                f"{event.source_data.package_size.height}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
+                f"{event.source_data.package_size.height}*{event.source_data.package_size.length}*{event.source_data.package_size.width}",
                 f"{event.source_data.package_size.width}*{event.source_data.package_size.height}*{event.source_data.package_size.length}",
                 f"{event.source_data.package_size.width}*{event.source_data.package_size.length}*{event.source_data.package_size.height}",
             ]
@@ -138,7 +138,7 @@ class PracticeTwoClass:
                 f"5.9/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
                 f"5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
                 f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}",
-                f"2.35/{event.source_data.package_size.height}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+                f"2.35/{event.source_data.package_size.height}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.width}",
                 f"2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}*5.9/{event.source_data.package_size.length}",
                 f"2.33/{event.source_data.package_size.width}*5.9/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
             ]
@@ -194,7 +194,7 @@ class PracticeTwoClass:
 
             right_formulas = [
                 '12*2.33*2.35',
-                '12*2.33*2.35',
+                '12*2.35*2.33',
                 '2.33*12*2.35',
                 '2.33*2.35*12',
                 '2.35*12*2.33',
@@ -240,7 +240,7 @@ class PracticeTwoClass:
                 f"12/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}",
                 f"12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}",
                 f"2.35/{event.source_data.package_size.height}*2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}",
-                f"2.35/{event.source_data.package_size.height}*12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
+                f"2.35/{event.source_data.package_size.height}*12/{event.source_data.package_size.length}*2.33/{event.source_data.package_size.width}",
                 f"2.33/{event.source_data.package_size.width}*2.35/{event.source_data.package_size.height}*12/{event.source_data.package_size.length}",
                 f"2.33/{event.source_data.package_size.width}*12/{event.source_data.package_size.length}*2.35/{event.source_data.package_size.height}",
             ]
