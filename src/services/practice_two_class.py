@@ -309,7 +309,7 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
                 ]
 
-            is_failed = checkpoint_dto.formula in right_formulas
+            is_failed = checkpoint_dto.formula not in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -327,7 +327,7 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
                 ]
 
-            is_failed = checkpoint_dto.formula in right_formulas
+            is_failed = checkpoint_dto.formula not in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -345,7 +345,7 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
                 ]
 
-            is_failed = checkpoint_dto.formula in right_formulas
+            is_failed = checkpoint_dto.formula not in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -363,7 +363,7 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
                 ]
 
-            is_failed = checkpoint_dto.formula in right_formulas
+            is_failed = checkpoint_dto.formula not in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -381,7 +381,7 @@ class PracticeTwoClass:
                     f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
                 ]
 
-            is_failed = checkpoint_dto.formula in right_formulas
+            is_failed = checkpoint_dto.formula not in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -1285,6 +1285,12 @@ class PracticeTwoClass:
         step_response.number_of_packages_in_20_foot_container = event.source_data.number_of_packages_in_20_foot_container
         step_response.number_of_packages_in_40_foot_container = event.source_data.number_of_packages_in_40_foot_container
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
+
+        all_buttons = [
+            ButtonNumber()
+        ]
+
+        step_response.extra_button_numbers = []
 
         return step_response
 
