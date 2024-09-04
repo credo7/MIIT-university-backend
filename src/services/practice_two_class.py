@@ -7,7 +7,7 @@ from constants.pr2_class_info import pr2_class_info
 from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
-    CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus
+    CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute
 from services.utils import normalize_mongo
 
 
@@ -157,7 +157,7 @@ class PracticeTwoClass:
             next_step = Step(id=7, code=self._get_next_code_by_id(7),)
 
             right_formulas = [
-                f"{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_20_foot_container:g}*{event.source_data.number_of_packages_in_20_foot_container}",
+                f"{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_20_foot_container:g}/{event.source_data.number_of_packages_in_20_foot_container}",
                 f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_20_foot_container:g}",
             ]
 
@@ -301,98 +301,98 @@ class PracticeTwoClass:
             Заполняем поле text
             """
 
-        if checkpoint_dto.step_code == 'SCREEN_6_20_CONTAINERS_NUMBER':
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_1':
             next_step = Step(id=15, code=self._get_next_code_by_id(15),)
 
-            if checkpoint_dto.formulas is None or len(checkpoint_dto.formulas) < 5:
-                raise Exception("Ожидается 5 формул")
+            right_formulas = [
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
 
-            right_answers = [
-                [
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                 ],
-                [
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_20_foot_container}"
-                ],
-            ]
-
-            is_failed = False
-            for i, formula in enumerate(checkpoint_dto.formulas):
-                if formula not in right_answers[i]:
-                    is_failed = True
+            is_failed = checkpoint_dto.formula in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
             checkpoint_response.hint = f"""
-            Нужно заполнить поле formulas
+            Заполняем поле formula
             
-            То есть 5 формул стрингами в формате: ["5+7", "5+5", ...]
-            
-            Правильные ответы ( для каждой формулы по два варианта ):
-            {right_answers}
+            right_formulas={right_formulas}
             """
 
-        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER':
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_2':
             next_step = Step(id=16, code=self._get_next_code_by_id(16),)
 
-            if len(checkpoint_dto.formulas) < 5:
-                raise Exception("Ожидается 5 формул")
+            right_formulas = [
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
 
-            right_answers = [
-                [
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ],
-                [
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}",
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton}*{event.source_data.number_of_packages_in_40_foot_container}"
-                ],
-            ]
-
-            is_failed = False
-            for i, formula in enumerate(checkpoint_dto.formulas):
-                if formula not in right_answers[i]:
-                    is_failed = True
+            is_failed = checkpoint_dto.formula in right_formulas
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
             checkpoint_response.hint = f"""
-            Нужно заполнить поле formulas
+            Заполняем поле formula
+            
+            right_formulas={right_formulas}
+            """
 
-            То есть 5 формул стрингами в формате: ["5+7", "5+5", ...]
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3':
+            next_step = Step(id=17, code=self._get_next_code_by_id(17),)
 
-            Правильные ответы ( для каждой формулы по два варианта ):
-            {right_answers}
+            right_formulas = [
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
+
+            is_failed = checkpoint_dto.formula in right_formulas
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+            
+            right_formulas={right_formulas}
+            """
+
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4':
+            next_step = Step(id=18, code=self._get_next_code_by_id(18),)
+
+            right_formulas = [
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
+
+            is_failed = checkpoint_dto.formula in right_formulas
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+            
+            right_formulas={right_formulas}
+            """
+
+        if checkpoint_dto.step_code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5':
+            next_step = Step(id=19, code=self._get_next_code_by_id(19),)
+
+            right_formulas = [
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                ]
+
+            is_failed = checkpoint_dto.formula in right_formulas
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+            checkpoint_response.hint = f"""
+            Заполняем поле formula
+            
+            right_formulas={right_formulas}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
-            next_step = Step(id=17, code=self._get_next_code_by_id(17),)
+            next_step = Step(id=20, code=self._get_next_code_by_id(20),)
 
             if checkpoint_dto.source_data_choose_screen is None or None in [
                 checkpoint_dto.source_data_choose_screen.departure_points_codes,
@@ -465,7 +465,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_1':
-            next_step = Step(id=18, code=self._get_next_code_by_id(18),)
+            next_step = Step(id=21, code=self._get_next_code_by_id(21),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[0].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -475,7 +475,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_2':
-            next_step = Step(id=19, code=self._get_next_code_by_id(19),)
+            next_step = Step(id=22, code=self._get_next_code_by_id(22),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[1].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -485,7 +485,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
-            next_step = Step(id=20, code=self._get_next_code_by_id(20),)
+            next_step = Step(id=23, code=self._get_next_code_by_id(23),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[2].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -495,7 +495,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_4':
-            next_step = Step(id=21, code=self._get_next_code_by_id(21),)
+            next_step = Step(id=24, code=self._get_next_code_by_id(24),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[3].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -505,7 +505,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_5':
-            next_step = Step(id=22, code=self._get_next_code_by_id(22),)
+            next_step = Step(id=25, code=self._get_next_code_by_id(25),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[4].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -515,7 +515,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_6':
-            next_step = Step(id=23, code=self._get_next_code_by_id(23),)
+            next_step = Step(id=26, code=self._get_next_code_by_id(26),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[5].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -525,7 +525,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_7':
-            next_step = Step(id=24, code=self._get_next_code_by_id(24),)
+            next_step = Step(id=27, code=self._get_next_code_by_id(27),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[6].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -535,7 +535,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
-            next_step = Step(id=25, code=self._get_next_code_by_id(25),)
+            next_step = Step(id=28, code=self._get_next_code_by_id(28),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[7].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -545,82 +545,82 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_9_FORMED_ROUTES_TABLE':
-            next_step = Step(id=26, code=self._get_next_code_by_id(26), )
+            next_step = Step(id=29, code=self._get_next_code_by_id(29), )
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Скипаем, инфо скрин'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
-            next_step = Step(id=26, code=self._get_next_code_by_id(27),)
+            next_step = Step(id=30, code=self._get_next_code_by_id(30),)
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
-            next_step = Step(id=27, code=self._get_next_code_by_id(28),)
+            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
-            next_step = Step(id=28, code=self._get_next_code_by_id(29),)
+            next_step = Step(id=32, code=self._get_next_code_by_id(32),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
-            next_step = Step(id=29, code=self._get_next_code_by_id(30),)
+            next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
-            next_step = Step(id=30, code=self._get_next_code_by_id(31),)
+            next_step = Step(id=34, code=self._get_next_code_by_id(34),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
-            next_step = Step(id=31, code=self._get_next_code_by_id(32),)
+            next_step = Step(id=35, code=self._get_next_code_by_id(35),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
-            next_step = Step(id=32, code=self._get_next_code_by_id(33),)
+            next_step = Step(id=36, code=self._get_next_code_by_id(36),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
-            next_step = Step(id=33, code=self._get_next_code_by_id(34),)
+            next_step = Step(id=37, code=self._get_next_code_by_id(37),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
-            next_step = Step(id=34, code=self._get_next_code_by_id(35),)
+            next_step = Step(id=38, code=self._get_next_code_by_id(38),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS':
-            next_step = Step(id=35, code=self._get_next_code_by_id(36),)
+            next_step = Step(id=39, code=self._get_next_code_by_id(39),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'В доработке! Как только так сразу'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=36, code=self._get_next_code_by_id(37),)
+            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -852,7 +852,7 @@ class PracticeTwoClass:
                 'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION',
                 'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY'
         ):
-            return self._get_screen_4_20_step_response(event)
+            return self._get_screen_4_20_step_response(event, int(event.current_step.code[27]))
 
         elif event.current_step.code in (
                 'SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME',
@@ -861,15 +861,24 @@ class PracticeTwoClass:
                 'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION',
                 'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY'
         ):
-            return self._get_screen_4_40_step_response(event)
+            return self._get_screen_4_40_step_response(event, int(event.current_step.code[27]))
 
         elif event.current_step.code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
             return self._get_describe_container_selection(event)
 
-        elif event.current_step.code == 'SCREEN_6_20_CONTAINERS_NUMBER':
-            return self._get_containers_number_20_step_response(event)
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_1':
+            return self._get_containers_number_40_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER':
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_2':
+            return self._get_containers_number_40_step_response(event)
+
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3':
+            return self._get_containers_number_40_step_response(event)
+
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4':
+            return self._get_containers_number_40_step_response(event)
+
+        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5':
             return self._get_containers_number_40_step_response(event)
 
         elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
@@ -1231,17 +1240,51 @@ class PracticeTwoClass:
             is_finished=event.is_finished,
             current_step=event.current_step
         )
+        mini_routes = event.source_data.mini_routes
 
-        n_of_transport_packages_in_container_40 = math.floor(
-            (12 / event.source_data.package_size.length)
-            * (2.33 / event.source_data.package_size.width)
-            * (2.35 / event.source_data.package_size.height)
-        )
+        right_formulas = [
+            [
+                f"{mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                f"{mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+             ],
+            [
+                f"{mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                f"{mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+            ],
+            [
+                f"{mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                f"{mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+            ],
+            [
+                f"{mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                f"{mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+            ],
+            [
+                f"{mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
+                f"{mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+            ]
+        ]
+
+        right_formulas_with_answer = [
+            f"{mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[0].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+            f"{mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[1].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+            f"{mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[2].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+            f"{mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[3].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+            f"{mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[4].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+        ]
 
         step_response.screen_texts = ['Расчёт необходимого количества 40-футовых контейнеров для каждой цепи продукции']
-        step_response.mini_routes = event.source_data.mini_routes
+
+        step_response.container_routes_with_formulas = [ContainerRoute(
+            route=f"{mini_routes[i].from_country} - {mini_routes[i].to_country}",
+            weight_in_tons=mini_routes[i].weight_in_ton,
+            formulas=right_formulas[i],
+            formula_with_answer=right_formulas_with_answer[i],
+        ) for i in range(5)]
+
+        step_response.number_of_packages_in_20_foot_container = event.source_data.number_of_packages_in_20_foot_container
+        step_response.number_of_packages_in_40_foot_container = event.source_data.number_of_packages_in_40_foot_container
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
-        step_response.number_of_packages_in_container = n_of_transport_packages_in_container_40
 
         return step_response
 
@@ -1337,7 +1380,7 @@ class PracticeTwoClass:
         return step_response
 
     @staticmethod
-    def _get_screen_4_20_step_response(event):
+    def _get_screen_4_20_step_response(event, formula_num: int):
         step_response = CurrentStepResponse(
             is_finished=event.is_finished,
             current_step=event.current_step
@@ -1349,8 +1392,8 @@ class PracticeTwoClass:
         ]
 
         step_response.container_foots = 20
-        step_response.container_load_capacity = 21.8
 
+        step_response.container_load_capacity = 21.8
         step_response.container_length = 5.9
         step_response.container_width = 2.33
         step_response.container_height = 2.35
@@ -1360,24 +1403,32 @@ class PracticeTwoClass:
         step_response.package_height = event.source_data.package_size.height
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
 
-        step_response.loading_volume = round(
-            step_response.container_length * step_response.container_width * step_response.container_height, 2
-        )
+        step_response.extra_button_numbers = []
 
-        step_response.package_volume = round(
-                step_response.package_height * step_response.package_width * step_response.package_height, 2
-        )
+        if formula_num >= 2:
+            loading_volume = round(
+                step_response.container_length * step_response.container_width * step_response.container_height, 2
+            )
+            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=loading_volume))
 
-        step_response.number_of_packages_in_container = math.floor(
-            step_response.container_length / step_response.package_length
-            * step_response.container_width / step_response.package_width
-            * step_response.container_height / step_response.package_height,
-        )
+        if formula_num >= 3:
+            package_volume = round(
+                    step_response.package_height * step_response.package_width * step_response.package_height, 2
+            )
+            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=package_volume))
+
+        if formula_num >= 4:
+            number_of_packages_in_container = math.floor(
+                step_response.container_length / step_response.package_length
+                * step_response.container_width / step_response.package_width
+                * step_response.container_height / step_response.package_height,
+            )
+            step_response.extra_button_numbers.append(ButtonNumber(text="Кол-во пакетов в контейнере", value=number_of_packages_in_container))
 
         return step_response
 
     @staticmethod
-    def _get_screen_4_40_step_response(event):
+    def _get_screen_4_40_step_response(event, formula_num: int):
         step_response = CurrentStepResponse(
             is_finished=event.is_finished,
             current_step=event.current_step
@@ -1389,8 +1440,8 @@ class PracticeTwoClass:
         ]
 
         step_response.container_foots = 40
-        step_response.container_load_capacity = 26.4
 
+        step_response.container_load_capacity = 26.4
         step_response.container_length = 12
         step_response.container_width = 2.33
         step_response.container_height = 2.35
@@ -1400,19 +1451,28 @@ class PracticeTwoClass:
         step_response.package_height = event.source_data.package_size.height
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
 
-        step_response.loading_volume = round(
-            step_response.container_length * step_response.container_width * step_response.container_height, 2
-        )
+        step_response.extra_button_numbers = []
 
-        step_response.package_volume = round(
+        if formula_num >= 2:
+            loading_volume = round(
+                step_response.container_length * step_response.container_width * step_response.container_height, 2
+            )
+            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=loading_volume))
+
+        if formula_num >= 3:
+            package_volume = round(
                 step_response.package_height * step_response.package_width * step_response.package_height, 2
-        )
+            )
+            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=package_volume))
 
-        step_response.number_of_packages_in_container = math.floor(
-            step_response.container_length / step_response.package_length
-            * step_response.container_width / step_response.package_width
-            * step_response.container_height / step_response.package_height,
-        )
+        if formula_num >= 4:
+            number_of_packages_in_container = math.floor(
+                step_response.container_length / step_response.package_length
+                * step_response.container_width / step_response.package_width
+                * step_response.container_height / step_response.package_height,
+            )
+            step_response.extra_button_numbers.append(
+                ButtonNumber(text="Кол-во пакетов в контейнере", value=number_of_packages_in_container))
 
         return step_response
 
