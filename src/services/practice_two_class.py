@@ -106,7 +106,7 @@ class PracticeTwoClass:
             Заполняем поле formula
             
             Проверяем, что checkpoint_dto.formula = какому-либо значению из этих:
-            ['5.9*2.35*2.33','5.9*2.33*2.35','2.33*5.9*2.35','2.33*2.35*5.9','2.35*5.9*2.33','2.35*2.33*5.9',]
+            ['5.9*2.35*2.33','5.9*2.33*2.35','2.33*5.9*2.35','2.33*2.35*5.9','2.35*5.9*2.33','2.35*2.33*5.9']
             """
 
         if checkpoint_dto.step_code == 'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME':
@@ -135,12 +135,18 @@ class PracticeTwoClass:
             next_step = Step(id=6, code=self._get_next_code_by_id(6),)
 
             right_formulas = [
-                f"5.9/{event.source_data.package_size.length:g}*2.33/{event.source_data.package_size.width:g}*2.35/{event.source_data.package_size.height:g}",
-                f"5.9/{event.source_data.package_size.length:g}*2.35/{event.source_data.package_size.height:g}*2.33/{event.source_data.package_size.width:g}",
-                f"2.35/{event.source_data.package_size.height:g}*2.33/{event.source_data.package_size.width:g}*5.9/{event.source_data.package_size.length:g}",
-                f"2.35/{event.source_data.package_size.height:g}*5.9/{event.source_data.package_size.length:g}*2.35/{event.source_data.package_size.width:g}",
-                f"2.33/{event.source_data.package_size.width:g}*2.35/{event.source_data.package_size.height:g}*5.9/{event.source_data.package_size.length:g}",
-                f"2.33/{event.source_data.package_size.width:g}*5.9/{event.source_data.package_size.length:g}*2.35/{event.source_data.package_size.height:g}",
+                f"5.9/{event.source_data.package_size.length:g}*(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"(5.9/{event.source_data.package_size.length:g})*(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"5.9/{event.source_data.package_size.length:g}*(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"(5.9/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"2.35/{event.source_data.package_size.height:g}*(2.33/{event.source_data.package_size.width:g})*(5.9/{event.source_data.package_size.length:g})",
+                f"(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})*(5.9/{event.source_data.package_size.length:g})",
+                f"2.35/{event.source_data.package_size.height:g}*(5.9/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.width:g})",
+                f"(2.35/{event.source_data.package_size.height:g})*(5.9/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.width:g})",
+                f"2.33/{event.source_data.package_size.width:g}*(2.35/{event.source_data.package_size.height:g})*(5.9/{event.source_data.package_size.length:g})",
+                f"(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})*(5.9/{event.source_data.package_size.length:g})",
+                f"2.33/{event.source_data.package_size.width:g}*(5.9/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"(2.33/{event.source_data.package_size.width:g})*(5.9/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})",
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -237,12 +243,18 @@ class PracticeTwoClass:
             next_step = Step(id=11, code=self._get_next_code_by_id(11),)
 
             right_formulas = [
-                f"12/{event.source_data.package_size.length:g}*2.33/{event.source_data.package_size.width:g}*2.35/{event.source_data.package_size.height:g}",
-                f"12/{event.source_data.package_size.length:g}*2.35/{event.source_data.package_size.height:g}*2.33/{event.source_data.package_size.width:g}",
-                f"2.35/{event.source_data.package_size.height:g}*2.33/{event.source_data.package_size.width:g}*12/{event.source_data.package_size.length:g}",
-                f"2.35/{event.source_data.package_size.height:g}*12/{event.source_data.package_size.length:g}*2.33/{event.source_data.package_size.width:g}",
-                f"2.33/{event.source_data.package_size.width:g}*2.35/{event.source_data.package_size.height:g}*12/{event.source_data.package_size.length:g}",
-                f"2.33/{event.source_data.package_size.width:g}*12/{event.source_data.package_size.length:g}*2.35/{event.source_data.package_size.height:g}",
+                f"12/{event.source_data.package_size.length:g}*(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"(12/{event.source_data.package_size.length:g})*(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"12/{event.source_data.package_size.length:g}*(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"(12/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"2.35/{event.source_data.package_size.height:g}*(2.33/{event.source_data.package_size.width:g})*(12/{event.source_data.package_size.length:g})",
+                f"(2.35/{event.source_data.package_size.height:g})*(2.33/{event.source_data.package_size.width:g})*(12/{event.source_data.package_size.length:g})",
+                f"2.35/{event.source_data.package_size.height:g}*(12/{event.source_data.package_size.length:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"(2.35/{event.source_data.package_size.height:g})*(12/{event.source_data.package_size.length:g})*(2.33/{event.source_data.package_size.width:g})",
+                f"2.33/{event.source_data.package_size.width:g}*(2.35/{event.source_data.package_size.height:g})*(12/{event.source_data.package_size.length:g})",
+                f"(2.33/{event.source_data.package_size.width:g})*(2.35/{event.source_data.package_size.height:g})*(12/{event.source_data.package_size.length:g})",
+                f"2.33/{event.source_data.package_size.width:g}*(12/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})",
+                f"(2.33/{event.source_data.package_size.width:g})*(12/{event.source_data.package_size.length:g})*(2.35/{event.source_data.package_size.height:g})",
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -305,8 +317,8 @@ class PracticeTwoClass:
             next_step = Step(id=15, code=self._get_next_code_by_id(15),)
 
             right_formulas = [
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                    f"{event.source_data.mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                    f"{event.source_data.mini_routes[0].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
                 ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -323,8 +335,8 @@ class PracticeTwoClass:
             next_step = Step(id=16, code=self._get_next_code_by_id(16),)
 
             right_formulas = [
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                    f"{event.source_data.mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                    f"{event.source_data.mini_routes[1].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
                 ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -341,8 +353,8 @@ class PracticeTwoClass:
             next_step = Step(id=17, code=self._get_next_code_by_id(17),)
 
             right_formulas = [
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                    f"{event.source_data.mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                    f"{event.source_data.mini_routes[2].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
                 ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -359,8 +371,8 @@ class PracticeTwoClass:
             next_step = Step(id=18, code=self._get_next_code_by_id(18),)
 
             right_formulas = [
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                    f"{event.source_data.mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                    f"{event.source_data.mini_routes[3].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
                 ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -377,8 +389,8 @@ class PracticeTwoClass:
             next_step = Step(id=19, code=self._get_next_code_by_id(19),)
 
             right_formulas = [
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                    f"{event.source_data.mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                    f"{event.source_data.mini_routes[4].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
                 ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
