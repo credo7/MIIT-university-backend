@@ -1299,7 +1299,7 @@ class PLOption(BaseModel):
 
 class ButtonNumber(BaseModel):
     text: str
-    value: float
+    value: Union[float, int]
 
 
 class ContainerRoute(BaseModel):

@@ -163,8 +163,8 @@ class PracticeTwoClass:
             next_step = Step(id=7, code=self._get_next_code_by_id(7),)
 
             right_formulas = [
-                f"{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_20_foot_container:g}/{event.source_data.number_of_packages_in_20_foot_container}",
                 f"{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_20_foot_container:g}",
+                f"{event.source_data.transport_package_volume:g}*{event.source_data.number_of_packages_in_20_foot_container}/{event.source_data.loading_volume_20_foot_container:g}",
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -271,8 +271,8 @@ class PracticeTwoClass:
             next_step = Step(id=12, code=self._get_next_code_by_id(12),)
 
             right_formulas = [
-                f"{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_40_foot_container:g}*{event.source_data.number_of_packages_in_40_foot_container}",
                 f"{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.transport_package_volume:g}/{event.source_data.loading_volume_40_foot_container:g}",
+                f"{event.source_data.transport_package_volume:g}*{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.loading_volume_40_foot_container:g}",
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -1298,10 +1298,6 @@ class PracticeTwoClass:
         step_response.number_of_packages_in_40_foot_container = event.source_data.number_of_packages_in_40_foot_container
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
 
-        all_buttons = [
-            ButtonNumber()
-        ]
-
         step_response.extra_button_numbers = []
 
         return step_response
@@ -1666,7 +1662,7 @@ class PracticeTwoClass:
         )
 
         china_route_4 = FullRoute(
-            through="через морской торговый порт  (МТП) России",
+            through="через МТП России",
             country_from="Китай",
             country_to=random_destination_country_for_china,
             weight_in_tons=routes_tons[0],
