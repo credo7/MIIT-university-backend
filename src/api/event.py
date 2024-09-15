@@ -164,17 +164,18 @@ async def create_checkpoint(
 
     checkpoint_response = None
 
-    if event_info.event_type == EventType.PR1:
-        if event_info.event_mode == EventMode.CLASS:
-            event = normalize_mongo(event_db, PR1ClassEvent)
-            checkpoint_response = PracticeOneClass(
-                computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
-            ).checkpoint(event, checkpoint_dto)
-        if event_info.event_mode == EventMode.CONTROL:
-            event = normalize_mongo(event_db, PR1ControlEvent)
-            checkpoint_response = PracticeOneControl(
-                computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
-            ).checkpoint(event, checkpoint_dto)
+    if event_info.event_type == EventType.PR1 and event_info.event_mode == EventMode.CLASS:
+        event = normalize_mongo(event_db, PR1ClassEvent)
+        checkpoint_response = PracticeOneClass(
+            computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
+        ).checkpoint(event, checkpoint_dto)
+
+    if event_info.event_type == EventType.PR1 and event_info.event_mode == EventMode.CONTROL:
+        event = normalize_mongo(event_db, PR1ControlEvent)
+        checkpoint_response = PracticeOneControl(
+            computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
+        ).checkpoint(event, checkpoint_dto)
+
     if event_info.event_type == EventType.PR2 and event_info.event_mode == EventMode.CLASS:
         event = normalize_mongo(event_db, PR2ClassEvent)
         checkpoint_response = PracticeTwoClass(
@@ -205,20 +206,23 @@ async def get_results(
     event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
-        raise Exception('Вариант не найден')
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
 
     event = normalize_mongo(event_db, EventInfo)
 
-    if event.results:
-        return event.results
+    if not event.is_finished:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вариант не закончен')
 
-    if event.event_type == EventType.PR1:
-        if event.event_mode == EventMode.CLASS:
-            event = normalize_mongo(event_db, PR1ClassEvent)
-            return PracticeOneClass(users_ids=event.users_ids).get_results(event)
-        elif event.event_mode == EventMode.CONTROL:
-            event = normalize_mongo(event_db, PR1ControlEvent)
-            return PracticeOneControl(users_ids=event.users_ids).get_results(event)
+    if not event.results:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Как так вышло?')
+
+    return event.results
+
+    if event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
+        event = normalize_mongo(event_db, PR2ClassEvent)
+        return PracticeTwoClass(users_ids=event.users_ids).get_results(event)
+
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @router.get('/pr1-class-right-checkpoints', status_code=status.HTTP_200_OK)

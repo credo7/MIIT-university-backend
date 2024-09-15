@@ -21,7 +21,7 @@ from schemas import (
     StartEventDto,
     EventInfo,
     PR1ControlResults,
-    UserOut,
+    UserOut, UserHistoryElement, TestCorrectsAndErrors, CorrectOrError,
 )
 from services.utils import normalize_mongo
 
@@ -239,6 +239,43 @@ class PracticeOneControl:
                 event.current_step = finished_step
                 event.is_finished = True
                 event.finished_at = datetime.now()
+                event.results = self.get_results(event)
+
+                history_element = UserHistoryElement(
+                    id=event.id,
+                    type=event.event_type,
+                    mode=event.event_mode,
+                    created_at=event.created_at,
+                    finished_at=event.finished_at,
+                )
+
+                incoterms = {
+                    event.steps_results[0].incoterm: CorrectOrError.CORRECT,
+                    event.steps_results[1].incoterm: CorrectOrError.CORRECT,
+                    event.steps_results[2].incoterm: CorrectOrError.CORRECT,
+                }
+                for step in event.steps_results[:3]:
+                    if step.fails >= 3:
+                        incoterms[step.incoterm] = CorrectOrError.ERROR
+
+                best = TestCorrectsAndErrors(correct=0, error=0)
+                for step in event.steps_results[3:]:
+                    if step.fails > 0:
+                        best.error += 1
+                    else:
+                        best.correct += 1
+
+                fails_points_mapping = {0: 3, 1: 2, 2: 1, 3: 0}
+
+                incoterm_points_mapping = {
+                    event.steps_results[0].incoterm: fails_points_mapping[event.steps_results[0].fails],
+                    event.steps_results[1].incoterm: fails_points_mapping[event.steps_results[1].fails],
+                    event.steps_results[2].incoterm: fails_points_mapping[event.steps_results[2].fails],
+                }
+
+                history_element.incoterm_points_mapping = incoterm_points_mapping
+
+                self.db[CollectionNames.USERS.value].update_one({'_id': ObjectId(event.users_ids[0])}, {"$push": history_element.dict()})
             else:
                 next_step = Step(
                     id=3 + test_question_index + 2,

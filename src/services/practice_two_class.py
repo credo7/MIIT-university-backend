@@ -2,12 +2,14 @@ import random
 from typing import Optional, Union, Type
 import math
 from bson import ObjectId
+import datetime
 
 from constants.pr2_class_info import pr2_class_info
 from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
-    CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute
+    CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute, \
+    PR2ClassResult, UserOut, UserHistoryElement
 from services.utils import normalize_mongo
 
 
@@ -44,6 +46,66 @@ class PracticeTwoClass:
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
         checkpoint_response.fails = event.steps_results[-1].fails
+
+    def get_results(self, event: PR2ClassEvent) -> list[PR2ClassResult]:
+        pr2_class_results = []
+
+        for user_id in event.users_ids:
+            user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
+
+            step_codes_with_point_system = [
+                'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER',
+                'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION',
+                'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY',
+                'SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER',
+                'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION',
+                'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY',
+                'SCREEN_8_MAP_ROUTE_1',
+                'SCREEN_8_MAP_ROUTE_2',
+                'SCREEN_8_MAP_ROUTE_3',
+                'SCREEN_8_MAP_ROUTE_4',
+                'SCREEN_8_MAP_ROUTE_5',
+                'SCREEN_8_MAP_ROUTE_6',
+                'SCREEN_8_MAP_ROUTE_7',
+                'SCREEN_8_MAP_ROUTE_8',
+                'SCREEN_10_RISKS_1',
+                'SCREEN_10_RISKS_2',
+                'SCREEN_10_RISKS_3',
+                'SCREEN_10_RISKS_4',
+                'SCREEN_10_RISKS_5',
+                'SCREEN_10_RISKS_6',
+                'SCREEN_10_RISKS_7',
+                'SCREEN_10_RISKS_8',
+            ]
+
+            errors = 0
+            points = 0
+
+            for step_result in event.steps_results:
+                if step_result.step_code in step_codes_with_point_system:
+                    if step_result.fails == 3:
+                        errors += 1
+                    elif step_result.fails == 0:
+                        points += 3
+                    elif step_result.fails == 1:
+                        points += 2
+                    elif step_result.fails == 2:
+                        points += 1
+
+            user = normalize_mongo(user_db, UserOut)
+
+            pr2_class_results.append(
+                PR2ClassResult(
+                    name=user.first_name,
+                    last_name=user.last_name,
+                    surname=user.surname,
+                    group_name=user.group_name,
+                    errors=errors,
+                    points=points,
+                )
+            )
+
+        return pr2_class_results
 
     def checkpoint(self, event: Union[PR2ClassEvent, Type[PR2ClassEvent]], checkpoint_dto: CheckpointData):
         checkpoint_response = CheckpointResponse()
@@ -224,7 +286,7 @@ class PracticeTwoClass:
                 f"{event.source_data.package_size.length:g}*{event.source_data.package_size.width:g}*{event.source_data.package_size.height:g}",
                 f"{event.source_data.package_size.length:g}*{event.source_data.package_size.height:g}*{event.source_data.package_size.width:g}",
                 f"{event.source_data.package_size.height:g}*{event.source_data.package_size.width:g}*{event.source_data.package_size.length:g}",
-                f"{event.source_data.package_size.height:g}*{event.source_data.package_size.length:g}*{event.source_data.package_size.height:g}",
+                f"{event.source_data.package_size.height:g}*{event.source_data.package_size.length:g}*{event.source_data.package_size.width:g}",
                 f"{event.source_data.package_size.width:g}*{event.source_data.package_size.height:g}*{event.source_data.package_size.length:g}",
                 f"{event.source_data.package_size.width:g}*{event.source_data.package_size.length:g}*{event.source_data.package_size.height:g}",
             ]
@@ -624,15 +686,48 @@ class PracticeTwoClass:
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
-        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS':
+        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL1':
             next_step = Step(id=39, code=self._get_next_code_by_id(39),)
 
-            is_failed = False
+            answer_ids = [r.best_pls[0].index for r in event.source_data.mini_routes]
+
+            is_failed = checkpoint_dto.answer_ids != answer_ids
+
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'В доработке! Как только так сразу'
+            checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
+
+        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL2':
+            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+
+            answer_ids = [r.best_pls[1].index for r in event.source_data.mini_routes]
+
+            is_failed = checkpoint_dto.answer_ids != answer_ids
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
+
+        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL3':
+            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+
+            answer_ids = [r.best_pls[2].index for r in event.source_data.mini_routes]
+
+            is_failed = checkpoint_dto.answer_ids != answer_ids
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
+
+        if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_COMBO':
+            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+
+            answer_ids = [r.best_pls[3].index for r in event.source_data.mini_routes]
+
+            is_failed = checkpoint_dto.answer_ids != answer_ids
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
+            next_step = Step(id=43, code=self._get_next_code_by_id(40),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -641,9 +736,28 @@ class PracticeTwoClass:
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
             next_step = Step(id=-1, code='FINISH',)
 
+            event.is_finished = True
+            event.finished_at = datetime.datetime.now()
+            event.results = self.get_results(event)
+
+            for i, user_id in enumerate(event.users_ids):
+                history_element = UserHistoryElement(
+                    id=event.id,
+                    type=event.event_type,
+                    mode=event.event_mode,
+                    created_at=event.created_at,
+                    finished_at=event.finished_at,
+                    errors=event.results[i].errors,
+                    points=event.results[i].points,
+                )
+
+                self.db[CollectionNames.USERS.value].update_one(
+                    {'_id': ObjectId(user_id)}, {"$push": history_element.dict()}
+                )
+
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint =  'Заполняем поле text и заканчиваем эту лабуду'
+            checkpoint_response.hint = 'Заполняем поле text и заканчиваем эту лабуду'
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
@@ -926,8 +1040,17 @@ class PracticeTwoClass:
         elif event.current_step.code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
             return self._get_full_routes_with_pls_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS':
-            return self._get_optimal_results_step_response(event)
+        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS_3PL1':
+            return self._get_optimal_results_step_response(event, 1)
+
+        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS_3PL2':
+            return self._get_optimal_results_step_response(event, 2)
+
+        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS_3PL3':
+            return self._get_optimal_results_step_response(event, 3)
+
+        elif event.current_step.code == 'SCREEN_11_OPTIMAL_RESULTS_COMBO':
+            return self._get_optimal_results_step_response(event, 4)
 
         # TODO
         elif event.current_step.code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
@@ -1062,20 +1185,10 @@ class PracticeTwoClass:
                 width=1.2,
                 height=1.1
             ),
-            PackageSize(
-                length=1.1,
-                width=1.1,
-                height=1
-            ),
-            PackageSize(
-                length=1.1,
-                width=1.1,
-                height=1.1
-            ),
         ]
         return random.choice(all_package_size_combinations)
 
-    def _get_optimal_results_step_response(self, event):
+    def _get_optimal_results_step_response(self, event, row_index: int):
         step_response = CurrentStepResponse(
             is_finished=event.is_finished,
             current_step=event.current_step
@@ -1088,10 +1201,16 @@ class PracticeTwoClass:
         pl2_result = round(sum([r.best_pls[1].value * r.n_40_foot_containers for r in event.source_data.mini_routes]), 2)
         pl3_result = round(sum([r.best_pls[2].value * r.n_40_foot_containers for r in event.source_data.mini_routes]), 2)
         combo_result = round(sum([r.best_pls[3].value * r.n_40_foot_containers for r in event.source_data.mini_routes]), 2)
-        step_response.pl1_formula = f'{pl1_result}: {"-".join([r.best_pls[0].index for r in event.source_data.mini_routes])}'
-        step_response.pl2_formula = f'{pl2_result}: {"-".join([r.best_pls[1].index for r in event.source_data.mini_routes])}'
-        step_response.pl3_formula = f'{pl3_result}: {"-".join([r.best_pls[2].index for r in event.source_data.mini_routes])}'
-        step_response.combo_formula = f'{combo_result}: {"-".join([r.best_pls[3].index for r in event.source_data.mini_routes])}'
+
+        if row_index > 1:
+            step_response.pl1_formula = f'{pl1_result}: {"-".join([r.best_pls[0].index for r in event.source_data.mini_routes])}'
+
+        if row_index > 2:
+            step_response.pl2_formula = f'{pl2_result}: {"-".join([r.best_pls[1].index for r in event.source_data.mini_routes])}'
+
+        if row_index > 3:
+            step_response.pl3_formula = f'{pl3_result}: {"-".join([r.best_pls[2].index for r in event.source_data.mini_routes])}'
+            step_response.combo_formula = f'{combo_result}: {"-".join([r.best_pls[3].index for r in event.source_data.mini_routes])}'
 
         return step_response
 
@@ -1309,21 +1428,6 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
 
-        n_of_transport_packages_in_container_20 = math.floor(5.9 / event.source_data.package_size.length
-                                                             * (2.33 / event.source_data.package_size.width)
-                                                             * (2.35 / event.source_data.package_size.height)
-                                                             )
-
-        n_of_transport_packages_in_container_40 = math.floor(
-            (12 / event.source_data.package_size.length)
-            * (2.33 / event.source_data.package_size.width)
-            * (2.35 / event.source_data.package_size.height)
-        )
-
-        package_volume = round(
-            event.source_data.package_size.length * event.source_data.package_size.width * event.source_data.package_size.height,
-            2)
-
         twenty_foot_formulas = [
             FormulaRow(
                 name='Погрузочный объём контейнера, куб.м',
@@ -1338,17 +1442,17 @@ class PracticeTwoClass:
                 name=f'Количество транспортных пакетов, размещаемых в контейнере',
                 formula=f'(5,9/{event.source_data.package_size.length})*'
                         f'(2,33/{event.source_data.package_size.width})*'
-                        f'(2,35/{event.source_data.package_size.height})={n_of_transport_packages_in_container_20}'
+                        f'(2,35/{event.source_data.package_size.height})={event.source_data.number_of_packages_in_20_foot_container}'
             ),
             FormulaRow(
                 name=f'Коэффициент использования вместимости',
-                formula=f'{n_of_transport_packages_in_container_20}*{package_volume}/32,3='
-                        f'{round(n_of_transport_packages_in_container_20 * package_volume / 32.3, 2)}'
+                formula=f'{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.transport_package_volume}/32,3='
+                        f'{round(event.source_data.number_of_packages_in_20_foot_container * event.source_data.transport_package_volume / 32.3, 2)}'
             ),
             FormulaRow(
                 name=f'Коэффициент использования грузоподъёмности',
-                formula=f'{n_of_transport_packages_in_container_20}*{event.source_data.package_weight_in_ton}/21.8='
-                        f'{round(n_of_transport_packages_in_container_20 * event.source_data.package_weight_in_ton / 21.8, 2)}'
+                formula=f'{event.source_data.number_of_packages_in_20_foot_container}*{event.source_data.package_weight_in_ton}/21.8='
+                        f'{round(event.source_data.number_of_packages_in_20_foot_container * event.source_data.package_weight_in_ton / 21.8, 2)}'
             )
         ]
         twenty_foot_container_result = ContainerResult(
@@ -1370,17 +1474,17 @@ class PracticeTwoClass:
                 name=f'Количество транспортных пакетов, размещаемых в контейнере',
                 formula=f'(12/{event.source_data.package_size.length})*'
                         f'(2,33/{event.source_data.package_size.width})*'
-                        f'(2,35/{event.source_data.package_size.height})={n_of_transport_packages_in_container_40}'
+                        f'(2,35/{event.source_data.package_size.height})={event.source_data.number_of_packages_in_40_foot_container}'
             ),
             FormulaRow(
                 name=f'Коэффициент использования вместимости',
-                formula=f'{n_of_transport_packages_in_container_40}*{package_volume}/65,7='
-                        f'{round(n_of_transport_packages_in_container_40 * package_volume / 65.7, 2)}'
+                formula=f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.transport_package_volume}/65,7='
+                        f'{round(event.source_data.number_of_packages_in_40_foot_container * event.source_data.transport_package_volume / 65.7, 2)}'
             ),
             FormulaRow(
                 name=f'Коэффициент использования грузоподъёмности',
-                formula=f'{n_of_transport_packages_in_container_40}*{event.source_data.package_weight_in_ton}/21.8='
-                        f'{round(n_of_transport_packages_in_container_40 * event.source_data.package_weight_in_ton / 26.4, 2)}'
+                formula=f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}/21.8='
+                        f'{round(event.source_data.number_of_packages_in_40_foot_container * event.source_data.package_weight_in_ton / 26.4, 2)}'
             )
         ]
 
@@ -1420,24 +1524,13 @@ class PracticeTwoClass:
         step_response.extra_button_numbers = []
 
         if formula_num >= 2:
-            loading_volume = round(
-                step_response.container_length * step_response.container_width * step_response.container_height, 2
-            )
-            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=loading_volume))
+            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=event.source_data.loading_volume_20_foot_container))
 
         if formula_num >= 3:
-            package_volume = round(
-                    step_response.package_height * step_response.package_width * step_response.package_height, 2
-            )
-            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=package_volume))
+            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=event.source_data.transport_package_volume))
 
         if formula_num >= 4:
-            number_of_packages_in_container = math.floor(
-                step_response.container_length / step_response.package_length
-                * step_response.container_width / step_response.package_width
-                * step_response.container_height / step_response.package_height,
-            )
-            step_response.extra_button_numbers.append(ButtonNumber(text="Кол-во пакетов в контейнере", value=number_of_packages_in_container))
+            step_response.extra_button_numbers.append(ButtonNumber(text="Кол-во пакетов в контейнере", value=event.source_data.number_of_packages_in_20_foot_container))
 
         return step_response
 
@@ -1468,25 +1561,14 @@ class PracticeTwoClass:
         step_response.extra_button_numbers = []
 
         if formula_num >= 2:
-            loading_volume = round(
-                step_response.container_length * step_response.container_width * step_response.container_height, 2
-            )
-            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=loading_volume))
+            step_response.extra_button_numbers.append(ButtonNumber(text="Погрузочный объём", value=event.source_data.loading_volume_40_foot_container))
 
         if formula_num >= 3:
-            package_volume = round(
-                step_response.package_height * step_response.package_width * step_response.package_height, 2
-            )
-            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=package_volume))
+            step_response.extra_button_numbers.append(ButtonNumber(text="Объём пакета", value=event.source_data.transport_package_volume))
 
         if formula_num >= 4:
-            number_of_packages_in_container = math.floor(
-                step_response.container_length / step_response.package_length
-                * step_response.container_width / step_response.package_width
-                * step_response.container_height / step_response.package_height,
-            )
             step_response.extra_button_numbers.append(
-                ButtonNumber(text="Кол-во пакетов в контейнере", value=number_of_packages_in_container))
+                ButtonNumber(text="Кол-во пакетов в контейнере", value=event.source_data.number_of_packages_in_40_foot_container))
 
         return step_response
 

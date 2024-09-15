@@ -433,6 +433,25 @@ class FullUser(UserCreateDB):
     fix_for_approve_fields: Optional[list[str]] = None
 
 
+class TestCorrectsAndErrors(BaseModel):
+    correct: int
+    error: int
+
+
+class UserHistoryElement(BaseModel):
+    id: str
+    type: EventType
+    mode: EventMode
+    created_at: datetime
+    finished_at: datetime
+    incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
+    incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
+    test: Optional[TestCorrectsAndErrors] = None
+    description: Optional[str] = None
+    errors: Optional[int] = None
+    points: Optional[int] = None
+
+
 class UserOut(UserBase):
     id: str
     first_name: str
@@ -445,6 +464,7 @@ class UserOut(UserBase):
     role: UserRole = UserRole.STUDENT.value
     incoterms: dict[Incoterm, int] = {}
     fix_for_approve_fields: Optional[list[str]] = None
+    history: list[UserHistoryElement] = []
 
 
 class UserEvent(BaseModel):
@@ -558,6 +578,15 @@ class SubResult(BaseModel):
     failed: int = 0
 
 
+class PR2ClassResult(BaseModel):
+    name: str
+    last_name: str
+    surname: str
+    group_name: str
+    errors: int
+    points: int
+
+
 class PR1ControlResults(BaseModel):
     user_id: str
     first_name: str
@@ -595,7 +624,7 @@ class EventInfo(BaseModel):
     finished_at: Optional[datetime] = None
     users_ids: list[str]
     steps_results: list[EventStepResult] = []
-    results: list[EventResult] = []
+    results: Optional[Union[PR1ControlResults, list[PR2ClassResult], PR1ClassResults, list[EventResult]]] = None
     current_step: Union[Step, str]
     test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
 
@@ -1104,21 +1133,23 @@ class UserToApprove(BaseModel):
     student_id: Optional[str] = None
 
 
-class TestCorrectsAndErrors(BaseModel):
-    correct: int
-    error: int
+# class TestCorrectsAndErrors(BaseModel):
+#     correct: int
+#     error: int
 
 
-class UserHistoryElement(BaseModel):
-    id: str
-    type: EventType
-    mode: EventMode
-    created_at: datetime
-    finished_at: datetime
-    incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
-    incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
-    test: Optional[TestCorrectsAndErrors] = None
-    description: Optional[str] = None
+# class UserHistoryElement(BaseModel):
+#     id: str
+#     type: EventType
+#     mode: EventMode
+#     created_at: datetime
+#     finished_at: datetime
+#     incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
+#     incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
+#     test: Optional[TestCorrectsAndErrors] = None
+#     description: Optional[str] = None
+#     errors: Optional[int] = None
+#     points: Optional[int] = None
 
 
 class GetUserResponse(BaseModel):
@@ -1156,7 +1187,6 @@ class CheckpointData(BaseModel):
     formulas: Optional[list[str]]
     source_data_choose_screen: Optional[SourceDataChooseScreen]
     route_points_codes: Optional[list[str]]
-
 
 class JoinData(BaseModel):
     computer_id: conint(ge=0)

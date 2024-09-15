@@ -1,3 +1,4 @@
+import copy
 import random
 from datetime import datetime
 from typing import List, Dict, Optional, Type, Union
@@ -34,7 +35,7 @@ from schemas import (
     StepRole,
     CurrentStepResponse,
     IncotermInfoSummarize,
-    PR1ClassStep,
+    PR1ClassStep, UserHistoryElement, CorrectOrError, TestCorrectsAndErrors,
 )
 from services.utils import normalize_mongo, format_with_spaces
 
@@ -467,6 +468,40 @@ class PracticeOneClass:
             if next_step.code == 'FINISHED':
                 event.is_finished = True
                 event.finished_at = datetime.now()
+                event.results = self.get_results(event)
+                for i, user_id in enumerate(event.users_ids):
+                    history_element = UserHistoryElement(
+                        id=event.id,
+                        type=event.event_type,
+                        mode=event.event_mode,
+                        created_at=event.created_at,
+                        finished_at=event.finished_at,
+                    )
+
+                    incoterms = {inc: CorrectOrError.CORRECT for inc in list(Incoterm)}
+                    for step in event.steps_results:
+                        if step.step_code == 'DESCRIBE_OPTION':
+                            history_element.description = step.description
+                        if user_id in step.users_ids:
+                            if step.fails >= 3:
+                                incoterms[step.incoterm] = CorrectOrError.ERROR
+
+                    best = TestCorrectsAndErrors(correct=0, error=20)
+                    for test_result in event.test_results:
+                        current = TestCorrectsAndErrors(correct=0, error=0)
+                        for step in test_result:
+                            if step.fails > 0:
+                                current.error += 1
+                            else:
+                                current.correct += 1
+                        if current.correct > best.correct:
+                            best = copy.deepcopy(current)
+
+                    history_element.incoterms = incoterms
+                    history_element.test = best
+
+                    self.db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {"$push": history_element.dict()})
+
             checkpoint_response.next_step = next_step
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})

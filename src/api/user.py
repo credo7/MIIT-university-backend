@@ -228,96 +228,12 @@ async def get_me(current_user: schemas.UserOut = Depends(oauth2.get_current_user
 
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.GetUserResponse)
 async def get_user(id: str, db: Database = Depends(get_db)):
-
     user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(id)})
 
     if not user_db:
         raise HTTPException(status_code=404, detail='User not found')
 
     user = normalize_mongo(user_db, schemas.UserOut)
-
-    history = []
-
-    events = (
-        db[CollectionNames.EVENTS.value]
-        .find(
-            {
-                'is_finished': True,
-                'users_ids': {'$in': [user.id]},
-                '$or': [
-                    {'event_mode': 'CONTROL'},
-                    {'$and': [{'event_mode': 'CLASS'}, {'test_results': {'$exists': True}}]},
-                ],
-            }
-        )
-        .sort('created_at', -1)
-    )
-
-    for event_db in events:
-        event = normalize_mongo(event_db, schemas.EventInfo)
-
-        print({'event_id': event.id, 'type': event.event_type, 'event_mode': event.event_mode})
-        history_element = schemas.UserHistoryElement(
-            id=event.id,
-            type=event.event_type,
-            mode=event.event_mode,
-            created_at=event.created_at,
-            finished_at=event.finished_at,
-        )
-
-        if event.event_type == schemas.EventType.PR1:
-            if event.event_mode == schemas.EventMode.CLASS:
-                for step in event.steps_results:
-                    if step.step_code == 'DESCRIBE_OPTION':
-                        history_element.description = step.description
-                        break
-
-                incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
-                for step in event.steps_results:
-                    if user.id in step.users_ids:
-                        if step.fails >= 3:
-                            incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
-
-                best = schemas.TestCorrectsAndErrors(correct=0, error=20)
-                for test_result in event.test_results:
-                    current = schemas.TestCorrectsAndErrors(correct=0, error=0)
-                    for step in test_result:
-                        if step.fails > 0:
-                            current.error += 1
-                        else:
-                            current.correct += 1
-                    if current.correct > best.correct:
-                        best = copy.deepcopy(current)
-            else:
-                incoterms = {
-                    event.steps_results[0].incoterm: schemas.CorrectOrError.CORRECT,
-                    event.steps_results[1].incoterm: schemas.CorrectOrError.CORRECT,
-                    event.steps_results[2].incoterm: schemas.CorrectOrError.CORRECT,
-                }
-                for step in event.steps_results[:3]:
-                    if step.fails >= 3:
-                        incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
-
-                best = schemas.TestCorrectsAndErrors(correct=0, error=0)
-                for step in event.steps_results[3:]:
-                    if step.fails > 0:
-                        best.error += 1
-                    else:
-                        best.correct += 1
-
-                fails_points_mapping = {0: 3, 1: 2, 2: 1, 3: 0}
-
-                incoterm_points_mapping = {
-                    event.steps_results[0].incoterm: fails_points_mapping[event.steps_results[0].fails],
-                    event.steps_results[1].incoterm: fails_points_mapping[event.steps_results[1].fails],
-                    event.steps_results[2].incoterm: fails_points_mapping[event.steps_results[2].fails],
-                }
-
-                history_element.incoterm_points_mapping = incoterm_points_mapping
-
-            history_element.incoterms = incoterms
-            history_element.test = best
-            history.append(history_element)
 
     return schemas.GetUserResponse(
         id=user.id,
@@ -327,7 +243,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
         username=user.username,
         group_id=user.group_id,
         group_name=user.group_name,
-        history=history,
+        history=user.history,
     )
 
 
