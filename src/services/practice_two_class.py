@@ -368,6 +368,8 @@ class PracticeTwoClass:
         if checkpoint_dto.step_code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
             next_step = Step(id=14, code=self._get_next_code_by_id(14),)
 
+            event.container_selection_explanation = checkpoint_dto.text
+
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -736,6 +738,8 @@ class PracticeTwoClass:
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
             next_step = Step(id=-1, code='FINISH',)
 
+            event.delivery_option_explanation = checkpoint_dto.text
+
             event.is_finished = True
             event.finished_at = datetime.datetime.now()
             event.results = self.get_results(event)
@@ -749,6 +753,8 @@ class PracticeTwoClass:
                     finished_at=event.finished_at,
                     errors=event.results[i].errors,
                     points=event.results[i].points,
+                    container_selection_explanation=event.container_selection_explanation,
+                    delivery_option_explanation=checkpoint_dto.text,
                 )
 
                 self.db[CollectionNames.USERS.value].update_one(
@@ -757,7 +763,6 @@ class PracticeTwoClass:
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Заполняем поле text и заканчиваем эту лабуду'
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 

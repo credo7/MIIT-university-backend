@@ -450,6 +450,8 @@ class UserHistoryElement(BaseModel):
     description: Optional[str] = None
     errors: Optional[int] = None
     points: Optional[int] = None
+    container_selection_explanation: Optional[str]
+    delivery_option_explanation: Optional[str]
 
 
 class UserOut(UserBase):
@@ -1299,6 +1301,8 @@ class PR2ClassEvent(EventInfo):
     legend: str
     explanation: str
     source_data: PR2SourceData
+    container_selection_explanation: Optional[str]
+    delivery_option_explanation: Optional[str]
 
 
 class FormulaRow(BaseModel):
