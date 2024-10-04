@@ -752,7 +752,7 @@ class PracticeTwoClass:
         )
 
         step_response.all_points = event.source_data.all_points
-        step_response.departure_points = event.source_data.departure_points_strs
+        step_response.departure_points_strs = event.source_data.departure_points_strs
 
         return step_response
 
@@ -764,8 +764,8 @@ class PracticeTwoClass:
         )
 
         step_response.all_points = event.source_data.all_points
-        step_response.departure_points = event.source_data.departure_points_strs
-        step_response.destination_points = event.source_data.destination_points_codes
+        step_response.departure_points_strs = event.source_data.departure_points_strs
+        step_response.destination_points_codes = event.source_data.destination_points_codes
 
         return step_response
 

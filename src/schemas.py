@@ -1424,7 +1424,7 @@ class CurrentStepResponse(BaseModel):
     destination_points_codes: Optional[list[str]]
     ports_points_codes: Optional[list[str]]
     borders_points_codes: Optional[list[str]]
-    terminals: Optional[list[str]]
+    terminals_points_codes: Optional[list[str]]
 
 
 class CheckpointResponse(BaseModel):
