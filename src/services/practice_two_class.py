@@ -467,28 +467,10 @@ class PracticeTwoClass:
             right_formulas={right_formulas}
             """
 
-        if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
+        if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS':
             next_step = Step(id=20, code=self._get_next_code_by_id(20),)
 
-            if checkpoint_dto.source_data_choose_screen is None or None in [
-                checkpoint_dto.source_data_choose_screen.departure_points_codes,
-                checkpoint_dto.source_data_choose_screen.destination_points_codes,
-                checkpoint_dto.source_data_choose_screen.ports_points_codes,
-                checkpoint_dto.source_data_choose_screen.borders_points_codes
-            ]:
-                raise Exception(
-                    f"Должны быть заполнены "
-                    f"source_data_choose_screen.departure_points_codes,"
-                    f" source_data_choose_screen.destination_points_codes, "
-                    f"source_data_choose_screen.ports_points_codes, "
-                    f"source_data_choose_screen.borders_points_codes"
-                )
-
-            right_departure_points_codes = [
-                event.source_data.full_routes[0].points[0].code,
-                event.source_data.full_routes[4].points[0].code,
-                event.source_data.full_routes[6].points[0].code
-            ]
+            checkpoint_response.hint = "Нужно заполнить поле: destination_points_codes ( лист из кодов правильных точек )"
 
             right_destination_points_codes = [
                 event.source_data.full_routes[0].points[-1].code,
@@ -498,50 +480,44 @@ class PracticeTwoClass:
                 event.source_data.full_routes[7].points[-1].code,
             ]
 
+            is_failed = right_destination_points_codes != checkpoint_dto.destination_points_codes
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE_PORTS':
+            next_step = Step(id=21, code=self._get_next_code_by_id(21),)
+
+            checkpoint_response.hint = "Нужно заполнить поле: ports_codes ( лист из кодов правильных точек )"
+
             right_ports_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
-            right_borders_codes = set()
             for r in event.source_data.full_routes:
                 for p in r.points:
                     if p.type == "PORT":
                         right_ports_codes.add(p.code)
+
+            is_failed = right_ports_codes != set(checkpoint_dto.ports_codes)
+
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+
+        if checkpoint_dto.step_code == 'SCREEN_7_SOURCE_DATA_CHOOSE_BORDER':
+            next_step = Step(id=22, code=self._get_next_code_by_id(22),)
+
+            right_borders_codes = set()
+            for r in event.source_data.full_routes:
+                for p in r.points:
                     if p.type == "BORDER":
                         right_borders_codes.add(p.code)
 
-            is_failed = (
-                    len(checkpoint_dto.source_data_choose_screen.departure_points_codes) != 3 or
-                    len(checkpoint_dto.source_data_choose_screen.destination_points_codes) != 5 or
-                    len(checkpoint_dto.source_data_choose_screen.ports_points_codes) != len(right_ports_codes) or
-                    len(checkpoint_dto.source_data_choose_screen.borders_points_codes) != len(right_borders_codes)
-            )
-
-            if (
-                checkpoint_dto.source_data_choose_screen.departure_points_codes != right_departure_points_codes or
-                checkpoint_dto.source_data_choose_screen.destination_points_codes != right_destination_points_codes or
-                set(checkpoint_dto.source_data_choose_screen.ports_points_codes) != right_ports_codes or
-                set(checkpoint_dto.source_data_choose_screen.borders_points_codes) != right_borders_codes
-            ):
-                is_failed = True
+            is_failed = right_borders_codes != set(checkpoint_dto.borders_codes)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
             checkpoint_response.hint = f"""
-            Нужно заполнить поля:
-            source_data_choose_screen.departure_points_codes
-            source_data_choose_screen.destination_points_codes
-            source_data_choose_screen.ports_points_codes
-            source_data_choose_screen.borders_points_codes
-            
-            Все они несут в себя лист из стрингов, стринги это коды точек
-
-            Правильные ответы:
-            right_departure_points_codes={right_departure_points_codes}
-            right_destination_points_codes={right_destination_points_codes}
-            right_ports_codes={right_ports_codes}
-            right_borders_codes={right_borders_codes}
+            Нужно заполнить поле: borders_codes
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_1':
-            next_step = Step(id=21, code=self._get_next_code_by_id(21),)
+            next_step = Step(id=23, code=self._get_next_code_by_id(23),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[0].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -551,7 +527,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_2':
-            next_step = Step(id=22, code=self._get_next_code_by_id(22),)
+            next_step = Step(id=24, code=self._get_next_code_by_id(24),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[1].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -561,7 +537,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
-            next_step = Step(id=23, code=self._get_next_code_by_id(23),)
+            next_step = Step(id=25, code=self._get_next_code_by_id(25),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[2].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -571,7 +547,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_4':
-            next_step = Step(id=24, code=self._get_next_code_by_id(24),)
+            next_step = Step(id=26, code=self._get_next_code_by_id(26),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[3].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -581,7 +557,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_5':
-            next_step = Step(id=25, code=self._get_next_code_by_id(25),)
+            next_step = Step(id=27, code=self._get_next_code_by_id(27),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[4].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -591,7 +567,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_6':
-            next_step = Step(id=26, code=self._get_next_code_by_id(26),)
+            next_step = Step(id=28, code=self._get_next_code_by_id(28),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[5].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -601,7 +577,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_7':
-            next_step = Step(id=27, code=self._get_next_code_by_id(27),)
+            next_step = Step(id=29, code=self._get_next_code_by_id(29),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[6].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -611,7 +587,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
-            next_step = Step(id=28, code=self._get_next_code_by_id(28),)
+            next_step = Step(id=29, code=self._get_next_code_by_id(29),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[7].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -621,75 +597,75 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_9_FORMED_ROUTES_TABLE':
-            next_step = Step(id=29, code=self._get_next_code_by_id(29), )
+            next_step = Step(id=30, code=self._get_next_code_by_id(30), )
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Скипаем, инфо скрин'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
-            next_step = Step(id=30, code=self._get_next_code_by_id(30),)
+            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
-            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
-
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=32, code=self._get_next_code_by_id(32),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
             next_step = Step(id=34, code=self._get_next_code_by_id(34),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
             next_step = Step(id=35, code=self._get_next_code_by_id(35),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
             next_step = Step(id=36, code=self._get_next_code_by_id(36),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
             next_step = Step(id=37, code=self._get_next_code_by_id(37),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
             next_step = Step(id=38, code=self._get_next_code_by_id(38),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
+            next_step = Step(id=39, code=self._get_next_code_by_id(39),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL1':
-            next_step = Step(id=39, code=self._get_next_code_by_id(39),)
+            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
 
             answer_ids = [r.best_pls[0].index for r in event.source_data.mini_routes]
 
@@ -699,7 +675,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL2':
-            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+            next_step = Step(id=41, code=self._get_next_code_by_id(41), )
 
             answer_ids = [r.best_pls[1].index for r in event.source_data.mini_routes]
 
@@ -709,7 +685,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL3':
-            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+            next_step = Step(id=42, code=self._get_next_code_by_id(42), )
 
             answer_ids = [r.best_pls[2].index for r in event.source_data.mini_routes]
 
@@ -719,7 +695,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_COMBO':
-            next_step = Step(id=39, code=self._get_next_code_by_id(39), )
+            next_step = Step(id=43, code=self._get_next_code_by_id(43), )
 
             answer_ids = [r.best_pls[3].index for r in event.source_data.mini_routes]
 
@@ -729,7 +705,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=43, code=self._get_next_code_by_id(40),)
+            next_step = Step(id=44, code=self._get_next_code_by_id(44),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -767,6 +743,47 @@ class PracticeTwoClass:
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
         return checkpoint_response
+
+    @staticmethod
+    def _get_source_data_choose_destinations_step_response(event):
+        step_response = CurrentStepResponse(
+            is_finished=event.is_finished,
+            current_step=event.current_step
+        )
+
+        step_response.all_points = event.source_data.all_points
+        step_response.departure_points = event.source_data.departure_points_strs
+
+        return step_response
+
+    @staticmethod
+    def _get_source_data_choose_ports_step_response(event):
+        step_response = CurrentStepResponse(
+            is_finished=event.is_finished,
+            current_step=event.current_step
+        )
+
+        step_response.all_points = event.source_data.all_points
+        step_response.departure_points = event.source_data.departure_points_strs
+        step_response.destination_points = event.source_data.destination_points_codes
+
+        return step_response
+
+    @staticmethod
+    def _get_source_data_choose_border_step_response(event):
+        step_response = CurrentStepResponse(
+            is_finished=event.is_finished,
+            current_step=event.current_step
+        )
+
+        step_response.all_points = event.source_data.all_points
+        step_response.departure_points_strs = event.source_data.departure_points_strs
+        step_response.destination_points_codes = event.source_data.destination_points_codes
+        step_response.ports_points_codes = event.source_data.ports_points_codes
+        step_response.borders_points_codes = event.source_data.borders_points_codes
+        step_response.terminals_points_codes = event.source_data.terminals_points_codes
+
+        return step_response
 
     def create(self, event_dto: StartEventDto):
         zero_step = Step(
@@ -916,6 +933,48 @@ class PracticeTwoClass:
 
         transport_package_volume = package_size.length * package_size.width * package_size.height
 
+        departure_points_strs = [
+            f"Китай: {full_routes[0].points[0].city}",
+            f"Япония: {full_routes[4].points[0].city}",
+            f"Южная Корея: {full_routes[6].points[0].city}",
+        ]
+        destination_points_codes = [
+            full_routes[0].points[-1].code,
+            full_routes[4].points[-1].code,
+            full_routes[5].points[-1].code,
+            full_routes[6].points[-1].code,
+            full_routes[7].points[-1].code,
+        ]
+        ports_points_codes = set()
+        borders_points_codes = set()
+        terminals_points_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"])
+        all_points = [p for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"]
+        all_points.extend([
+            full_routes[0].points[-1],
+            full_routes[4].points[-1],
+            full_routes[5].points[-1],
+            full_routes[6].points[-1],
+            full_routes[7].points[-1]
+        ])
+        for r in full_routes:
+            for p in r.points:
+                if p.type == "PORT":
+                    ports_points_codes.add(p.code)
+                    if p not in all_points:
+                        all_points.append(p)
+                if p.type == "BORDER":
+                    borders_points_codes.add(p.code)
+                    if p not in all_points:
+                        all_points.append(p)
+                if p.type == "TERMINAL":
+                    terminals_points_codes.add(p.code)
+                    if p not in all_points:
+                        all_points.append(p)
+
+        ports_points_codes = list(ports_points_codes)
+        borders_points_codes = list(borders_points_codes)
+        terminals_points_codes = list(terminals_points_codes)
+
         source_data = PR2SourceData(
             mini_routes=mini_routes,
             full_routes=full_routes,
@@ -925,7 +984,13 @@ class PracticeTwoClass:
             number_of_packages_in_20_foot_container=n_of_transport_packages_in_container_20,
             number_of_packages_in_40_foot_container=n_of_transport_packages_in_container_40,
             loading_volume_20_foot_container=32.3,
-            loading_volume_40_foot_container=65.7
+            loading_volume_40_foot_container=65.7,
+            all_points=all_points,
+            departure_points_strs=departure_points_strs,
+            destination_points_codes=destination_points_codes,
+            ports_points_codes=ports_points_codes,
+            borders_points_codes=borders_points_codes,
+            terminals_points_codes=terminals_points_codes,
         )
 
         legend = """Компания имеет производственные мощности в Китае, отправляя свою продукцию в Европу преимущественно морским транспортом в 20-футовых контейнерах с продолжительностью доставки более 40 суток.
@@ -1012,8 +1077,14 @@ class PracticeTwoClass:
         elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5':
             return self._get_containers_number_40_step_response(event)
 
-        elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE':
-            return self._get_source_data_choose_step_response(event)
+        elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS':
+            return self._get_source_data_choose_destinations_step_response(event)
+
+        elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE_PORTS':
+            return self._get_source_data_choose_ports_step_response(event)
+
+        elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE_BORDER':
+            return self._get_source_data_choose_border_step_response(event)
 
         elif event.current_step.code in (
                 'SCREEN_8_MAP_ROUTE_1',
@@ -1074,7 +1145,23 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
 
-        step_response.screen_texts = ['ЭТОТ ПОИНТ В ДОРАБОТКЕ']
+        all_fake_points = [p for p in pr2_class_info.all_points if p.is_fake == True]
+        all_points_from_source_data = []
+        for r in event.source_data.full_routes:
+            all_points_from_source_data.extend(r.points)
+
+        all_points = [*all_fake_points, *all_points_from_source_data]
+        random.shuffle(all_points)
+
+        step_response.all_points = all_points
+
+        step_response.departure_points = [
+            f"Китай: {event.source_data.full_routes[0].points[0].city}",
+            f"Япония: {event.source_data.full_routes[4].points[0].city}",
+            f"Южная Корея: {event.source_data.full_routes[6].points[0].city}"
+        ]
+
+        step_response.screen_texts = ['Заполните таблицу объектов для формирования карты маршрутов']
 
         return step_response
 

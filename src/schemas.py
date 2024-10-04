@@ -241,7 +241,9 @@ class PR2ClassStep(str, enum.Enum):
     SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3 = 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3'
     SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4 = 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4'
     SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5 = 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5'
-    SCREEN_7_SOURCE_DATA_CHOOSE = 'SCREEN_7_SOURCE_DATA_CHOOSE'
+    SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS = 'SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS'
+    SCREEN_7_SOURCE_DATA_CHOOSE_PORTS = 'SCREEN_7_SOURCE_DATA_CHOOSE_PORTS'
+    SCREEN_7_SOURCE_DATA_CHOOSE_BORDER = 'SCREEN_7_SOURCE_DATA_CHOOSE_BORDER'
     SCREEN_8_MAP_ROUTE_1 = 'SCREEN_8_MAP_ROUTE_1'
     SCREEN_8_MAP_ROUTE_2 = 'SCREEN_8_MAP_ROUTE_2'
     SCREEN_8_MAP_ROUTE_3 = 'SCREEN_8_MAP_ROUTE_3'
@@ -1187,8 +1189,10 @@ class CheckpointData(BaseModel):
     chosen_letter: Optional[str] = None
     formula: Optional[str]
     formulas: Optional[list[str]]
-    source_data_choose_screen: Optional[SourceDataChooseScreen]
+    destination_points_codes: Optional[list[str]]
     route_points_codes: Optional[list[str]]
+    ports_codes: Optional[list[str]]
+    borders_codes: Optional[list[str]]
 
 class JoinData(BaseModel):
     computer_id: conint(ge=0)
@@ -1295,6 +1299,12 @@ class PR2SourceData(BaseModel):
     number_of_packages_in_40_foot_container: int
     loading_volume_20_foot_container: float
     loading_volume_40_foot_container: float
+    all_points: list[PR2Point]
+    departure_points_strs: list[str]
+    destination_points_codes: list[str]
+    ports_points_codes: list[str]
+    borders_points_codes: list[str]
+    terminals_points_codes: list[str]
 
 
 class PR2ClassEvent(EventInfo):
@@ -1408,6 +1418,13 @@ class CurrentStepResponse(BaseModel):
 
     number_of_packages_in_20_foot_container: Optional[int]
     number_of_packages_in_40_foot_container: Optional[int]
+
+    all_points: Optional[list[PR2Point]]
+    departure_points_strs: Optional[list[str]]
+    destination_points_codes: Optional[list[str]]
+    ports_points_codes: Optional[list[str]]
+    borders_points_codes: Optional[list[str]]
+    terminals: Optional[list[str]]
 
 
 class CheckpointResponse(BaseModel):
