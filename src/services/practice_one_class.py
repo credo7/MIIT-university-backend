@@ -321,6 +321,9 @@ class PracticeOneClass:
                         del common_bets_map[int(id)]
                     required_bets_map.update(common_bets_map)
 
+            required_bets_for_comments = list(required_bets_map.values())
+            common_bets_for_comments = list(common_bets_map.values())
+
             not_needed_ids = []
             common_bets_ids_chosen_by_buyer = []
 
@@ -353,8 +356,18 @@ class PracticeOneClass:
                 else:
                     users_ids.append(event.users_ids[0])
 
+                if 'SELLER' in event.current_step.code:
+                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}\n" \
+                               f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
+                else:
+                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}"
+
                 new_step_result = EventStepResult(
-                    step_code=event.current_step.code, users_ids=users_ids, fails=0, incoterm=incoterm
+                    step_code=event.current_step.code,
+                    users_ids=users_ids,
+                    fails=0,
+                    incoterm=incoterm,
+                    comments=comments
                 )
                 event.steps_results.append(new_step_result)
 
@@ -385,17 +398,17 @@ class PracticeOneClass:
         ):
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
+            comments = ""
             if event.current_step.code == 'SELECT_LOGIST':
+                comments = "Выбираем логиста. Ни на что не влияет в ПО"
                 event.chosen_logist_letter = checkpoint_dto.chosen_letter
 
-            if event.current_step.code == 'OPTIONS_COMPARISON':
+            elif event.current_step.code == 'OPTIONS_COMPARISON':
+                comments = "Табличка для сравнения инкотермов, ничего не делаем, можно лишь нажать далее"
                 pass
 
-            if event.current_step.code == 'DESCRIBE_OPTION':
-                pass
-
-            if event.current_step.code == 'CONDITIONS_SELECTION':
-                event.chosen_option = ChosenOption(
+            elif event.current_step.code == 'CONDITIONS_SELECTION':
+                chosen_option = ChosenOption(
                     agreement_price_seller=event.options_comparison[
                         checkpoint_dto.chosen_incoterm
                     ].agreement_price_seller,
@@ -403,6 +416,12 @@ class PracticeOneClass:
                     total=event.options_comparison[checkpoint_dto.chosen_incoterm].total,
                     incoterm=checkpoint_dto.chosen_incoterm.value,
                 )
+                event.chosen_option = chosen_option
+                comments = f"Студент выбирает любой вариант ( ни на что не влияет в ПО )"
+
+            elif event.current_step.code == 'DESCRIBE_OPTION':
+                comments = "Пишем обоснование ( не менее 150 символов )"
+                pass
 
             step_result = EventStepResult(
                 step_code=event.current_step.code,
@@ -410,6 +429,7 @@ class PracticeOneClass:
                 fails=0,
                 is_finished=True,
                 description=checkpoint_dto.text,
+                comments=comments
             )
             event.steps_results.append(step_result)
 

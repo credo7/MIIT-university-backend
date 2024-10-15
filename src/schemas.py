@@ -427,6 +427,8 @@ class UserCreateDB(UserCreateBody):
     group_name: str
     approved: bool = False
     history: list[UserEventHistory] = []
+    incoterms: dict[Incoterm, int] = {}
+    fix_for_approve_fields: Optional[list[str]] = None
 
 
 class FullUser(UserCreateDB):
@@ -561,6 +563,7 @@ class EventStepResult(BaseModel):
     incoterm: Optional[Incoterm]
     description: Optional[str] = None
     is_finished: bool = False
+    comments: Optional[str] = None
 
 
 class StepRole(str, enum.Enum):
