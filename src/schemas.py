@@ -468,7 +468,7 @@ class UserOut(UserBase):
     group_name: Optional[str] = None
     group_id: Optional[str] = None
     role: UserRole = UserRole.STUDENT.value
-    incoterms: dict[Incoterm, int] = {}
+    incoterms: Optional[dict[Incoterm, int]] = {}
     fix_for_approve_fields: Optional[list[str]] = None
     history: list[UserHistoryElement] = []
 
