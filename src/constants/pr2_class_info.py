@@ -152,4 +152,4 @@ risks = [
     PR2Risk(text="Закрытие границ государства", code="CLOSING_STATE_BORDERS")
 ]
 
-pr2_class_info = PR2ClassInfo(**raw_pr2_clas_info, pr2_risks=risks)
+pr2_class_info = PR2ClassInfo(**raw_pr2_clas_info, all_risks=risks)
