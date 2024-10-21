@@ -587,7 +587,7 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
-            next_step = Step(id=29, code=self._get_next_code_by_id(29),)
+            next_step = Step(id=30, code=self._get_next_code_by_id(30),)
             is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[7].points]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
@@ -597,75 +597,75 @@ class PracticeTwoClass:
             """
 
         if checkpoint_dto.step_code == 'SCREEN_9_FORMED_ROUTES_TABLE':
-            next_step = Step(id=30, code=self._get_next_code_by_id(30), )
+            next_step = Step(id=31, code=self._get_next_code_by_id(31), )
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Скипаем, инфо скрин'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
-            next_step = Step(id=31, code=self._get_next_code_by_id(31),)
+            next_step = Step(id=32, code=self._get_next_code_by_id(32),)
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
-            next_step = Step(id=32, code=self._get_next_code_by_id(32),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
-
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=34, code=self._get_next_code_by_id(34),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
             next_step = Step(id=35, code=self._get_next_code_by_id(35),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
             next_step = Step(id=36, code=self._get_next_code_by_id(36),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
             next_step = Step(id=37, code=self._get_next_code_by_id(37),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
             next_step = Step(id=38, code=self._get_next_code_by_id(38),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
 
-        if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
             next_step = Step(id=39, code=self._get_next_code_by_id(39),)
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+
+        if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
+            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL1':
-            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
+            next_step = Step(id=41, code=self._get_next_code_by_id(41),)
 
             answer_ids = [r.best_pls[0].index for r in event.source_data.mini_routes]
 
@@ -675,7 +675,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL2':
-            next_step = Step(id=41, code=self._get_next_code_by_id(41), )
+            next_step = Step(id=42, code=self._get_next_code_by_id(42), )
 
             answer_ids = [r.best_pls[1].index for r in event.source_data.mini_routes]
 
@@ -685,7 +685,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL3':
-            next_step = Step(id=42, code=self._get_next_code_by_id(42), )
+            next_step = Step(id=43, code=self._get_next_code_by_id(43), )
 
             answer_ids = [r.best_pls[2].index for r in event.source_data.mini_routes]
 
@@ -695,7 +695,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_COMBO':
-            next_step = Step(id=43, code=self._get_next_code_by_id(43), )
+            next_step = Step(id=44, code=self._get_next_code_by_id(44), )
 
             answer_ids = [r.best_pls[3].index for r in event.source_data.mini_routes]
 
@@ -705,7 +705,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=44, code=self._get_next_code_by_id(44),)
+            next_step = Step(id=45, code=self._get_next_code_by_id(45),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
