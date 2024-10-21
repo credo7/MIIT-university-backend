@@ -520,7 +520,10 @@ class PracticeOneClass:
                     history_element.incoterms = incoterms
                     history_element.test = best
 
-                    self.db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {"$push": history_element.dict()})
+                    self.db[CollectionNames.USERS.value].update_one(
+                        {'_id': ObjectId(user_id)},
+                        {"$push": {"history": history_element.dict()}}
+                    )
 
             checkpoint_response.next_step = next_step
 

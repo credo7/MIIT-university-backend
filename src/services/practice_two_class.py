@@ -734,7 +734,8 @@ class PracticeTwoClass:
                 )
 
                 self.db[CollectionNames.USERS.value].update_one(
-                    {'_id': ObjectId(user_id)}, {"$push": history_element.dict()}
+                    {'_id': ObjectId(user_id)},
+                    {"$push": {"history": history_element.dict()}}
                 )
 
             is_failed = False

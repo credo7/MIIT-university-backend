@@ -275,7 +275,10 @@ class PracticeOneControl:
 
                 history_element.incoterm_points_mapping = incoterm_points_mapping
 
-                self.db[CollectionNames.USERS.value].update_one({'_id': ObjectId(event.users_ids[0])}, {"$push": history_element.dict()})
+                self.db[CollectionNames.USERS.value].update_one(
+                    {'_id': ObjectId(event.users_ids[0])},
+                    {"$push": {"history": history_element.dict()}}
+                )
             else:
                 next_step = Step(
                     id=3 + test_question_index + 2,
