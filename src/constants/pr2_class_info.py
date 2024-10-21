@@ -1,4 +1,4 @@
-from schemas import PR2ClassInfo
+from schemas import PR2ClassInfo, PR2Risk
 
 raw_pr2_clas_info = {
     'legend': """Компания имеет производственные мощности в Китае, отправляя свою продукцию в Европу преимущественно морским транспортом в 20-футовых контейнерах с продолжительностью доставки более 40 суток.
@@ -140,4 +140,16 @@ raw_pr2_clas_info = {
     ],
 }
 
-pr2_class_info = PR2ClassInfo(**raw_pr2_clas_info)
+risks = [
+    PR2Risk(text="Очередь на мапп", code="MAPP_QUEUE"),
+    PR2Risk(text="Погодные условия", code="WEATHER_CONDITION"),
+    PR2Risk(text="Смещение выхода судов", code="SHIP_EXIT"),
+    PR2Risk(text="Ожидание выгрузки поезда", code="TRAIN_WAITING"),
+    PR2Risk(text="Перенос рейса", code="FLIGHT_RESCHEDULING"),
+    PR2Risk(text='"Завал" контейнера в порту', code="CONTAINER_IN_PORT"),
+    PR2Risk(text="Ожидание подвода платформ", code="WAIT_FOR_PLATFORM"),
+    PR2Risk(text="Длительная швартовка судна", code="LONG_MOORING"),
+    PR2Risk(text="Закрытие границ государства", code="CLOSING_STATE_BORDERS")
+]
+
+pr2_class_info = PR2ClassInfo(**raw_pr2_clas_info, pr2_risks=risks)

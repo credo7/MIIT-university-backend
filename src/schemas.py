@@ -1096,11 +1096,17 @@ class PR2Point(BaseModel):
     is_fake: bool
 
 
+class PR2Risk(BaseModel):
+    text: str
+    code: str
+
+
 class PR2ClassInfo(BaseModel):
     legend: str
     explanation: str
     steps_codes: list[str]
     all_points: list[PR2Point]
+    all_risks: list[PR2Risk]
 
 
 class PR1ControlInfo(BaseModel):
@@ -1198,6 +1204,7 @@ class CheckpointData(BaseModel):
     route_points_codes: Optional[list[str]]
     ports_codes: Optional[list[str]]
     borders_codes: Optional[list[str]]
+    right_risks_codes: Optional[list[str]]
 
 class JoinData(BaseModel):
     computer_id: conint(ge=0)
@@ -1287,11 +1294,7 @@ class FullRoute(BaseModel):
     country_to: str
     points: list[PR2Point]
     three_pls_bets: list[Optional[int]]
-
-
-class PR2Risk(BaseModel):
-    text: str
-    code: str
+    risks: Optional[list[PR2Risk]]
 
 
 class PR2SourceData(BaseModel):

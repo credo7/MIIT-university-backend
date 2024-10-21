@@ -604,58 +604,66 @@ class PracticeTwoClass:
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
             next_step = Step(id=32, code=self._get_next_code_by_id(32),)
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[0].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[0].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[1].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[1].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=34, code=self._get_next_code_by_id(34),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[2].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[2].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
             next_step = Step(id=35, code=self._get_next_code_by_id(35),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[3].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[3].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_5':
             next_step = Step(id=36, code=self._get_next_code_by_id(36),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[4].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[4].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_6':
             next_step = Step(id=37, code=self._get_next_code_by_id(37),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[5].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[5].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_7':
             next_step = Step(id=38, code=self._get_next_code_by_id(38),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[6].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[6].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_8':
             next_step = Step(id=39, code=self._get_next_code_by_id(39),)
 
-            is_failed = False
+            right_risk_codes = [r.code for r in event.source_data.full_routes[7].risks]
+            is_failed = checkpoint_dto.right_risks_codes != [r.code for r in event.source_data.full_routes[7].risks]
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы. Скипаем, всегда верно'
+            checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
         if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
             next_step = Step(id=40, code=self._get_next_code_by_id(40),)
@@ -1106,7 +1114,7 @@ class PracticeTwoClass:
             'SCREEN_10_RISKS_7',
             'SCREEN_10_RISKS_8',
         ]:
-            return self._get_risks_step_response(event, int(event.current_step.code[-1]))
+            return self._get_risks_step_response(event, int(event.current_step.code[-1])-1)
 
         elif event.current_step.code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
             return self._get_full_routes_with_pls_step_response(event)
@@ -1376,17 +1384,7 @@ class PracticeTwoClass:
         ]
 
         step_response.current_route = event.source_data.full_routes[route_index]
-        step_response.risks = [
-            PR2Risk(text="Очередь на мапп", code="MAPP_QUEUE"),
-            PR2Risk(text="Погодные условия", code="WEATHER_CONDITION"),
-            PR2Risk(text="Смещение выхода судов", code="SHIP_EXIT"),
-            PR2Risk(text="Ожидание выгрузки поезда", code="TRAIN_WAITING"),
-            PR2Risk(text="Перенос рейса", code="FLIGHT_RESCHEDULING"),
-            PR2Risk(text='"Завал" контейнера в порту', code="CONTAINER_IN_PORT"),
-            PR2Risk(text="Ожидание подвода платформ", code="WAIT_FOR_PLATFORM"),
-            PR2Risk(text="Длительная швартовка судна", code="LONG_MOORING"),
-            PR2Risk(text="Закрытие границ государства", code="CLOSING_STATE_BORDERS")
-        ]
+        step_response.risks = pr2_class_info.all_risks
         return step_response
 
     @staticmethod
@@ -1795,6 +1793,12 @@ class PracticeTwoClass:
                 pls.append(random_pl)
             all_random_3pls_grouped.append(pls)
 
+        random_risks = []
+        for i in range(8):
+            random.shuffle(pr2_class_info.all_risks)
+            n = random.randint(1, 6)
+            random_risks.append(pr2_class_info.all_risks[:n])
+
         n_40_foot_containers = math.ceil(routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton))
         china_route_1 = FullRoute(
             through="через Россию",
@@ -1808,7 +1812,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_city_for_china)
             ],
             three_pls_bets=all_random_3pls_grouped[0],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[0]
         )
 
         china_route_2 = FullRoute(
@@ -1823,7 +1828,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_city_for_china)
             ],
             three_pls_bets=all_random_3pls_grouped[1],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[1]
         )
 
         china_route_3 = FullRoute(
@@ -1838,7 +1844,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_city_for_china)
             ],
             three_pls_bets=all_random_3pls_grouped[2],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[2]
         )
 
         china_route_4 = FullRoute(
@@ -1854,7 +1861,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_city_for_china)
             ],
             three_pls_bets=all_random_3pls_grouped[3],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[3]
         )
 
         n_40_foot_containers = math.ceil(
@@ -1872,7 +1880,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_cities_for_japan[0])
             ],
             three_pls_bets=all_random_3pls_grouped[4],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[4]
         )
 
         n_40_foot_containers = math.ceil(
@@ -1890,7 +1899,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_cities_for_japan[1])
             ],
             three_pls_bets=all_random_3pls_grouped[5],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[5]
         )
 
         n_40_foot_containers = math.ceil(
@@ -1908,7 +1918,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_cities_for_south_korea[0]),
             ],
             three_pls_bets=all_random_3pls_grouped[6],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[6]
         )
 
         n_40_foot_containers = math.ceil(
@@ -1926,7 +1937,8 @@ class PracticeTwoClass:
                 self.get_point_by_city_name(random_destination_cities_for_south_korea[1]),
             ],
             three_pls_bets=all_random_3pls_grouped[7],
-            n_40_foot_containers=n_40_foot_containers
+            n_40_foot_containers=n_40_foot_containers,
+            risks=random_risks[7]
         )
 
         return [
