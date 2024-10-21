@@ -591,7 +591,7 @@ class SubResult(BaseModel):
 class PR2ClassResult(BaseModel):
     name: str
     last_name: str
-    surname: str
+    surname: Optional[str]
     group_name: str
     errors: int
     points: int
