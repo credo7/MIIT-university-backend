@@ -1420,6 +1420,11 @@ class CurrentStepResponse(BaseModel):
     pl3_formula: Optional[str]
     combo_formula: Optional[str]
 
+    pl1_risks: Optional[list[PR2Risk]]
+    pl2_risks: Optional[list[PR2Risk]]
+    pl3_risks: Optional[list[PR2Risk]]
+    combo_risks: Optional[list[PR2Risk]]
+
     container_routes_with_formulas: Optional[list[ContainerRoute]]
 
     extra_button_numbers: Optional[list[ButtonNumber]]

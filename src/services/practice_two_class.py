@@ -717,7 +717,7 @@ class PracticeTwoClass:
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Нет инфы, уверенный скип'
+            checkpoint_response.hint = 'Все уже заполнено за нас'
 
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
             next_step = Step(id=-1, code='FINISH',)
@@ -1185,6 +1185,29 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
 
+        pl1_result = round(sum([r.best_pls[0].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
+        pl2_result = round(sum([r.best_pls[1].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
+        pl3_result = round(sum([r.best_pls[2].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
+        combo_result = round(sum([r.best_pls[3].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
+
+        step_response.pl1_formula = f'{pl1_result}: {"-".join([r.best_pls[0].index for r in event.source_data.mini_routes])}'
+        step_response.pl2_formula = f'{pl2_result}: {"-".join([r.best_pls[1].index for r in event.source_data.mini_routes])}'
+        step_response.pl3_formula = f'{pl3_result}: {"-".join([r.best_pls[2].index for r in event.source_data.mini_routes])}'
+        step_response.combo_formula = f'{combo_result}: {"-".join([r.best_pls[3].index for r in event.source_data.mini_routes])}'
+
+        random.shuffle(pr2_class_info.all_risks)
+        step_response.pl1_risks = [pr2_class_info.all_risks[:3]]
+        random.shuffle(pr2_class_info.all_risks)
+        step_response.pl2_risks = [pr2_class_info.all_risks[:4]]
+        random.shuffle(pr2_class_info.all_risks)
+        step_response.pl3_risks = [pr2_class_info.all_risks[:2]]
+        random.shuffle(pr2_class_info.all_risks)
+        step_response.combo_risks = [pr2_class_info.all_risks[:5]]
+
+        step_response.screen_texts = ['Выбрать минимальное по стоимости предложение провайдера и самую оптимальную комбинацию предложений по всем цепям поставок и дать рекомендации по реализации проекта']
+
+
+
         return step_response
 
     def get_best_pls_for_mini_routes(self, full_routes: list[FullRoute]):
@@ -1289,7 +1312,7 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
         step_response.screen_texts = [
-            'Выбрать минимальное по стоимотси предложение провайдера и самую оптимальную комбинацию предложений по всем цепям поставок и дать рекомендации по реализации проекта'
+            'Выбрать минимальное по стоимости предложение провайдера и самую оптимальную комбинацию предложений по всем цепям поставок и дать рекомендации по реализации проекта'
         ]
 
         pl1_result = round(sum([r.best_pls[0].value * r.n_40_foot_containers for r in event.source_data.mini_routes]), 2)
