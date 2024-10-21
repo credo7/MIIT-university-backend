@@ -846,15 +846,15 @@ class PracticeTwoClass:
         package_weight_in_ton = random.randint(1, 9) / 10
 
         n_of_transport_packages_in_container_20 = math.floor(
-            (5.9 / package_size.length)
-            * (2.33 / package_size.width)
-            * (2.35 / package_size.height)
+            math.floor(5.9 / package_size.length)
+            * math.floor(2.33 / package_size.width)
+            * math.floor(2.35 / package_size.height)
         )
 
         n_of_transport_packages_in_container_40 = math.floor(
-            (12 / package_size.length)
-            * (2.33 / package_size.width)
-            * (2.35 / package_size.height)
+            math.floor(12 / package_size.length)
+            * math.floor(2.33 / package_size.width)
+            * math.floor(2.35 / package_size.height)
         )
 
         full_routes = self.get_full_routes(
@@ -980,7 +980,7 @@ class PracticeTwoClass:
             mini_routes=mini_routes,
             full_routes=full_routes,
             package_size=package_size,
-            package_weight_in_ton=random.randint(1, 9) / 10,
+            package_weight_in_ton=package_weight_in_ton,
             transport_package_volume=round(transport_package_volume, 2),
             number_of_packages_in_20_foot_container=n_of_transport_packages_in_container_20,
             number_of_packages_in_40_foot_container=n_of_transport_packages_in_container_40,
