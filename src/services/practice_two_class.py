@@ -1481,33 +1481,33 @@ class PracticeTwoClass:
 
         right_formulas = [
             [
-                f"{mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                f"{mini_routes[0].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                f"{mini_routes[0].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                f"{mini_routes[0].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
              ],
             [
-                f"{mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                f"{mini_routes[1].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                f"{mini_routes[1].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                f"{mini_routes[1].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
             ],
             [
-                f"{mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                f"{mini_routes[2].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                f"{mini_routes[2].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                f"{mini_routes[2].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
             ],
             [
-                f"{mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                f"{mini_routes[3].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                f"{mini_routes[3].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                f"{mini_routes[3].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
             ],
             [
-                f"{mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}",
-                f"{mini_routes[4].weight_in_ton}/{event.source_data.package_weight_in_ton:g}/{event.source_data.number_of_packages_in_40_foot_container}"
+                f"{mini_routes[4].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})",
+                f"{mini_routes[4].weight_in_ton}/({event.source_data.package_weight_in_ton:g}*{event.source_data.number_of_packages_in_40_foot_container})"
             ]
         ]
 
         right_formulas_with_answer = [
-            f"{mini_routes[0].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[0].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
-            f"{mini_routes[1].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[1].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
-            f"{mini_routes[2].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[2].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
-            f"{mini_routes[3].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[3].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
-            f"{mini_routes[4].weight_in_ton}/{event.source_data.number_of_packages_in_40_foot_container}/{event.source_data.package_weight_in_ton:g}={math.ceil(mini_routes[4].weight_in_ton/event.source_data.number_of_packages_in_40_foot_container/event.source_data.package_weight_in_ton)}",
+            f"{mini_routes[0].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})={mini_routes[0].n_40_foot_containers}",
+            f"{mini_routes[1].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})={mini_routes[1].n_40_foot_containers}",
+            f"{mini_routes[2].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})={mini_routes[2].n_40_foot_containers}",
+            f"{mini_routes[3].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})={mini_routes[3].n_40_foot_containers}",
+            f"{mini_routes[4].weight_in_ton}/({event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g})={mini_routes[4].n_40_foot_containers}",
         ]
 
         step_response.screen_texts = ['Расчёт необходимого количества 40-футовых контейнеров для каждой цепи продукции']
@@ -1522,8 +1522,6 @@ class PracticeTwoClass:
         step_response.number_of_packages_in_20_foot_container = event.source_data.number_of_packages_in_20_foot_container
         step_response.number_of_packages_in_40_foot_container = event.source_data.number_of_packages_in_40_foot_container
         step_response.package_weight_in_ton = event.source_data.package_weight_in_ton
-
-        step_response.extra_button_numbers = []
 
         return step_response
 
