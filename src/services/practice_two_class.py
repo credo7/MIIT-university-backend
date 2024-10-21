@@ -533,7 +533,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[1].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
@@ -543,7 +543,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[2].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_4':
@@ -553,7 +553,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[3].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_5':
@@ -563,7 +563,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[4].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_6':
@@ -573,7 +573,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[5].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_7':
@@ -583,7 +583,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[6].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_8':
@@ -593,7 +593,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
             
-            Правильный ответ: {[p.code for p in event.source_data.full_routes[0].points]}
+            Правильный ответ: {[p.code for p in event.source_data.full_routes[7].points]}
             """
 
         if checkpoint_dto.step_code == 'SCREEN_9_FORMED_ROUTES_TABLE':
