@@ -495,7 +495,7 @@ class PracticeTwoClass:
                     if p.type == "PORT":
                         right_ports_codes.add(p.code)
 
-            is_failed = right_ports_codes != set(checkpoint_dto.ports_codes)
+            is_failed = checkpoint_dto.ports_codes is None or right_ports_codes != set(checkpoint_dto.ports_codes)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -508,7 +508,7 @@ class PracticeTwoClass:
                     if p.type == "BORDER":
                         right_borders_codes.add(p.code)
 
-            is_failed = right_borders_codes != set(checkpoint_dto.borders_codes)
+            is_failed = checkpoint_dto.borders_codes is None or right_borders_codes != set(checkpoint_dto.borders_codes)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -1379,7 +1379,7 @@ class PracticeTwoClass:
                                 number_of_packages_in_container * event.source_data.package_weight_in_ton))
                     pl_routes.append(
                         PLRoute(
-                            supply_chain=f"{route.country_from - route.country_to}",
+                            supply_chain=f"{route.country_from} - {route.country_to}",
                             route_number=counter,
                             through=f"{route.through}",
                             provider=f"3PL{i}",
