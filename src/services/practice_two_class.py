@@ -897,7 +897,7 @@ class PracticeTwoClass:
                 best_pls=best_pls[1],
                 tons=routes_tons[1],
                 n_40_foot_containers=math.ceil(
-                    routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
+                    routes_tons[1] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
                 )
             ),
             MiniRoute(
@@ -907,7 +907,7 @@ class PracticeTwoClass:
                 best_pls=best_pls[2],
                 tons=routes_tons[2],
                 n_40_foot_containers=math.ceil(
-                    routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
+                    routes_tons[2] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
                 )
             ),
             MiniRoute(
@@ -917,7 +917,7 @@ class PracticeTwoClass:
                 best_pls=best_pls[3],
                 tons=routes_tons[3],
                 n_40_foot_containers=math.ceil(
-                    routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
+                    routes_tons[3] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
                 )
             ),
             MiniRoute(
@@ -927,7 +927,7 @@ class PracticeTwoClass:
                 best_pls=best_pls[4],
                 tons=routes_tons[4],
                 n_40_foot_containers=math.ceil(
-                    routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
+                    routes_tons[4] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
                 )
             )
         ]
@@ -1063,19 +1063,13 @@ class PracticeTwoClass:
         elif event.current_step.code == 'SCREEN_5_DESCRIBE_CONTAINER_SELECTION':
             return self._get_describe_container_selection(event)
 
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_1':
-            return self._get_containers_number_40_step_response(event)
-
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_2':
-            return self._get_containers_number_40_step_response(event)
-
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3':
-            return self._get_containers_number_40_step_response(event)
-
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4':
-            return self._get_containers_number_40_step_response(event)
-
-        elif event.current_step.code == 'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5':
+        elif event.current_step.code in (
+                'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_1',
+                'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_2',
+                'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3',
+                'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4',
+                'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5'
+        ):
             return self._get_containers_number_40_step_response(event)
 
         elif event.current_step.code == 'SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS':
