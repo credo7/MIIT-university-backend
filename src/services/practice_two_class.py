@@ -1096,7 +1096,7 @@ class PracticeTwoClass:
                 'SCREEN_8_MAP_ROUTE_7',
                 'SCREEN_8_MAP_ROUTE_8'
         ):
-            return self._get_map_route_step_response(event, int(event.current_step.code[-1]))
+            return self._get_map_route_step_response(event, int(event.current_step.code[-1]) - 1)
 
         elif event.current_step.code == 'SCREEN_9_FORMED_ROUTES_TABLE':
             return self._get_formed_routes_table_step_response(event)
@@ -1413,8 +1413,21 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
 
-        step_response.screen_texts = [f'Сформируйте маршрут {event.source_data.mini_routes[route_index].from_country}-'
-                                      f'{event.source_data.mini_routes[route_index].to_country}, нажимая '
+        mini_route_index_by_route_index = {
+            0:0,
+            1:0,
+            2:0,
+            3:0,
+            4:1,
+            5:2,
+            6:3,
+            7:4,
+        }
+
+        mini_route_index = mini_route_index_by_route_index[route_index]
+
+        step_response.screen_texts = [f'Сформируйте маршрут {event.source_data.mini_routes[mini_route_index].from_country}-'
+                                      f'{event.source_data.mini_routes[mini_route_index].to_country}, нажимая '
                                       f'на логистические объекты на карте. Вы можете предварительно изучить объекты,'
                                       f' кликнув по ним.']
 
