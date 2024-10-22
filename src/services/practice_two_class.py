@@ -1196,13 +1196,13 @@ class PracticeTwoClass:
         step_response.combo_formula = f'{combo_result}: {"-".join([str(r.best_pls[3].index) for r in event.source_data.mini_routes])}'
 
         random.shuffle(pr2_class_info.all_risks)
-        step_response.pl1_risks = [pr2_class_info.all_risks[:3]]
+        step_response.pl1_risks = pr2_class_info.all_risks[:3]
         random.shuffle(pr2_class_info.all_risks)
-        step_response.pl2_risks = [pr2_class_info.all_risks[:4]]
+        step_response.pl2_risks = pr2_class_info.all_risks[:4]
         random.shuffle(pr2_class_info.all_risks)
-        step_response.pl3_risks = [pr2_class_info.all_risks[:2]]
+        step_response.pl3_risks = pr2_class_info.all_risks[:2]
         random.shuffle(pr2_class_info.all_risks)
-        step_response.combo_risks = [pr2_class_info.all_risks[:5]]
+        step_response.combo_risks = pr2_class_info.all_risks[:5]
 
         step_response.screen_texts = ['Выбрать минимальное по стоимости предложение провайдера и самую оптимальную комбинацию предложений по всем цепям поставок и дать рекомендации по реализации проекта']
 
