@@ -1190,10 +1190,10 @@ class PracticeTwoClass:
         pl3_result = round(sum([r.best_pls[2].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
         combo_result = round(sum([r.best_pls[3].value * r.n_40_foot_containers for r in event.source_data.mini_routes]),2)
 
-        step_response.pl1_formula = f'{pl1_result}: {"-".join([r.best_pls[0].index for r in event.source_data.mini_routes])}'
-        step_response.pl2_formula = f'{pl2_result}: {"-".join([r.best_pls[1].index for r in event.source_data.mini_routes])}'
-        step_response.pl3_formula = f'{pl3_result}: {"-".join([r.best_pls[2].index for r in event.source_data.mini_routes])}'
-        step_response.combo_formula = f'{combo_result}: {"-".join([r.best_pls[3].index for r in event.source_data.mini_routes])}'
+        step_response.pl1_formula = f'{pl1_result}: {"-".join([str(r.best_pls[0].index) for r in event.source_data.mini_routes])}'
+        step_response.pl2_formula = f'{pl2_result}: {"-".join([str(r.best_pls[1].index) for r in event.source_data.mini_routes])}'
+        step_response.pl3_formula = f'{pl3_result}: {"-".join([str(r.best_pls[2].index) for r in event.source_data.mini_routes])}'
+        step_response.combo_formula = f'{combo_result}: {"-".join([str(r.best_pls[3].index) for r in event.source_data.mini_routes])}'
 
         random.shuffle(pr2_class_info.all_risks)
         step_response.pl1_risks = [pr2_class_info.all_risks[:3]]
