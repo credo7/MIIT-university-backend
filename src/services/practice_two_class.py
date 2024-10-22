@@ -1206,8 +1206,6 @@ class PracticeTwoClass:
 
         step_response.screen_texts = ['Выбрать минимальное по стоимости предложение провайдера и самую оптимальную комбинацию предложений по всем цепям поставок и дать рекомендации по реализации проекта']
 
-
-
         return step_response
 
     def get_best_pls_for_mini_routes(self, full_routes: list[FullRoute]):
@@ -1321,14 +1319,14 @@ class PracticeTwoClass:
         combo_result = round(sum([r.best_pls[3].value * r.n_40_foot_containers for r in event.source_data.mini_routes]), 2)
 
         if row_index > 1:
-            step_response.pl1_formula = f'{pl1_result}: {"-".join([r.best_pls[0].index for r in event.source_data.mini_routes])}'
+            step_response.pl1_formula = f'{pl1_result}: {"-".join([str(r.best_pls[0].index) for r in event.source_data.mini_routes])}'
 
         if row_index > 2:
-            step_response.pl2_formula = f'{pl2_result}: {"-".join([r.best_pls[1].index for r in event.source_data.mini_routes])}'
+            step_response.pl2_formula = f'{pl2_result}: {"-".join([str(r.best_pls[1].index) for r in event.source_data.mini_routes])}'
 
         if row_index > 3:
-            step_response.pl3_formula = f'{pl3_result}: {"-".join([r.best_pls[2].index for r in event.source_data.mini_routes])}'
-            step_response.combo_formula = f'{combo_result}: {"-".join([r.best_pls[3].index for r in event.source_data.mini_routes])}'
+            step_response.pl3_formula = f'{pl3_result}: {"-".join([str(r.best_pls[2].index) for r in event.source_data.mini_routes])}'
+            step_response.combo_formula = f'{combo_result}: {"-".join([str(r.best_pls[3].index) for r in event.source_data.mini_routes])}'
 
         return step_response
 
