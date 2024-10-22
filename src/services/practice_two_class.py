@@ -1403,7 +1403,7 @@ class PracticeTwoClass:
 
         step_response.screen_texts = [
             'Выберите риски для данного маршрута',
-            f'Маршрут:\n{" - ".join(event.source_data.full_routes[route_index].points)}'
+            f'Маршрут:\n{" - ".join([p.city for p in event.source_data.full_routes[route_index].points])}'
         ]
 
         step_response.current_route = event.source_data.full_routes[route_index]
