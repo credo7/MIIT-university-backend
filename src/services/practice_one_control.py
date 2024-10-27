@@ -258,12 +258,12 @@ class PracticeOneControl:
                     if step.fails >= 3:
                         incoterms[step.incoterm] = CorrectOrError.ERROR
 
-                best = TestCorrectsAndErrors(correct=0, error=0)
+                test_results = TestCorrectsAndErrors(correct=0, error=0)
                 for step in event.steps_results[3:]:
                     if step.fails > 0:
-                        best.error += 1
+                        test_results.error += 1
                     else:
-                        best.correct += 1
+                        test_results.correct += 1
 
                 fails_points_mapping = {0: 3, 1: 2, 2: 1, 3: 0}
 
@@ -274,6 +274,8 @@ class PracticeOneControl:
                 }
 
                 history_element.incoterm_points_mapping = incoterm_points_mapping
+
+                history_element.test = test_results
 
                 self.db[CollectionNames.USERS.value].update_one(
                     {'_id': ObjectId(event.users_ids[0])},

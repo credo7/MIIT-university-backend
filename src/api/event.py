@@ -218,12 +218,6 @@ async def get_results(
 
     return event.results
 
-    if event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
-        event = normalize_mongo(event_db, PR2ClassEvent)
-        return PracticeTwoClass(users_ids=event.users_ids).get_results(event)
-
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
-
 
 @router.get('/pr1-class-right-checkpoints', status_code=status.HTTP_200_OK)
 async def get_right_checkpoints(event_id: str):
@@ -297,8 +291,12 @@ async def retake_test(
         first_test_step = Step(id=len(practice_one_info.steps), code=f'TEST_1', name='Тестовый вопрос №1', role='ALL',)
 
         db[CollectionNames.EVENTS.value].update_one(
-            {'_id': ObjectId(event_id)}, {'$inc': {'test_index': 1}, '$set': {'current_step': first_test_step.dict()}}
+            {'_id': ObjectId(event_id)},
+            {'$inc': {'test_index': 1}, '$set': {'current_step': first_test_step.dict(), 'is_finished': False}}
         )
+
+        for user_id in event.users_ids:
+            db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {"$pop": {"history": 1}})
 
 
 @router.post('/continue-work', status_code=status.HTTP_200_OK)
