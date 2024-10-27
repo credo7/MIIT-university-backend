@@ -277,6 +277,12 @@ class PracticeOneControl:
 
                 history_element.test = test_results
 
+                points = test_results.correct
+                for num in incoterm_points_mapping.values():
+                    points += num
+
+                history_element.points = points
+
                 self.db[CollectionNames.USERS.value].update_one(
                     {'_id': ObjectId(event.users_ids[0])},
                     {"$push": {"history": history_element.dict()}}
