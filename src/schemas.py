@@ -634,7 +634,7 @@ class EventInfo(BaseModel):
     finished_at: Optional[datetime] = None
     users_ids: list[str]
     steps_results: list[EventStepResult] = []
-    results: Optional[Union[PR1ControlResults, list[PR2ClassResult], PR1ClassResults, list[EventResult]]] = None
+    results: Optional[Union[PR1ControlResults, list[PR2ClassResult], list[PR1ClassResults], list[EventResult]]] = None
     current_step: Union[Step, str]
     test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
 
