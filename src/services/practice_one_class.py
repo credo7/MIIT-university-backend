@@ -308,21 +308,21 @@ class PracticeOneClass:
                     required_bets.append(bet)
                 if 'BUYER' in event.current_step.code and incoterm in bet.bet_pattern.buyer:
                     required_bets.append(bet)
-                if incoterm in bet.bet_pattern.common:
-                    common_bets.append(bet)
+                # if incoterm in bet.bet_pattern.common:
+                #     common_bets.append(bet)
 
             required_bets_map = {bet.id: bet for bet in required_bets}
-            common_bets_map = {bet.id: bet for bet in common_bets}
+            # common_bets_map = {bet.id: bet for bet in common_bets}
 
             # Если покупатель, то он должен довыбрать все общие ставки, если такие остались
-            if 'BUYER' in event.current_step.code:
-                if incoterm in event.common_bets_ids_chosen_by_seller:
-                    for id in event.common_bets_ids_chosen_by_seller[incoterm]:
-                        del common_bets_map[int(id)]
-                    required_bets_map.update(common_bets_map)
+            # if 'BUYER' in event.current_step.code:
+            #     if incoterm in event.common_bets_ids_chosen_by_seller:
+            #         for id in event.common_bets_ids_chosen_by_seller[incoterm]:
+            #             del common_bets_map[int(id)]
+            #         required_bets_map.update(common_bets_map)
 
             required_bets_for_comments = list(required_bets_map.values())
-            common_bets_for_comments = list(common_bets_map.values())
+            # common_bets_for_comments = list(common_bets_map.values())
 
             not_needed_ids = []
             common_bets_ids_chosen_by_buyer = []
@@ -330,9 +330,9 @@ class PracticeOneClass:
             for user_bet_id in checkpoint_dto.answer_ids:
                 if user_bet_id in required_bets_map:
                     del required_bets_map[user_bet_id]
-                elif user_bet_id in common_bets_map:
-                    common_bets_ids_chosen_by_buyer.append(user_bet_id)
-                    del common_bets_map[user_bet_id]
+                # elif user_bet_id in common_bets_map:
+                #     common_bets_ids_chosen_by_buyer.append(user_bet_id)
+                #     del common_bets_map[user_bet_id]
                 else:
                     not_needed_ids.append(user_bet_id)
 
@@ -358,7 +358,7 @@ class PracticeOneClass:
 
                 if 'SELLER' in event.current_step.code:
                     comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}\n" \
-                               f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
+                               # f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
                 else:
                     comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}"
 
