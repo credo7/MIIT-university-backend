@@ -292,7 +292,8 @@ async def retake_test(
 
         db[CollectionNames.EVENTS.value].update_one(
             {'_id': ObjectId(event_id)},
-            {'$inc': {'test_index': 1}, '$set': {'current_step': first_test_step.dict(), 'is_finished': False}}
+            {'$inc': {'test_index': 1},
+             '$set': {'current_step': first_test_step.dict(), 'is_finished': False, "result": None}}
         )
 
         for user_id in event.users_ids:
