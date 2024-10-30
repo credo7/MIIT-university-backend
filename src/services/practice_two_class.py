@@ -1415,7 +1415,7 @@ class PracticeTwoClass:
             current_step=event.current_step
         )
         step_response.screen_texts = ['Сформировать все возможные маршруты доставки в соответствии с '
-                                      'предложенными сервисами для каждой цепи поставок'
+                                      'предложенными сервисами для каждой цепи поставок '
                                       'с детализацией по пунктам маршрута и транзитных стран']
         step_response.full_routes = event.source_data.full_routes
         return step_response
@@ -1441,7 +1441,7 @@ class PracticeTwoClass:
         mini_route_index = mini_route_index_by_route_index[route_index]
 
         step_response.screen_texts = [f'Сформируйте маршрут {event.source_data.mini_routes[mini_route_index].from_country}-'
-                                      f'{event.source_data.mini_routes[mini_route_index].to_country}, нажимая '
+                                      f'{event.source_data.mini_routes[mini_route_index].to_country} {event.source_data.full_routes[route_index].through}, нажимая '
                                       f'на логистические объекты на карте. Вы можете предварительно изучить объекты,'
                                       f' кликнув по ним.']
 
