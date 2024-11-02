@@ -1365,7 +1365,7 @@ class ContainerRoute(BaseModel):
 class MiniRouteHint(BaseModel):
     route: str
     tons: int
-    n_40_containers_formula: int
+    n_40_containers_formula: str
 
 
 class FullRouteHint(BaseModel):
