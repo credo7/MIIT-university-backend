@@ -9,7 +9,7 @@ from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
     CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute, \
-    PR2ClassResult, UserOut, UserHistoryElement
+    PR2ClassResult, UserOut, UserHistoryElement, MiniRouteHint, FullRouteHint
 from services.utils import normalize_mongo
 
 
@@ -1387,6 +1387,24 @@ class PracticeTwoClass:
                         )
                     )
                     counter += 1
+
+        n_of_transport_packages_in_container_40 = math.floor(
+            math.floor(12 / event.source_data.package_size.length)
+            * math.floor(2.33 / event.source_data.package_size.width)
+            * math.floor(2.35 / event.source_data.package_size.height)
+        )
+
+        step_response.mini_routes_hint = [MiniRouteHint(
+            route=f"{r.from_country} - {r.to_country}",
+            tons=r.weight_in_ton,
+            n_40_containers_formula=f"{r.weight_in_ton} / ({n_of_transport_packages_in_container_40} * {event.source_data.package_weight_in_ton}) = {r.n_40_foot_containers}"
+        ) for r in event.source_data.mini_routes]
+
+        step_response.full_routes_hint = [FullRouteHint(
+            route=f"{r.country_from} - {r.country_to}",
+            through=r.through,
+            pls=r.three_pls_bets,
+        ) for r in event.source_data.full_routes]
 
         step_response.pl_routes = pl_routes
 

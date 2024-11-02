@@ -1362,6 +1362,18 @@ class ContainerRoute(BaseModel):
     formula_with_answer: str
 
 
+class MiniRouteHint(BaseModel):
+    route: str
+    tons: int
+    n_40_containers_formula: int
+
+
+class FullRouteHint(BaseModel):
+    route: str
+    through: str
+    pls: list[Optional[int]]
+
+
 class CurrentStepResponse(BaseModel):
     is_finished: bool = False
     current_step: Optional[Union[Step, str]]
@@ -1439,6 +1451,9 @@ class CurrentStepResponse(BaseModel):
     ports_points_codes: Optional[list[str]]
     borders_points_codes: Optional[list[str]]
     terminals_points_codes: Optional[list[str]]
+
+    mini_routes_hint: Optional[list[MiniRouteHint]]
+    full_routes_hint: Optional[list[FullRouteHint]]
 
 
 class CheckpointResponse(BaseModel):
