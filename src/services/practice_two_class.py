@@ -1362,28 +1362,30 @@ class PracticeTwoClass:
 
         pl_routes = []
         counter = 1
-        for route in event.source_data.full_routes:
+        mini_route_index_by_full_route_index = {
+            0:0,
+            1:0,
+            2:0,
+            3:0,
+            4:1,
+            5:2,
+            6:3,
+            7:4
+        }
+        for route_index, route in enumerate(event.source_data.full_routes):
             for i, pl in enumerate(route.three_pls_bets):
                 if pl:
-                    container_length = 12
-                    container_width = 2.33
-                    container_height = 2.35
-                    number_of_packages_in_container = math.floor(
-                        container_length / event.source_data.package_size.length
-                        * container_width / event.source_data.package_size.width
-                        * container_height / event.source_data.package_size.height,
-                    )
-                    n_containers = math.ceil(route.weight_in_tons / (
-                                number_of_packages_in_container * event.source_data.package_weight_in_ton))
+                    mini_route_index = mini_route_index_by_full_route_index[route_index]
+                    containers_num = event.source_data.mini_routes[mini_route_index].n_40_foot_containers
                     pl_routes.append(
                         PLRoute(
                             supply_chain=f"{route.country_from} - {route.country_to}",
                             route_number=counter,
                             through=f"{route.through}",
                             provider=f"3PL{i}",
-                            containers_num=n_containers,
+                            containers_num=containers_num,
                             pl_bet=pl,
-                            delivery_price_formula=f"{pl} * {n_containers} = {pl * n_containers}",
+                            delivery_price_formula=f"{pl} * {containers_num} = {pl * containers_num}",
                         )
                     )
                     counter += 1
