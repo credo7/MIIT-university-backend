@@ -472,15 +472,15 @@ class PracticeTwoClass:
 
             checkpoint_response.hint = "Нужно заполнить поле: destination_points_codes ( лист из кодов правильных точек )"
 
-            right_destination_points_codes = [
+            right_destination_points_codes = {
                 event.source_data.full_routes[0].points[-1].code,
                 event.source_data.full_routes[4].points[-1].code,
                 event.source_data.full_routes[5].points[-1].code,
                 event.source_data.full_routes[6].points[-1].code,
-                event.source_data.full_routes[7].points[-1].code,
-            ]
+                event.source_data.full_routes[7].points[-1].code
+            }
 
-            is_failed = right_destination_points_codes != checkpoint_dto.destination_points_codes
+            is_failed = right_destination_points_codes != set(checkpoint_dto.destination_points_codes)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -1382,7 +1382,7 @@ class PracticeTwoClass:
                             supply_chain=f"{route.country_from} - {route.country_to}",
                             route_number=counter,
                             through=f"{route.through}",
-                            provider=f"3PL{i}",
+                            provider=f"3PL{i+1}",
                             containers_num=containers_num,
                             pl_bet=pl,
                             delivery_price_formula=f"{pl} * {containers_num} = {pl * containers_num}",

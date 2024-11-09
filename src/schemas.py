@@ -678,8 +678,9 @@ class BodyText(BaseModel):
 class Logist(BaseModel):
     letter: str
     types: list[str]
-    header: str
-    body: str
+    texts: list[str]
+    # header: str
+    # body: str
 
 
 class OptionPR1(BaseModel):
