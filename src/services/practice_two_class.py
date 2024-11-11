@@ -1476,6 +1476,13 @@ class PracticeTwoClass:
 
         all_points_codes_to_show.extend([p.code for p in event.source_data.full_routes[route_index].points])
 
+        points_to_show_set = set(all_points_codes_to_show)
+        for p in pr2_class_info.all_points:
+            if p.type == 'BORDER':
+                points_to_show_set.add(p.code)
+
+        all_points_codes_to_show = list(points_to_show_set)
+
         step_response.start_point_code= event.source_data.full_routes[route_index].points[0].code
         step_response.end_point_code = event.source_data.full_routes[route_index].points[-1].code
         step_response.route_length = len(event.source_data.full_routes[route_index].points)
