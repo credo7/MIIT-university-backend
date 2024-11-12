@@ -46,7 +46,7 @@ all_points = [
     {'code': 'RUSSIA_VOSTOCHNYI_PORT', 'country': 'Россия', 'city': 'Восточный', 'type': 'PORT', 'is_fake': False},
     {'code': 'BELARUS_BREST_BORDER', 'country': 'Беларусь', 'city': 'Брест', 'type': 'BORDER', 'is_fake': False},
     {'code': 'KAZAKHSTAN_DOSTIK_BORDER', 'country': 'Казахстан', 'city': 'Достык', 'type': 'BORDER', 'is_fake': False},
-    {'code': 'UZBEKISTAN_ALTUNKUL_BORDER', 'country': 'Узбекистан', 'city': 'Алтынкуль', 'type': 'BORDER', 'is_fake': False},
+    {'code': 'UZBEKISTAN_ALTUNKUL_BORDER', 'country': 'Казахстан', 'city': 'Алтынколь', 'type': 'BORDER', 'is_fake': False},
     {'code': 'RUSSIA_NAUSHKI_BORDER', 'country': 'Россия', 'city': 'Наушки', 'type': 'BORDER', 'is_fake': False},
     {'code': 'RUSSIA_ZABAIKALSK_BORDER', 'country': 'Россия', 'city': 'Забайкальск', 'type': 'BORDER', 'is_fake': False},
     # FAKE PORTS
