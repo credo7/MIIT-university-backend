@@ -1343,6 +1343,7 @@ class PLRoute(BaseModel):
     containers_num: int
     pl_bet: int
     delivery_price_formula: str
+    _full_route_index: int
 
 
 class PLOption(BaseModel):
@@ -1453,8 +1454,8 @@ class CurrentStepResponse(BaseModel):
     borders_points_codes: Optional[list[str]]
     terminals_points_codes: Optional[list[str]]
 
-    mini_routes_hint: Optional[list[MiniRouteHint]]
-    full_routes_hint: Optional[list[FullRouteHint]]
+    mini_routes_hints: Optional[list[list[MiniRouteHint]]]
+    full_routes_hints: Optional[list[list[FullRouteHint]]]
 
 
 class CheckpointResponse(BaseModel):

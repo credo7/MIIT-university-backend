@@ -495,6 +495,10 @@ class PracticeTwoClass:
                     if p.type == "PORT":
                         right_ports_codes.add(p.code)
 
+            print(f"right_ports_codes={right_ports_codes}")
+            print(f"set(checkpoint_dto.ports_codes)={set(checkpoint_dto.ports_codes)}")
+            print(f"is_failed = {right_ports_codes != set(checkpoint_dto.ports_codes)}")
+
             is_failed = checkpoint_dto.ports_codes is None or right_ports_codes != set(checkpoint_dto.ports_codes)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -1386,6 +1390,7 @@ class PracticeTwoClass:
                             containers_num=containers_num,
                             pl_bet=pl,
                             delivery_price_formula=f"{pl} * {containers_num} = {pl * containers_num}",
+                            _full_route_index=route_index
                         )
                     )
                     counter += 1
@@ -1396,19 +1401,33 @@ class PracticeTwoClass:
             * math.floor(2.35 / event.source_data.package_size.height)
         )
 
-        step_response.mini_routes_hint = [MiniRouteHint(
+        mini_routes_hints = [MiniRouteHint(
             route=f"{r.from_country} - {r.to_country}",
             tons=r.weight_in_ton,
             n_40_containers_formula=f"{r.weight_in_ton} / ({n_of_transport_packages_in_container_40} * {event.source_data.package_weight_in_ton}) = {r.n_40_foot_containers}"
         ) for r in event.source_data.mini_routes]
 
-        step_response.full_routes_hint = [FullRouteHint(
+        full_routes_hints = [FullRouteHint(
             route=f"{r.country_from} - {r.country_to}",
             through=r.through,
             pls=r.three_pls_bets,
         ) for r in event.source_data.full_routes]
 
-        step_response.pl_routes = pl_routes
+        first_pl_routes = [pl for pl in pl_routes if pl._full_route_index < 4]
+        second_pl_routes = [pl for pl in pl_routes if pl._full_route_index in (4,5)]
+        third_pl_routes = [pl for pl in pl_routes if pl._full_route_index in (6,7)]
+
+        first_mini_routes_hints = [mini_routes_hints[0]]
+        second_mini_routes_hints = [mini_routes_hints[1], mini_routes_hints[2]]
+        third_mini_routes_hints = [mini_routes_hints[3], mini_routes_hints[4]]
+
+        first_full_routes_hints = full_routes_hints[:4]
+        second_full_routes_hints = full_routes_hints[4:6]
+        third_full_routes_hints = full_routes_hints[7:]
+
+        step_response.pl_routes = [first_pl_routes, second_pl_routes, third_pl_routes]
+        step_response.mini_routes_hints = [first_mini_routes_hints, second_mini_routes_hints, third_mini_routes_hints]
+        step_response.full_routes_hints = [first_full_routes_hints, second_full_routes_hints, third_full_routes_hints]
 
         return step_response
 
