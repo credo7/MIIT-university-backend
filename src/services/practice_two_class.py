@@ -958,7 +958,7 @@ class PracticeTwoClass:
             full_routes[6].points[-1].code,
             full_routes[7].points[-1].code,
         ]
-        ports_points_codes = set([p for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
+        ports_points_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
         borders_points_codes = set()
         terminals_points_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"])
         all_points = [p for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"]
