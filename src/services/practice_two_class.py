@@ -838,7 +838,7 @@ class PracticeTwoClass:
             random.choice(destination_cities_by_destination_country[random_destination_countries_for_south_korea[1]])
         ]
 
-        dynamic_borders = ['Достык', 'Алтынкуль']
+        dynamic_borders = ['Достык', 'Алтынколь']
         chosen_dynamic_border = random.choice(dynamic_borders)
 
         random_china_port = random.choice(["Гуанчжоу", "Нинбо", "Чунцин", "Циндао"])
