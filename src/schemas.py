@@ -1343,7 +1343,7 @@ class PLRoute(BaseModel):
     containers_num: int
     pl_bet: int
     delivery_price_formula: str
-    _full_route_index: int
+    full_route_index: int
 
 
 class PLOption(BaseModel):

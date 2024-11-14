@@ -1393,7 +1393,7 @@ class PracticeTwoClass:
                             containers_num=containers_num,
                             pl_bet=pl,
                             delivery_price_formula=f"{pl} * {containers_num} = {pl * containers_num}",
-                            _full_route_index=route_index
+                            full_route_index=route_index
                         )
                     )
                     counter += 1
@@ -1416,9 +1416,9 @@ class PracticeTwoClass:
             pls=r.three_pls_bets,
         ) for r in event.source_data.full_routes]
 
-        first_pl_routes = [pl for pl in pl_routes if pl._full_route_index < 4]
-        second_pl_routes = [pl for pl in pl_routes if pl._full_route_index in (4,5)]
-        third_pl_routes = [pl for pl in pl_routes if pl._full_route_index in (6,7)]
+        first_pl_routes = [pl for pl in pl_routes if pl.full_route_index < 4]
+        second_pl_routes = [pl for pl in pl_routes if pl.full_route_index in (4,5)]
+        third_pl_routes = [pl for pl in pl_routes if pl.full_route_index in (6,7)]
 
         first_mini_routes_hints = [mini_routes_hints[0]]
         second_mini_routes_hints = [mini_routes_hints[1], mini_routes_hints[2]]
