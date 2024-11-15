@@ -489,15 +489,11 @@ class PracticeTwoClass:
 
             checkpoint_response.hint = "Нужно заполнить поле: ports_codes ( лист из кодов правильных точек )"
 
-            right_ports_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
+            right_ports_codes = set()
             for r in event.source_data.full_routes:
                 for p in r.points:
                     if p.type == "PORT":
                         right_ports_codes.add(p.code)
-
-            print(f"right_ports_codes={right_ports_codes}")
-            print(f"set(checkpoint_dto.ports_codes)={set(checkpoint_dto.ports_codes)}")
-            print(f"is_failed = {right_ports_codes != set(checkpoint_dto.ports_codes)}")
 
             is_failed = checkpoint_dto.ports_codes is None or right_ports_codes != set(checkpoint_dto.ports_codes)
 
@@ -958,7 +954,7 @@ class PracticeTwoClass:
             full_routes[6].points[-1].code,
             full_routes[7].points[-1].code,
         ]
-        ports_points_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "PORT"])
+        ports_points_codes = set()
         borders_points_codes = set()
         terminals_points_codes = set([p.code for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"])
         all_points = [p for p in pr2_class_info.all_points if p.is_fake and p.type == "TERMINAL"]
