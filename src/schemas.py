@@ -1426,7 +1426,7 @@ class CurrentStepResponse(BaseModel):
     current_route: Optional[FullRoute]
     risks: Optional[list[PR2Risk]]
 
-    pl_routes: Optional[list[PLRoute]]
+    pl_routes: Optional[list[list[PLRoute]]]
 
     pl_options: Optional[list[PLOption]]
 
