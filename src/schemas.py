@@ -261,6 +261,7 @@ class PR2ClassStep(str, enum.Enum):
     SCREEN_10_RISKS_6 = 'SCREEN_10_RISKS_6'
     SCREEN_10_RISKS_7 = 'SCREEN_10_RISKS_7'
     SCREEN_10_RISKS_8 = 'SCREEN_10_RISKS_8'
+    SCREEN_10_RISKS_TOTAL = 'SCREEN_10_RISKS_TOTAL'
     SCREEN_10_FULL_ROUTES_WITH_PLS = 'SCREEN_10_FULL_ROUTES_WITH_PLS'
     SCREEN_11_OPTIMAL_RESULTS_3PL1 = 'SCREEN_11_OPTIMAL_RESULTS_3PL1'
     SCREEN_11_OPTIMAL_RESULTS_3PL2 = 'SCREEN_11_OPTIMAL_RESULTS_3PL2'
@@ -1376,6 +1377,11 @@ class FullRouteHint(BaseModel):
     pls: list[Optional[int]]
 
 
+class RouteWithRisk(BaseModel):
+    name: str
+    risks: list[PR2Risk]
+
+
 class CurrentStepResponse(BaseModel):
     is_finished: bool = False
     current_step: Optional[Union[Step, str]]
@@ -1456,6 +1462,8 @@ class CurrentStepResponse(BaseModel):
 
     mini_routes_hints: Optional[list[list[MiniRouteHint]]]
     full_routes_hints: Optional[list[list[FullRouteHint]]]
+
+    routes_with_risks: Optional[list[RouteWithRisk]]
 
 
 class CheckpointResponse(BaseModel):

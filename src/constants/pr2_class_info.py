@@ -55,6 +55,7 @@ raw_pr2_clas_info = {
         'SCREEN_10_RISKS_6',
         'SCREEN_10_RISKS_7',
         'SCREEN_10_RISKS_8',
+        'SCREEN_10_RISKS_TOTAL',
         'SCREEN_10_FULL_ROUTES_WITH_PLS',
         'SCREEN_11_OPTIMAL_RESULTS_3PL1',
         'SCREEN_11_OPTIMAL_RESULTS_3PL2',

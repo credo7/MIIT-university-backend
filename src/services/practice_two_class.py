@@ -9,7 +9,7 @@ from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
     CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute, \
-    PR2ClassResult, UserOut, UserHistoryElement, MiniRouteHint, FullRouteHint
+    PR2ClassResult, UserOut, UserHistoryElement, MiniRouteHint, FullRouteHint, RouteWithRisk
 from services.utils import normalize_mongo
 
 
@@ -665,15 +665,22 @@ class PracticeTwoClass:
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Заполняем right_risks_codes. Правильные коды рисков: {right_risk_codes}'
 
+        if checkpoint_dto.step_code == 'SCREEN_10_RISKS_TOTAL':
+            next_step = Step(id=40, code=self._get_next_code_by_id(40), )
+
+            is_failed = False
+            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+            checkpoint_response.hint = f'Уверенный скип'
+
         if checkpoint_dto.step_code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
-            next_step = Step(id=40, code=self._get_next_code_by_id(40),)
+            next_step = Step(id=41, code=self._get_next_code_by_id(41),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = 'Тут просили сразу ошибку в ячейке показывать, а баллы за это все не ставим. Предлагаю на фронте обрабатывать, чтобы не делать 42 доп чекпоинта'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL1':
-            next_step = Step(id=41, code=self._get_next_code_by_id(41),)
+            next_step = Step(id=42, code=self._get_next_code_by_id(42),)
 
             answer_ids = [r.best_pls[0].index for r in event.source_data.mini_routes]
 
@@ -683,7 +690,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL2':
-            next_step = Step(id=42, code=self._get_next_code_by_id(42), )
+            next_step = Step(id=43, code=self._get_next_code_by_id(43), )
 
             answer_ids = [r.best_pls[1].index for r in event.source_data.mini_routes]
 
@@ -693,7 +700,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_3PL3':
-            next_step = Step(id=43, code=self._get_next_code_by_id(43), )
+            next_step = Step(id=44, code=self._get_next_code_by_id(44), )
 
             answer_ids = [r.best_pls[2].index for r in event.source_data.mini_routes]
 
@@ -703,7 +710,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_11_OPTIMAL_RESULTS_COMBO':
-            next_step = Step(id=44, code=self._get_next_code_by_id(44), )
+            next_step = Step(id=45, code=self._get_next_code_by_id(45), )
 
             answer_ids = [r.best_pls[3].index for r in event.source_data.mini_routes]
 
@@ -713,7 +720,7 @@ class PracticeTwoClass:
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
         if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=45, code=self._get_next_code_by_id(45),)
+            next_step = Step(id=46, code=self._get_next_code_by_id(46),)
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -1119,6 +1126,9 @@ class PracticeTwoClass:
         ]:
             return self._get_risks_step_response(event, int(event.current_step.code[-1])-1)
 
+        elif event.current_step.code == "SCREEN_10_RISKS_TOTAL":
+            return self._get_risks_total(event)
+
         elif event.current_step.code == 'SCREEN_10_FULL_ROUTES_WITH_PLS':
             return self._get_full_routes_with_pls_step_response(event)
 
@@ -1352,6 +1362,31 @@ class PracticeTwoClass:
                 best = pl
 
         return best_pl1, best_pl2, best_pl3, best
+
+    @staticmethod
+    def _get_risks_total(event):
+        step_response = CurrentStepResponse(
+            is_finished=event.is_finished,
+            current_step=event.current_step
+        )
+
+        step_response.screen_texts = ['Итоговая таблица маршрутов с рисками']
+
+        routes_with_risks = []
+        for r in event.source_data.full_routes:
+            random.shuffle(pr2_class_info.all_risks)
+            random_risks = pr2_class_info.all_risks[:5]
+
+            routes_with_risks.append(
+                RouteWithRisk(
+                    name=' - '.join([p.city for p in r.points]),
+                    risks=random_risks
+                )
+            )
+
+        step_response.routes_with_risks = routes_with_risks
+
+        return step_response
 
     @staticmethod
     def _get_full_routes_with_pls_step_response(event):
