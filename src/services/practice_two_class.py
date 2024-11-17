@@ -1457,7 +1457,7 @@ class PracticeTwoClass:
 
         first_full_routes_hints = full_routes_hints[:4]
         second_full_routes_hints = full_routes_hints[4:6]
-        third_full_routes_hints = full_routes_hints[7:]
+        third_full_routes_hints = full_routes_hints[6:]
 
         step_response.pl_routes = [first_pl_routes, second_pl_routes, third_pl_routes]
         step_response.mini_routes_hints = [first_mini_routes_hints, second_mini_routes_hints, third_mini_routes_hints]
