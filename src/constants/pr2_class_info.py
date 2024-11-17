@@ -116,8 +116,6 @@ raw_pr2_clas_info = {
         {'code': 'FAKE_BULGAR_BURGAS_PORT', 'country': 'Булгария', 'city': 'Бургас', 'type': 'PORT', 'is_fake': True},
         {'code': 'FAKE_RUSSIA_KALININGRAD_PORT', 'country': 'Россия', 'city': 'Калининград', 'type': 'PORT', 'is_fake': True},
         {'code': 'FAKE_RUSSIA_SPB_PORT', 'country': 'Россия', 'city': 'Санкт-Петербург', 'type': 'PORT', 'is_fake': True},
-        {'code': 'FAKE_RUSSIA_ARCHANGELSK_PORT', 'country': 'Россия', 'city': 'Архангельск', 'type': 'PORT', 'is_fake': True},
-        {'code': 'FAKE_RUSSIA_PETROPAVLIK_PORT', 'country': 'Россия', 'city': 'Петропавловск-Камчатский', 'type': 'PORT', 'is_fake': True},
         {'code': 'FAKE_EGYPT_ALEKSANDIA_PORT', 'country': 'Египет', 'city': 'Александрия', 'type': 'PORT', 'is_fake': True},
         {'code': 'FAKE_FRANCE_MARSEL_PORT', 'country': 'Франция', 'city': 'Марсель', 'type': 'PORT', 'is_fake': True},
         {'code': 'FAKE_GERMAN_GAMBURG_PORT', 'country': 'Германия', 'city': 'Гамбург', 'type': 'PORT', 'is_fake': True},
