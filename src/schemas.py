@@ -579,7 +579,7 @@ class StepRole(str, enum.Enum):
 class Step(BaseModel):
     id: int
     code: str
-    name: Optional[str]
+    name: Optional[str] = None
     role: Optional[StepRole] = None
 
 

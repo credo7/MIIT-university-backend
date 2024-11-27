@@ -684,7 +684,7 @@ class PracticeTwoClass:
 
             answer_ids = [r.best_pls[0].index for r in event.source_data.mini_routes]
 
-            is_failed = checkpoint_dto.answer_ids != answer_ids
+            is_failed = set(checkpoint_dto.answer_ids) != set(answer_ids)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
@@ -694,7 +694,7 @@ class PracticeTwoClass:
 
             answer_ids = [r.best_pls[1].index for r in event.source_data.mini_routes]
 
-            is_failed = checkpoint_dto.answer_ids != answer_ids
+            is_failed = set(checkpoint_dto.answer_ids) != set(answer_ids)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
@@ -704,7 +704,7 @@ class PracticeTwoClass:
 
             answer_ids = [r.best_pls[2].index for r in event.source_data.mini_routes]
 
-            is_failed = checkpoint_dto.answer_ids != answer_ids
+            is_failed = set(checkpoint_dto.answer_ids) != set(answer_ids)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
@@ -714,7 +714,7 @@ class PracticeTwoClass:
 
             answer_ids = [r.best_pls[3].index for r in event.source_data.mini_routes]
 
-            is_failed = checkpoint_dto.answer_ids != answer_ids
+            is_failed = set(checkpoint_dto.answer_ids) != set(answer_ids)
 
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
