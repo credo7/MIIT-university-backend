@@ -9,7 +9,7 @@ from db.mongo import get_db, CollectionNames
 from schemas import PR2ClassEvent, CurrentStepResponse, StartEventDto, PR2Point, Step, MiniRoute, PR2SourceData, \
     PackageSize, FullRoute, ContainerResult, FormulaRow, PR2Risk, PLRoute, PLOption, BestPL, CheckpointData, \
     CheckpointResponse, EventStepResult, EventInfo, CheckpointResponseStatus, ButtonNumber, ContainerRoute, \
-    PR2ClassResult, UserOut, UserHistoryElement, MiniRouteHint, FullRouteHint, RouteWithRisk
+    PR2ClassResult, UserOut, UserHistoryElement, MiniRouteHint, FullRouteHint, RouteWithRisk, RoutePart
 from services.utils import normalize_mongo
 
 
@@ -1541,6 +1541,17 @@ class PracticeTwoClass:
         step_response.route_length = len(event.source_data.full_routes[route_index].points)
         step_response.points_codes_to_show = all_points_codes_to_show
         step_response.right_route_codes = [p.code for p in event.source_data.full_routes[route_index].points]
+
+        points = event.source_data.full_routes[route_index].points
+
+        step_response.route_parts = [
+            [
+                RoutePart(
+                    from_code=points[i].code,
+                    to_code=points[i+1].code
+                ),
+            ] for i in range(points - 1)
+        ]
 
         return step_response
 

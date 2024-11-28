@@ -1382,6 +1382,11 @@ class RouteWithRisk(BaseModel):
     risks: list[PR2Risk]
 
 
+class RoutePart(BaseModel):
+    from_code: str
+    to_code: str
+
+
 class CurrentStepResponse(BaseModel):
     is_finished: bool = False
     current_step: Optional[Union[Step, str]]
@@ -1464,6 +1469,8 @@ class CurrentStepResponse(BaseModel):
     full_routes_hints: Optional[list[list[FullRouteHint]]]
 
     routes_with_risks: Optional[list[RouteWithRisk]]
+
+    route_parts: Optional[list[RoutePart]]
 
 
 class CheckpointResponse(BaseModel):
