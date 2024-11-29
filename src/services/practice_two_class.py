@@ -1545,12 +1545,10 @@ class PracticeTwoClass:
         points = event.source_data.full_routes[route_index].points
 
         step_response.route_parts = [
-            [
-                RoutePart(
-                    from_code=points[i].code,
-                    to_code=points[i+1].code
-                ),
-            ] for i in range(len(points) - 1)
+            RoutePart(
+                from_code=points[i].code,
+                to_code=points[i+1].code
+            ) for i in range(len(points) - 1)
         ]
 
         return step_response
