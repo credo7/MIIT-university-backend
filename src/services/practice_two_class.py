@@ -1550,7 +1550,7 @@ class PracticeTwoClass:
                     from_code=points[i].code,
                     to_code=points[i+1].code
                 ),
-            ] for i in range(points - 1)
+            ] for i in range(len(points) - 1)
         ]
 
         return step_response
