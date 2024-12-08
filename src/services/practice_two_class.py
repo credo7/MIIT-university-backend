@@ -1,3 +1,4 @@
+import copy
 import random
 from typing import Optional, Union, Type
 import math
@@ -538,7 +539,20 @@ class PracticeTwoClass:
 
         if checkpoint_dto.step_code == 'SCREEN_8_MAP_ROUTE_3':
             next_step = Step(id=25, code=self._get_next_code_by_id(25),)
-            is_failed = checkpoint_dto.route_points_codes != [p.code for p in event.source_data.full_routes[2].points]
+
+            codes = [p.code for p in event.source_data.full_routes[2].points]
+            option1 = []
+            option2 = []
+
+            for point_code in codes:
+                if point_code in ["UZBEKISTAN_ALTUNKUL_BORDER", "KAZAKHSTAN_DOSTIK_BORDER"]:
+                    option1.append("UZBEKISTAN_ALTUNKUL_BORDER")
+                    option2.append("KAZAKHSTAN_DOSTIK_BORDER")
+                else:
+                    option1.append(point_code)
+                    option2.append(point_code)
+
+            is_failed = checkpoint_dto.route_points_codes != option1 and checkpoint_dto.route_points_codes != option2
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f"""
             Тут нужно заполнить поле route_points_codes. Это массив из кодов точке list[str]
