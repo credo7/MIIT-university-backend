@@ -1890,32 +1890,57 @@ class PracticeTwoClass:
             package_weight_in_ton,
             n_of_transport_packages_in_container_40
     ) -> list[FullRoute]:
-        random_start = random.randint(20, 100)
+        random_start = random.randint(20, 85)
 
-        all_first_mini_route_cases = [[True, False, True], [False, True, True], [True, True, False]]
-        all_first_mini_route_cases.append(random.choice(all_first_mini_route_cases))
-        random.shuffle(all_first_mini_route_cases)
+        def is_valid(groups):
+            nums1, nums2, nums3, nums4 = set(), set(), set(), set()
+            min1, min2, min3 = float('inf'), float('inf'), float('inf')
 
-        all_random_3pls_grouped = []
-        for i in range(4):
-            pls = []
-            for should_be in all_first_mini_route_cases[i]:
-                if should_be:
-                    random_pl = random.randint(random_start, random_start + 10) * 100
-                    while random_pl in pls:
-                        random_pl = random.randint(random_start, random_start + 10) * 100
-                    pls.append(random_pl)
-                else:
-                    pls.append(None)
-            all_random_3pls_grouped.append(pls)
-        for i in range(4):
-            pls = []
-            for i in range(3):
-                random_pl = random.randint(random_start, random_start + 10) * 100
-                while random_pl in pls:
-                    random_pl = random.randint(random_start, random_start + 10) * 100
-                pls.append(random_pl)
-            all_random_3pls_grouped.append(pls)
+            for i in range(4):
+                if groups[i][0] is not None and groups[i][0] < min1:
+                    min1 = groups[i][0]
+                if groups[i][1] is not None and groups[i][1] < min2:
+                    min2 = groups[i][1]
+                if groups[i][2] is not None and groups[i][2] < min3:
+                    min3 = groups[i][2]
+
+            min_combo = min(min1, min2, min3)
+            nums1.add(min1)
+            nums2.add(min2)
+            nums3.add(min3)
+            nums4.add(min_combo)
+
+            # Process remaining groups
+            for group in groups[4:]:
+                nums1.add(group[0])
+                nums2.add(group[1])
+                nums3.add(group[2])
+                nums4.add(min(filter(None, group)))  # Ignore None values
+
+            if len(nums1) == 5 and len(nums2) == 5 and len(nums3) == 5 and len(nums4) == 5:
+                return True
+
+            return False
+
+        all_random_3pls_grouped = None
+
+        for attempt in range(30000):
+            candidate_groups = []
+
+            for _ in range(8):
+                random_pls = random.sample(range(random_start * 100, (random_start + 15) * 100, 100), 3)
+                candidate_groups.append(random_pls)
+
+            for group_index in range(4):
+                random_index_for_none = random.randint(0, 2)
+                candidate_groups[group_index][random_index_for_none] = None
+
+            if is_valid(candidate_groups):
+                all_random_3pls_grouped = candidate_groups
+                break
+
+        if all_random_3pls_grouped is None:
+            raise Exception("Такого не могло быть!")
 
         random_risks = []
         for i in range(8):
