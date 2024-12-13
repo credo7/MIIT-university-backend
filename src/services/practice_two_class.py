@@ -1525,12 +1525,14 @@ class PracticeTwoClass:
             7:4,
         }
 
+        only_borders_text = "последовательно выбирая погранпереходы на карте. Вы можете предварительно изучить объекты, кликнув по ним."
+        ports_and_borders_text = "последовательно выбирая порты и погранпереходы на карте. Вы можете предварительно изучить объекты, кликнув по ним."
+
         mini_route_index = mini_route_index_by_route_index[route_index]
 
         step_response.screen_texts = [f'Сформируйте маршрут {event.source_data.mini_routes[mini_route_index].from_country}-'
-                                      f'{event.source_data.mini_routes[mini_route_index].to_country} {event.source_data.full_routes[route_index].through}, нажимая '
-                                      f'на логистические объекты на карте. Вы можете предварительно изучить объекты,'
-                                      f' кликнув по ним.']
+                                      f'{event.source_data.mini_routes[mini_route_index].to_country} {event.source_data.full_routes[route_index].through}, '
+                                      f'{only_borders_text if route_index <= 2 else ports_and_borders_text}']
 
         all_point_cities_from_routes = []
         for r in event.source_data.full_routes:
