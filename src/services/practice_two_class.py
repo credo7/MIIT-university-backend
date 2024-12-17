@@ -1501,9 +1501,9 @@ class PracticeTwoClass:
             is_finished=event.is_finished,
             current_step=event.current_step
         )
-        step_response.screen_texts = ['Сформировать все возможные маршруты доставки в соответствии с '
-                                      'предложенными сервисами для каждой цепи поставок '
-                                      'с детализацией по пунктам маршрута и транзитных стран']
+        step_response.screen_texts = ['Вы сформировали все возможные маршруты доставки в соответствии\nс '
+                                      'предложенными сервисами для каждой цепи поставок\n'
+                                      'с детализацией по пунктам маршрута']
         step_response.full_routes = event.source_data.full_routes
         return step_response
 
