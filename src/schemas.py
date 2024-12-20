@@ -1,12 +1,20 @@
 import enum
 from datetime import datetime
-from typing import Optional, Union, Any
+from typing import (
+    Any,
+    Optional,
+    Union,
+)
+
 from bson import ObjectId
-
-from typing_extensions import Annotated
-from pydantic import BaseModel, constr, conint, Field
+from pydantic import (
+    BaseModel,
+    Field,
+    conint,
+    constr,
+)
 from pydantic.class_validators import validator
-
+from typing_extensions import Annotated
 
 # TODO: Think about it
 # class CustomBaseModel(BaseModel):
@@ -257,10 +265,6 @@ class PR2ClassStep(str, enum.Enum):
     SCREEN_10_RISKS_2 = 'SCREEN_10_RISKS_2'
     SCREEN_10_RISKS_3 = 'SCREEN_10_RISKS_3'
     SCREEN_10_RISKS_4 = 'SCREEN_10_RISKS_4'
-    SCREEN_10_RISKS_5 = 'SCREEN_10_RISKS_5'
-    SCREEN_10_RISKS_6 = 'SCREEN_10_RISKS_6'
-    SCREEN_10_RISKS_7 = 'SCREEN_10_RISKS_7'
-    SCREEN_10_RISKS_8 = 'SCREEN_10_RISKS_8'
     SCREEN_10_RISKS_TOTAL = 'SCREEN_10_RISKS_TOTAL'
     SCREEN_10_FULL_ROUTES_WITH_PLS = 'SCREEN_10_FULL_ROUTES_WITH_PLS'
     SCREEN_11_OPTIMAL_RESULTS_3PL1 = 'SCREEN_11_OPTIMAL_RESULTS_3PL1'
@@ -410,7 +414,7 @@ class RequestEditsBody(BaseModel):
 
 class CheckApprovalResponse(BaseModel):
     is_approved: bool
-    fields_to_be_fixed: Optional[list[str]] = []
+    fields_to_be_fixed: Optional[list[str]] = Field(default_factory=list)
 
 
 class UserEventHistory(BaseModel):
@@ -430,8 +434,8 @@ class UserCreateDB(UserCreateBody):
     role: UserRole = UserRole.STUDENT
     group_name: str
     approved: bool = False
-    history: list[UserEventHistory] = []
-    incoterms: dict[Incoterm, int] = {}
+    history: list[UserEventHistory] = Field(default_factory=list)
+    incoterms: dict[Incoterm, int] = Field(default_factory=dict)
     fix_for_approve_fields: Optional[list[str]] = None
 
 
@@ -446,20 +450,31 @@ class TestCorrectsAndErrors(BaseModel):
     error: int
 
 
+class PR2Risk(BaseModel):
+    text: str
+    id: int
+
+
+class RisksWithRouteName(BaseModel):
+    route_name: str
+    risks: list[PR2Risk]
+
+
 class UserHistoryElement(BaseModel):
     id: str
     type: EventType
     mode: EventMode
     created_at: datetime
     finished_at: datetime
-    incoterms: Optional[dict[Incoterm, CorrectOrError]] = {}
-    incoterm_points_mapping: Optional[dict[Incoterm, int]] = {}
+    incoterms: Optional[dict[Incoterm, CorrectOrError]] = Field(default_factory=dict)
+    incoterm_points_mapping: Optional[dict[Incoterm, int]] = Field(default_factory=dict)
     test: Optional[TestCorrectsAndErrors] = None
     description: Optional[str] = None
     errors: Optional[int] = None
     points: Optional[int] = None
     container_selection_explanation: Optional[str]
     delivery_option_explanation: Optional[str]
+    risks_chosen_by_user: list[RisksWithRouteName] = Field(default_factory=list)
 
 
 class UserOut(UserBase):
@@ -472,9 +487,9 @@ class UserOut(UserBase):
     group_name: Optional[str] = None
     group_id: Optional[str] = None
     role: UserRole = UserRole.STUDENT.value
-    incoterms: Optional[dict[Incoterm, int]] = {}
+    incoterms: Optional[dict[Incoterm, int]] = Field(default_factory=dict)
     fix_for_approve_fields: Optional[list[str]] = None
-    history: list[UserHistoryElement] = []
+    history: list[UserHistoryElement] = Field(default_factory=list)
 
 
 class UserEvent(BaseModel):
@@ -486,7 +501,7 @@ class UserEvent(BaseModel):
 
 
 class UserOutWithEvents(UserOut):
-    events_history: Optional[list[UserEvent]] = []
+    events_history: Optional[list[UserEvent]] = Field(default_factory=list)
 
 
 class UserSearch(BaseModel):
@@ -634,10 +649,10 @@ class EventInfo(BaseModel):
     created_at: datetime = datetime.now()
     finished_at: Optional[datetime] = None
     users_ids: list[str]
-    steps_results: list[EventStepResult] = []
+    steps_results: list[EventStepResult] = Field(default_factory=list)
     results: Optional[Union[PR1ControlResults, list[PR2ClassResult], list[PR1ClassResults], list[EventResult]]] = None
     current_step: Union[Step, str]
-    test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
+    test_results: Optional[list[list[EventStepResult]]] = Field(default_factory=lambda: [[], [], []])
 
 
 class BetsRolePR1(str, enum.Enum):
@@ -648,7 +663,7 @@ class BetsRolePR1(str, enum.Enum):
 class BetInfoIncotermsRolePR1(BaseModel):
     buyer: list[Incoterm]
     seller: list[Incoterm]
-    common: Optional[list[Incoterm]] = []
+    common: Optional[list[Incoterm]] = Field(default_factory=list)
 
 
 class PracticeOneBet(BaseModel):
@@ -701,7 +716,7 @@ class TestQuestionPR1(BaseModel):
     id: int
     question: str
     multiple_options: Optional[bool] = False
-    right_ids: Optional[list[int]] = []
+    right_ids: Optional[list[int]] = Field(default_factory=list)
     options: list[QuestionOption]
     incoterm: Optional[Incoterm] = None
 
@@ -1099,17 +1114,12 @@ class PR2Point(BaseModel):
     is_fake: bool
 
 
-class PR2Risk(BaseModel):
-    text: str
-    code: str
-
-
 class PR2ClassInfo(BaseModel):
     legend: str
     explanation: str
     steps_codes: list[str]
     all_points: list[PR2Point]
-    all_risks: list[PR2Risk]
+    all_risks: list[list[PR2Risk]]
 
 
 class PR1ControlInfo(BaseModel):
@@ -1178,7 +1188,7 @@ class GetUserResponse(BaseModel):
     username: str
     group_id: str
     group_name: str
-    history: list[UserHistoryElement] = []
+    history: list[UserHistoryElement] = Field(default_factory=list)
 
 
 class UserChangePassword(BaseModel):
@@ -1197,7 +1207,7 @@ class CheckpointData(BaseModel):
     event_id: str
     step_code: Union[PR1ClassStep, PR1ControlStep, PR2ClassStep]
     text: Optional[str]
-    answer_ids: Optional[list[int]] = []
+    answer_ids: Optional[list[int]] = Field(default_factory=list)
     chosen_index: Optional[int]
     chosen_incoterm: Optional[Incoterm]
     chosen_letter: Optional[str] = None
@@ -1208,6 +1218,8 @@ class CheckpointData(BaseModel):
     ports_codes: Optional[list[str]]
     borders_codes: Optional[list[str]]
     right_risks_codes: Optional[list[str]]
+    risk_codes_desc: Optional[list[str]]
+
 
 class JoinData(BaseModel):
     computer_id: conint(ge=0)
@@ -1261,13 +1273,13 @@ class PR1ClassEvent(EventInfo):
     product_price: int
     bets: list[PracticeOneBet]
     test_index: int = 0
-    common_bets_ids_chosen_by_seller: Optional[dict[str, list[int]]] = {}
+    common_bets_ids_chosen_by_seller: Optional[dict[str, list[int]]] = Field(default_factory=dict)
     describe_option: Optional[str] = None
     options_comparison: Optional[dict[Incoterm, IncotermInfo]]
     chosen_option: Optional[ChosenOption]
     tests: Optional[list[list[TestQuestionPR1]]]
-    test_results: Optional[list[list[EventStepResult]]] = [[], [], []]
-    results: Optional[list[PR1ClassResults]] = []
+    test_results: Optional[list[list[EventStepResult]]] = Field(default_factory=lambda: [[], [], []])
+    results: Optional[list[PR1ClassResults]] = Field(default_factory=list)
 
 
 class PackageSize(BaseModel):
@@ -1324,6 +1336,7 @@ class PR2ClassEvent(EventInfo):
     source_data: PR2SourceData
     container_selection_explanation: Optional[str]
     delivery_option_explanation: Optional[str]
+    risks_chosen_by_user: list[RisksWithRouteName] = Field(default_factory=list)
 
 
 class FormulaRow(BaseModel):
@@ -1379,7 +1392,7 @@ class FullRouteHint(BaseModel):
 
 class RouteWithRisk(BaseModel):
     name: str
-    risks: list[PR2Risk]
+    risks_with_route_name: RisksWithRouteName
 
 
 class RoutePart(BaseModel):
@@ -1477,6 +1490,6 @@ class CheckpointResponse(BaseModel):
     status: Optional[str] = None
     next_step: Optional[Union[Step, str]] = None
     fails: Optional[int] = 0
-    missed_ids: Optional[list[int]] = []
-    not_needed_ids: Optional[list[int]] = []
+    missed_ids: Optional[list[int]] = Field(default_factory=list)
+    not_needed_ids: Optional[list[int]] = Field(default_factory=list)
     hint: Optional[str]

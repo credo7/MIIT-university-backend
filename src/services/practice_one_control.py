@@ -1,27 +1,40 @@
-from datetime import datetime
-from typing import Optional, Union, Type
 import random
+from datetime import datetime
+from typing import (
+    Optional,
+    Type,
+    Union,
+)
 
-from fastapi import HTTPException, status
 from bson import ObjectId
+from fastapi import (
+    HTTPException,
+    status,
+)
 
 from constants.pr1_control_info import pr1_control_info
 from constants.practice_one_info import practice_one_info
-from db.mongo import get_db, CollectionNames
+from db.mongo import (
+    CollectionNames,
+    get_db,
+)
 from schemas import (
+    CheckpointData,
+    CheckpointResponse,
+    CheckpointResponseStatus,
+    CorrectOrError,
+    CurrentStepResponse,
+    EventInfo,
+    EventStepResult,
     Incoterm,
     PR1ControlEvent,
-    CurrentStepResponse,
-    CheckpointResponse,
-    CheckpointData,
-    EventStepResult,
-    CheckpointResponseStatus,
+    PR1ControlResults,
+    StartEventDto,
     Step,
     StepRole,
-    StartEventDto,
-    EventInfo,
-    PR1ControlResults,
-    UserOut, UserHistoryElement, TestCorrectsAndErrors, CorrectOrError,
+    TestCorrectsAndErrors,
+    UserHistoryElement,
+    UserOut,
 )
 from services.utils import normalize_mongo
 
@@ -284,8 +297,7 @@ class PracticeOneControl:
                 history_element.points = points
 
                 self.db[CollectionNames.USERS.value].update_one(
-                    {'_id': ObjectId(event.users_ids[0])},
-                    {"$push": {"history": history_element.dict()}}
+                    {'_id': ObjectId(event.users_ids[0])}, {'$push': {'history': history_element.dict()}}
                 )
             else:
                 next_step = Step(

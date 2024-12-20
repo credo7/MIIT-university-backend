@@ -1,43 +1,59 @@
 import copy
 import random
+from copy import deepcopy
 from datetime import datetime
-from typing import List, Dict, Optional, Type, Union
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Type,
+    Union,
+)
+
 from bson import ObjectId
 
-from copy import deepcopy
 from constants.practice_one_info import practice_one_info
-from db.mongo import get_db, CollectionNames
+from db.mongo import (
+    CollectionNames,
+    get_db,
+)
 from schemas import (
-    PracticeOneBet,
-    Logist,
-    OptionPR1,
-    PracticeOneBetOut,
-    TablePR1,
-    Incoterm,
-    StartEventDto,
-    PR1ClassEvent,
-    PR1ClassVariables,
+    AnswerStatus,
+    BetsRolePR1,
     CheckpointData,
     CheckpointResponse,
-    EventStepResult,
     CheckpointResponseStatus,
-    PR1ClassResults,
-    UserOut,
-    SubResult,
-    AnswerStatus,
-    EventInfo,
     ChosenOption,
-    PR1ClassBetType,
-    BetsRolePR1,
-    PR1ClassChosenBet,
+    CorrectOrError,
+    CurrentStepResponse,
+    EventInfo,
+    EventStepResult,
+    Incoterm,
     IncotermInfo,
+    IncotermInfoSummarize,
+    Logist,
+    OptionPR1,
+    PR1ClassBetType,
+    PR1ClassChosenBet,
+    PR1ClassEvent,
+    PR1ClassResults,
+    PR1ClassStep,
+    PR1ClassVariables,
+    PracticeOneBet,
+    PracticeOneBetOut,
+    StartEventDto,
     Step,
     StepRole,
-    CurrentStepResponse,
-    IncotermInfoSummarize,
-    PR1ClassStep, UserHistoryElement, CorrectOrError, TestCorrectsAndErrors,
+    SubResult,
+    TablePR1,
+    TestCorrectsAndErrors,
+    UserHistoryElement,
+    UserOut,
 )
-from services.utils import normalize_mongo, format_with_spaces
+from services.utils import (
+    format_with_spaces,
+    normalize_mongo,
+)
 
 
 class PracticeOneClass:
@@ -357,17 +373,18 @@ class PracticeOneClass:
                     users_ids.append(event.users_ids[0])
 
                 if 'SELLER' in event.current_step.code:
-                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}\n" \
-                               # f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
+                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}\n"  # f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
                 else:
-                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}"
+                    comments = (
+                        f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}"
+                    )
 
                 new_step_result = EventStepResult(
                     step_code=event.current_step.code,
                     users_ids=users_ids,
                     fails=0,
                     incoterm=incoterm,
-                    comments=comments
+                    comments=comments,
                 )
                 event.steps_results.append(new_step_result)
 
@@ -400,11 +417,11 @@ class PracticeOneClass:
 
             comments = ""
             if event.current_step.code == 'SELECT_LOGIST':
-                comments = "Выбираем логиста. Ни на что не влияет в ПО"
+                comments = 'Выбираем логиста. Ни на что не влияет в ПО'
                 event.chosen_logist_letter = checkpoint_dto.chosen_letter
 
             elif event.current_step.code == 'OPTIONS_COMPARISON':
-                comments = "Табличка для сравнения инкотермов, ничего не делаем, можно лишь нажать далее"
+                comments = 'Табличка для сравнения инкотермов, ничего не делаем, можно лишь нажать далее'
                 pass
 
             elif event.current_step.code == 'CONDITIONS_SELECTION':
@@ -417,10 +434,10 @@ class PracticeOneClass:
                     incoterm=checkpoint_dto.chosen_incoterm.value,
                 )
                 event.chosen_option = chosen_option
-                comments = f"Студент выбирает любой вариант ( ни на что не влияет в ПО )"
+                comments = f'Студент выбирает любой вариант ( ни на что не влияет в ПО )'
 
             elif event.current_step.code == 'DESCRIBE_OPTION':
-                comments = "Пишем обоснование ( не менее 150 символов )"
+                comments = 'Пишем обоснование ( не менее 150 символов )'
                 pass
 
             step_result = EventStepResult(
@@ -429,7 +446,7 @@ class PracticeOneClass:
                 fails=0,
                 is_finished=True,
                 description=checkpoint_dto.text,
-                comments=comments
+                comments=comments,
             )
             event.steps_results.append(step_result)
 
@@ -521,8 +538,7 @@ class PracticeOneClass:
                     history_element.test = best
 
                     self.db[CollectionNames.USERS.value].update_one(
-                        {'_id': ObjectId(user_id)},
-                        {"$push": {"history": history_element.dict()}}
+                        {'_id': ObjectId(user_id)}, {'$push': {'history': history_element.dict()}}
                     )
 
             checkpoint_response.next_step = next_step
