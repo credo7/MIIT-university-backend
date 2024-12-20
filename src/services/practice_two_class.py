@@ -1382,22 +1382,8 @@ class PracticeTwoClass:
     @staticmethod
     def _get_risks_total(event):
         step_response = CurrentStepResponse(is_finished=event.is_finished, current_step=event.current_step)
-
         step_response.screen_texts = ['Итоговая таблица маршрутов с рисками']
-
-        mini_index_by_index = {0: 0, 1: 1, 2: 2, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3}
-
-        routes_with_risks = []
-        for i, r in enumerate(event.source_data.full_routes):
-            routes_with_risks.append(
-                RouteWithRisk(
-                    name=' - '.join([p.city for p in r.points]),
-                    risks_with_route_name=event.risks_chosen_by_user[mini_index_by_index[i]],
-                )
-            )
-
-        step_response.routes_with_risks = routes_with_risks
-
+        step_response.risks_chosen_by_user = event.risks_chosen_by_user
         return step_response
 
     @staticmethod

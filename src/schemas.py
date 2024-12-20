@@ -1482,6 +1482,8 @@ class CurrentStepResponse(BaseModel):
 
     routes_with_risks: Optional[list[RouteWithRisk]]
 
+    risks_chosen_by_user: Optional[list[RisksWithRouteName]]
+
     route_parts: Optional[list[RoutePart]]
 
 
