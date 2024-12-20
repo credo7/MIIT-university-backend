@@ -647,11 +647,12 @@ class PracticeTwoClass:
 
             risks_mapping = {risk.id: risk for risk in pr2_class_info.all_risks[0]}
 
+            checkpoint_response.hint = f'заполняем risk_codes_desc'
+
             event.risks_chosen_by_user[0] = RisksWithRouteName(
                 route_name='МАРШРУТ ЧЕРЕЗ РОССИЮ (ЧЕРЕЗ ЗАБАЙКАЛЬСК И БРЕСТ)',
-                risks=[risks_mapping[id] for id in checkpoint_dto.risk_codes_desc],
+                risks=[risks_mapping[id] for id in checkpoint_dto.risk_ids_desc],
             )
-            checkpoint_response.hint = f'заполняем risk_codes_desc'
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)

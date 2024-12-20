@@ -1218,7 +1218,7 @@ class CheckpointData(BaseModel):
     ports_codes: Optional[list[str]]
     borders_codes: Optional[list[str]]
     right_risks_codes: Optional[list[str]]
-    risk_codes_desc: Optional[list[str]]
+    risk_ids_desc: Optional[list[int]]
 
 
 class JoinData(BaseModel):
