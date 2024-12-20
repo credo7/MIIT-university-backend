@@ -1941,12 +1941,6 @@ class PracticeTwoClass:
         if all_random_3pls_grouped is None:
             raise Exception('Такого не могло быть!')
 
-        random_risks = []
-        for i in range(8):
-            random.shuffle(pr2_class_info.all_risks)
-            n = random.randint(1, 6)
-            random_risks.append(pr2_class_info.all_risks[:n])
-
         n_40_foot_containers = math.ceil(
             routes_tons[0] / (n_of_transport_packages_in_container_40 * package_weight_in_ton)
         )
@@ -1963,7 +1957,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[0],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[0],
         )
 
         china_route_2 = FullRoute(
@@ -1979,7 +1972,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[1],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[1],
         )
 
         china_route_3 = FullRoute(
@@ -1995,7 +1987,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[2],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[2],
         )
 
         china_route_4 = FullRoute(
@@ -2012,7 +2003,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[3],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[3],
         )
 
         n_40_foot_containers = math.ceil(
@@ -2032,7 +2022,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[4],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[4],
         )
 
         n_40_foot_containers = math.ceil(
@@ -2052,7 +2041,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[5],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[5],
         )
 
         n_40_foot_containers = math.ceil(
@@ -2072,7 +2060,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[6],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[6],
         )
 
         n_40_foot_containers = math.ceil(
@@ -2092,7 +2079,6 @@ class PracticeTwoClass:
             ],
             three_pls_bets=all_random_3pls_grouped[7],
             n_40_foot_containers=n_40_foot_containers,
-            risks=random_risks[7],
         )
 
         return [

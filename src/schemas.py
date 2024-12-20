@@ -1309,7 +1309,6 @@ class FullRoute(BaseModel):
     country_to: str
     points: list[PR2Point]
     three_pls_bets: list[Optional[int]]
-    risks: Optional[list[PR2Risk]]
 
 
 class PR2SourceData(BaseModel):
