@@ -642,6 +642,10 @@ class PracticeTwoClass:
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_1':
             next_step = Step(id=32, code=self._get_next_code_by_id(32),)
+
+            if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
+                raise Exception("Поле пустое либо не 10 айдишек")
+
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
@@ -659,6 +663,9 @@ class PracticeTwoClass:
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_2':
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
+            if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
+                raise Exception("Поле пустое либо не 10 айдишек")
+
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'заполняем risk_codes_desc'
@@ -667,13 +674,16 @@ class PracticeTwoClass:
 
             event.risks_chosen_by_user.append(
                 RisksWithRouteName(
-                    route_name='МАРШРУТ ЧЕРЕЗ РОССИЮ (ЧЕРЕЗ ЗАБАЙКАЛЬСК И БРЕСТ)',
+                    route_name='Маршрут через Монголию (через Наушки и Брест)',
                     risks=[risks_mapping[id] for id in checkpoint_dto.risk_ids_desc],
                 )
             )
 
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_3':
             next_step = Step(id=34, code=self._get_next_code_by_id(34),)
+
+            if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
+                raise Exception("Поле пустое либо не 10 айдишек")
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -683,13 +693,15 @@ class PracticeTwoClass:
 
             event.risks_chosen_by_user.append(
                 RisksWithRouteName(
-                    route_name='МАРШРУТ ЧЕРЕЗ РОССИЮ (ЧЕРЕЗ ЗАБАЙКАЛЬСК И БРЕСТ)',
+                    route_name='Маршрут через Казахстан (через Достык или Алтынколь и Брест)',
                     risks=[risks_mapping[id] for id in checkpoint_dto.risk_ids_desc],
                 )
             )
-
         if checkpoint_dto.step_code == 'SCREEN_10_RISKS_4':
             next_step = Step(id=35, code=self._get_next_code_by_id(35),)
+
+            if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
+                raise Exception("Поле пустое либо не 10 айдишек")
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -699,7 +711,7 @@ class PracticeTwoClass:
 
             event.risks_chosen_by_user.append(
                 RisksWithRouteName(
-                    route_name='МАРШРУТ ЧЕРЕЗ РОССИЮ (ЧЕРЕЗ ЗАБАЙКАЛЬСК И БРЕСТ)',
+                    route_name='Маршрут через МТП России',
                     risks=[risks_mapping[id] for id in checkpoint_dto.risk_ids_desc],
                 )
             )
