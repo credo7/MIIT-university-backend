@@ -60,7 +60,6 @@ raw_pr2_clas_info = {
         'SCREEN_11_OPTIMAL_RESULTS_3PL2',
         'SCREEN_11_OPTIMAL_RESULTS_3PL3',
         'SCREEN_11_OPTIMAL_RESULTS_COMBO',
-        'SCREEN_12_OPTIMAL_WITH_RISKS',
         'SCREEN_13_CHOOSE_LOGIST',
     ],
     'all_points': [

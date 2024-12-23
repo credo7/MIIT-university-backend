@@ -770,12 +770,12 @@ class PracticeTwoClass:
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
             checkpoint_response.hint = f'Правильные индексы (answer_ids)=: f{answer_ids}'
 
-        if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            next_step = Step(id=42, code=self._get_next_code_by_id(42),)
-
-            is_failed = False
-            self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
-            checkpoint_response.hint = 'Все уже заполнено за нас'
+        # if checkpoint_dto.step_code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
+        #     next_step = Step(id=42, code=self._get_next_code_by_id(42),)
+        #
+        #     is_failed = False
+        #     self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
+        #     checkpoint_response.hint = 'Все уже заполнено за нас'
 
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
             next_step = Step(id=-1, code='FINISH',)
@@ -1178,8 +1178,8 @@ class PracticeTwoClass:
             return self._get_optimal_results_step_response(event, 4)
 
         # TODO
-        elif event.current_step.code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
-            return self._get_optimal_with_risks_step_response(event)
+        # elif event.current_step.code == 'SCREEN_12_OPTIMAL_WITH_RISKS':
+        #     return self._get_optimal_with_risks_step_response(event)
 
         # TODO
         elif event.current_step.code == 'SCREEN_13_CHOOSE_LOGIST':
