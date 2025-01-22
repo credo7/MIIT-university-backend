@@ -644,7 +644,7 @@ class PracticeTwoClass:
             next_step = Step(id=32, code=self._get_next_code_by_id(32),)
 
             if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
-                raise Exception("Поле пустое либо не 10 айдишек")
+                raise Exception('Поле пустое либо не 10 айдишек')
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -664,7 +664,7 @@ class PracticeTwoClass:
             next_step = Step(id=33, code=self._get_next_code_by_id(33),)
 
             if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
-                raise Exception("Поле пустое либо не 10 айдишек")
+                raise Exception('Поле пустое либо не 10 айдишек')
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -683,7 +683,7 @@ class PracticeTwoClass:
             next_step = Step(id=34, code=self._get_next_code_by_id(34),)
 
             if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
-                raise Exception("Поле пустое либо не 10 айдишек")
+                raise Exception('Поле пустое либо не 10 айдишек')
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
@@ -701,7 +701,7 @@ class PracticeTwoClass:
             next_step = Step(id=35, code=self._get_next_code_by_id(35),)
 
             if checkpoint_dto.risk_ids_desc is None or len(checkpoint_dto.risk_ids_desc) != 10:
-                raise Exception("Поле пустое либо не 10 айдишек")
+                raise Exception('Поле пустое либо не 10 айдишек')
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)

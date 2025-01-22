@@ -335,6 +335,67 @@ async def continue_work(
 
 @router.get('/computers-states', response_model=list[schemas.ConnectedComputerFrontResponse])
 async def get_all_computers_states(db: Database = Depends(get_db)):
+    connected_computers_front = []
+
+    for connected_computer in WebsocketServiceState.connected_computers.values():
+        mini_users = []
+        for user_id in connected_computer.users_ids:
+            user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
+            user = normalize_mongo(user_db, schemas.MiniUser)
+            mini_users.append(user)
+
+        percentage = 0
+        if connected_computer.event_id is None or connected_computer.step_code is None:
+            percentage = 0
+        elif connected_computer.event_type == EventType.PR1 and connected_computer.event_mode == EventMode.CLASS:
+            percentage = get_pr1_class_percentage(connected_computer.step_code)
+        elif connected_computer.event_type == EventType.PR1 and connected_computer.event_mode == EventMode.CONTROL:
+            percentage = get_pr1_control_percentage(connected_computer.step_code)
+        elif connected_computer.event_type == EventType.PR2 and connected_computer.event_mode == EventMode.CLASS:
+            percentage = get_pr2_class_percentage(connected_computer.step_code)
+
+        connected_computers_front.append(
+            schemas.ConnectedComputerFrontResponse(**connected_computer.dict(), users=mini_users, percentage=percentage)
+        )
+
+    return connected_computers_front
+
+
+@router.post('/finish-events-by-teacher')
+async def finish_events_by_teacher(_current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),):
+    await WebsocketServiceState.safe_broadcast('FINISHED')
+    await asyncio.sleep(2)
+    await WebsocketServiceState.clean_all_connected_computers_and_active_connections()
+    await WebsocketServiceState.safe_broadcast_all_connected_computers()
+
+
+@router.get('/{event_id}')
+async def get_event(event_id: str, db: Database = Depends(get_db)):
+    print(f'event_id={event_id}')
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+
+    if not event_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
+
+    event = normalize_mongo(event_db, EventInfo)
+
+    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CLASS:
+        return normalize_mongo(event_db, PR1ClassEvent)
+
+    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CONTROL:
+        return normalize_mongo(event_db, PR1ControlEvent)
+
+    if event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
+        return normalize_mongo(event_db, PR2ClassEvent)
+
+    if event.event_type != EventType.PR1:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=f'Мод либо тип не найдены. event_type={event.event_type}. event_mode={event.event_mode}',
+        )
+
+
+def get_pr1_class_percentage(step_code: Union[str, int]):
     pr1_class_percentages = {
         'SELECT_LOGIST': 2,
         'EXW_BUYER': 6,
@@ -384,116 +445,91 @@ async def get_all_computers_states(db: Database = Depends(get_db)):
         'TEST_20': 98,
         'FINISHED': 100,
     }
-
-    def get_pr1_control_percentage(db: Database, event_id: str, step_code: str):
-        pr1_control_percentage = {
-            1: 5,
-            2: 20,
-            3: 40,
-            'TEST_1': 60,
-            'TEST_2': 62,
-            'TEST_3': 64,
-            'TEST_4': 66,
-            'TEST_5': 68,
-            'TEST_6': 70,
-            'TEST_7': 72,
-            'TEST_8': 74,
-            'TEST_9': 76,
-            'TEST_10': 78,
-            'TEST_11': 80,
-            'TEST_12': 82,
-            'TEST_13': 84,
-            'TEST_14': 86,
-            'TEST_15': 88,
-            'TEST_16': 90,
-            'TEST_17': 92,
-            'TEST_18': 94,
-            'TEST_19': 96,
-            'TEST_20': 98,
-            'FINISHED': 100,
-        }
-
-        if step_code in pr1_control_percentage:
-            return pr1_control_percentage[step_code]
-
-        event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
-
-        if event_db is None:
-            logger.info('Такого не должно быть #4556')
-            return 0
-
-        pr1_control_event = normalize_mongo(event_db, PR1ControlEvent)
-
-        step_index = len(pr1_control_event.steps_results)
-
-        if step_index in pr1_control_event:
-            return pr1_control_percentage[step_index]
-        else:
-            logger.info('Такого не должно быть #4599')
-            return 0
-
-    connected_computers = []
-
-    for connected_computer in WebsocketServiceState.connected_computers.values():
-        mini_users = []
-        for user_id in connected_computer.users_ids:
-            user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
-
-            if user_db is None:
-                logger.info('Не найден пользователь, такого не может быть. /computers-states')
-                continue
-
-            user = normalize_mongo(user_db, schemas.MiniUser)
-            mini_users.append(user)
-
-        if connected_computer.event_id is None or connected_computer.step_code is None:
-            print(connected_computer)
-            percentage = 0
-        elif connected_computer.event_type == EventType.PR1:
-            if connected_computer.event_mode == EventMode.CLASS:
-                percentage = pr1_class_percentages[connected_computer.step_code]
-            else:
-                percentage = get_pr1_control_percentage(db, connected_computer.event_id, connected_computer.step_code)
-        else:
-            percentage = 0
-            logger.info('Мы находимся в else, такого не может быть. #4445')
-
-        connected_computers.append(
-            schemas.ConnectedComputerFrontResponse(**connected_computer.dict(), users=mini_users, percentage=percentage)
-        )
-
-    return connected_computers
+    if step_code not in pr1_class_percentages:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail='Такой step_code не найден')
+    return pr1_class_percentages[step_code]
 
 
-@router.post('/finish-events-by-teacher')
-async def finish_events_by_teacher(_current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),):
-    await WebsocketServiceState.safe_broadcast('FINISHED')
-    await asyncio.sleep(2)
-    await WebsocketServiceState.clean_all_connected_computers_and_active_connections()
-    await WebsocketServiceState.safe_broadcast_all_connected_computers()
+def get_pr1_control_percentage(step_code: Union[str, int]):
+    pr1_control_percentage = {
+        1: 5,
+        2: 20,
+        3: 40,
+        'TEST_1': 60,
+        'TEST_2': 62,
+        'TEST_3': 64,
+        'TEST_4': 66,
+        'TEST_5': 68,
+        'TEST_6': 70,
+        'TEST_7': 72,
+        'TEST_8': 74,
+        'TEST_9': 76,
+        'TEST_10': 78,
+        'TEST_11': 80,
+        'TEST_12': 82,
+        'TEST_13': 84,
+        'TEST_14': 86,
+        'TEST_15': 88,
+        'TEST_16': 90,
+        'TEST_17': 92,
+        'TEST_18': 94,
+        'TEST_19': 96,
+        'TEST_20': 98,
+        'FINISHED': 100,
+    }
+
+    if step_code not in pr1_control_percentage:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail='Такой степ не найден')
+    return pr1_control_percentage[step_code]
 
 
-@router.get('/{event_id}')
-async def get_event(event_id: str, db: Database = Depends(get_db)):
-    print(f'event_id={event_id}')
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+def get_pr2_class_percentage(step_code: Union[str, int]):
+    pr2_class_percentages = {
+        'SCREEN_1_INSTRUCTION_WITH_LEGEND': 1,
+        'SCREEN_2_TASK_DESCRIPTION': 4,
+        'SCREEN_3_SOURCE_DATA_FULL_ROUTES': 8,
+        'SCREEN_4_20_FOOT_CONTAINER_1_LOADING_VOLUME': 10,
+        'SCREEN_4_20_FOOT_CONTAINER_2_PACKAGE_VOLUME': 12,
+        'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER': 14,
+        'SCREEN_4_20_FOOT_CONTAINER_4_CAPACITY_UTILIZATION': 16,
+        'SCREEN_4_20_FOOT_CONTAINER_5_LOAD_CAPACITY': 18,
+        'SCREEN_4_40_FOOT_CONTAINER_1_LOADING_VOLUME': 20,
+        'SCREEN_4_40_FOOT_CONTAINER_2_PACKAGE_VOLUME': 22,
+        'SCREEN_4_40_FOOT_CONTAINER_3_PACKAGE_NUMBER': 24,
+        'SCREEN_4_40_FOOT_CONTAINER_4_CAPACITY_UTILIZATION': 26,
+        'SCREEN_4_40_FOOT_CONTAINER_5_LOAD_CAPACITY': 28,
+        'SCREEN_5_DESCRIBE_CONTAINER_SELECTION': 30,
+        'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_1': 32,
+        'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_2': 34,
+        'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_3': 36,
+        'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_4': 38,
+        'SCREEN_6_40_CONTAINERS_NUMBER_ROUTE_5': 40,
+        'SCREEN_7_SOURCE_DATA_CHOOSE_DESTINATIONS': 42,
+        'SCREEN_7_SOURCE_DATA_CHOOSE_PORTS': 45,
+        'SCREEN_7_SOURCE_DATA_CHOOSE_BORDER': 48,
+        'SCREEN_8_MAP_ROUTE_1': 51,
+        'SCREEN_8_MAP_ROUTE_2': 54,
+        'SCREEN_8_MAP_ROUTE_3': 57,
+        'SCREEN_8_MAP_ROUTE_4': 60,
+        'SCREEN_8_MAP_ROUTE_5': 63,
+        'SCREEN_8_MAP_ROUTE_6': 66,
+        'SCREEN_8_MAP_ROUTE_7': 69,
+        'SCREEN_8_MAP_ROUTE_8': 72,
+        'SCREEN_9_FORMED_ROUTES_TABLE': 75,
+        'SCREEN_10_RISKS_1': 76,
+        'SCREEN_10_RISKS_2': 78,
+        'SCREEN_10_RISKS_3': 80,
+        'SCREEN_10_RISKS_4': 82,
+        'SCREEN_10_RISKS_TOTAL': 84,
+        'SCREEN_10_FULL_ROUTES_WITH_PLS': 85,
+        'SCREEN_11_OPTIMAL_RESULTS_3PL1': 88,
+        'SCREEN_11_OPTIMAL_RESULTS_3PL2': 91,
+        'SCREEN_11_OPTIMAL_RESULTS_3PL3': 94,
+        'SCREEN_11_OPTIMAL_RESULTS_COMBO': 97,
+        'SCREEN_13_CHOOSE_LOGIST': 99,
+        'FINISHED': 100,
+    }
 
-    if not event_db:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
-
-    event = normalize_mongo(event_db, EventInfo)
-
-    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CLASS:
-        return normalize_mongo(event_db, PR1ClassEvent)
-
-    if event.event_type == EventType.PR1 and event.event_mode == EventMode.CONTROL:
-        return normalize_mongo(event_db, PR1ControlEvent)
-
-    if event.event_type == EventType.PR2 and event.event_mode == EventMode.CLASS:
-        return normalize_mongo(event_db, PR2ClassEvent)
-
-    if event.event_type != EventType.PR1:
-        raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail=f'Мод либо тип не найдены. event_type={event.event_type}. event_mode={event.event_mode}',
-        )
+    if step_code not in pr2_class_percentages:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail='Такой степ не найден')
+    return pr2_class_percentages[step_code]

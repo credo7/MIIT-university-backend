@@ -35,6 +35,7 @@ from schemas import (
     TestCorrectsAndErrors,
     UserHistoryElement,
     UserOut,
+    PR2ControlEvent, PR1ControlStep1, PR1ControlStep3, PR1ControlStep2, PR1ControlStepVariant,
 )
 from services.utils import normalize_mongo
 
@@ -155,27 +156,27 @@ class PracticeOneControl:
     #     exam_input=exam_input,
     # )
 
+    # def create(self, event_dto: StartEventDto):
+    #     PR2ControlEvent(
+    #         computer_id=self.computer_id,
+    #         event_type=event_dto.type,
+    #         event_mode=event_dto.mode,
+    #         users_ids=self.users_ids,
+    #         current_step='PR2_CONTROL_1',
+    #         step1=PR2ControlStep1.create_variant(),
+    #         step2=PR2ControlStep2.create_variant(),
+    #         step3=PR2ControlStep3.create_variant(),
+    #     )
+
     def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
-        random_incoterms: list[Incoterm] = list(Incoterm)
-        random.shuffle(random_incoterms)
-        random_incoterms = random_incoterms[:3]
+        current_step = Step(id=1, code=f'PR1_CONTROL_1')
 
-        first_incoterm = random_incoterms[0]
-        # first_incoterm = pr1_control_info.variants[0].incoterms[0]
-
-        current_step = Step(
-            id=1, code=f'INCOTERM_{first_incoterm.value}', name=f'Инкотерм {first_incoterm}', role=StepRole.ALL
-        )
-
-        random.shuffle(pr1_control_info.variants[0].test_questions)
         test = pr1_control_info.variants[0].test_questions[:20]
         for q in test:
             random.shuffle(q.options)
             right_ids = [option.id for option in q.options if option.is_correct]
             q.right_ids = right_ids
             q.multiple_options = bool(len(right_ids) > 1)
-
-        pr1_control_info.variants[0].incoterms = random_incoterms
 
         event = PR1ControlEvent(
             computer_id=self.computer_id,
@@ -184,7 +185,9 @@ class PracticeOneControl:
             users_ids=self.users_ids,
             current_step=current_step,
             test=test,
-            **pr1_control_info.variants[0].dict(),
+            step1=PR1ControlStep1.create_variant(),
+            step2=PR1ControlStep2.create_variant(),
+            step3=PR1ControlStep3.create_variant(),
         )
 
         event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
@@ -204,12 +207,16 @@ class PracticeOneControl:
             test_question_index = int(event.current_step.code[5:]) - 1
             step_response.test_question = event.test[test_question_index]
         else:
-            current_incoterm = event.current_step.code[-3:]
-
-            step_response.right_answer = event.calculate_incoterm(current_incoterm)
-            step_response.right_formula = event.get_formula(current_incoterm)
-            step_response.right_formula_with_nums = event.get_formula_with_nums(current_incoterm)
-            step_response.image_name = 'oil'
+            step_n = event.current_step[-1]
+            step: PR1ControlStepVariant = getattr(event, f"step{step_n}")
+            step_response.right_answer = step.calculate_incoterm()
+            step_response.right_formula = "Надо?"
+            step_response.right_formula_with_nums = step.get_formula_with_nums()
+            step_response.image_name = {
+                "1": "OIL",
+                "2": "SHOES",
+                "3": "TV"
+            }[step_n]
 
             step_response.legend = event.legend.format(current_incoterm)
         return step_response
