@@ -18,9 +18,6 @@ from pydantic import (
 from pydantic.class_validators import validator
 from typing_extensions import Annotated
 
-from constants.pr1_control_info import pr1_control_info
-from constants.pr2_control_info import pr2_control_info
-
 
 # TODO: Think about it
 # class CustomBaseModel(BaseModel):
@@ -212,17 +209,9 @@ class PR1ClassStep(str, enum.Enum):
 
 
 class PR1ControlStep(str, enum.Enum):
-    INCOTERM_EXW = 'INCOTERM_EXW'
-    INCOTERM_FCA = 'INCOTERM_FCA'
-    INCOTERM_CPT = 'INCOTERM_CPT'
-    INCOTERM_CIP = 'INCOTERM_CIP'
-    INCOTERM_DAP = 'INCOTERM_DAP'
-    INCOTERM_DPU = 'INCOTERM_DPU'
-    INCOTERM_DDP = 'INCOTERM_DDP'
-    INCOTERM_FAS = 'INCOTERM_FAS'
-    INCOTERM_FOB = 'INCOTERM_FOB'
-    INCOTERM_CFR = 'INCOTERM_CFR'
-    INCOTERM_CIF = 'INCOTERM_CIF'
+    PR1_CONTROL_1 = 'PR1_CONTROL_1'
+    PR1_CONTROL_2 = 'PR1_CONTROL_2'
+    PR1_CONTROL_3 = 'PR1_CONTROL_3'
     TEST_1 = 'TEST_1'
     TEST_2 = 'TEST_2'
     TEST_3 = 'TEST_3'
@@ -1128,8 +1117,9 @@ class PR2ClassInfo(BaseModel):
 
 
 class PR1ControlInfo(BaseModel):
-    steps: list[Step]
-    control_test_questions: list[TestQuestionPR1]
+    legends: list[str]
+    random_incoterms: list[list[Incoterm]]
+    test_questions: list[TestQuestionPR1]
 
 
 class UserCredentials(BaseModel):
@@ -1345,9 +1335,11 @@ class PR2ClassEvent(EventInfo):
 
 class PR2ControlInfo(BaseModel):
     legends: list[str]
-    random_incoterms: list[[list[Incoterm]]]
+    random_incoterms: list[list[Incoterm]]
 
 class PR1ControlStepVariant(BaseModel, ABC):
+    incoterm: Incoterm
+
     @classmethod
     @abstractmethod
     def create(cls):
@@ -1358,7 +1350,7 @@ class PR1ControlStepVariant(BaseModel, ABC):
         pass
 
     @abstractmethod
-    def calculate_incoterm(self) -> int:
+    def calculate(self) -> int:
         pass
 
     @abstractmethod
@@ -1380,6 +1372,8 @@ class PR1ControlStep1(PR1ControlStepVariant):
 
     @classmethod
     def create(cls):
+        from constants.pr1_control_info import pr1_control_info
+
         price_for_each = random.randrange(5, 56, 5)
         quantity = random.randrange(5000, 9001, 100)
         transport_package_price = price_for_each * quantity / 100
@@ -1389,7 +1383,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
         loading_on_destination = sea_delivery_to_destination * 0.05
         insurance = price_for_each * quantity * 0.02
         export_formal_payments = price_for_each * quantity * 0.15
-        incoterm = random.choice(pr2_control_info.random_incoterms[0])
+        incoterm = random.choice(pr1_control_info.random_incoterms[0])
 
         return cls(
             price_for_each=price_for_each,
@@ -1402,6 +1396,26 @@ class PR1ControlStep1(PR1ControlStepVariant):
             insurance=int(insurance),
             export_formal_payments=int(export_formal_payments),
             incoterm=incoterm,
+        )
+
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[0].format(
+            self.price_for_each,
+            self.quantity,
+            self.transport_package_price,
+            self.delivery_to_port,
+            self.loading_unloading_expenses,
+            self.sea_delivery_to_destination,
+            self.loading_on_destination,
+            self.insurance,
+            self.export_formal_payments,
+            {
+                Incoterm.FAS: "FAS порт отправления",
+                Incoterm.FOB: "FOB порт отправления",
+                Incoterm.CFR: "CFR порт назначения",
+                Incoterm.CIF: "CIF порт назначения"
+            }[self.incoterm]
         )
 
     def get_formula_with_nums(self) -> str:
@@ -1444,7 +1458,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
             pre = f'{self.quantity} * '
             return pre + ' + '.join(nums)
 
-    def calculate_incoterm(self) -> int:
+    def calculate(self) -> int:
         if self.incoterm == Incoterm.FOB.value:
             return (
                 self.price_for_each * self.quantity
@@ -1475,9 +1489,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 + self.insurance
             )
 
-    def get_formatted_legend(self) -> int:
-        pr1_control_info.
-
 
 class PR1ControlStep2(PR1ControlStepVariant):
     price_for_each: int  # 150-500 (step 50)
@@ -1488,15 +1499,32 @@ class PR1ControlStep2(PR1ControlStepVariant):
     delivery_from_port_to_terminal: int  # 1500-3500 (step 100)
     incoterm: Incoterm  # FCA, CIP, CPT
 
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[1].format(
+            self.quantity,
+            self.price_for_each,
+            self.export_formal_payments,
+            self.insurance,
+            self.delivery_to_port,
+            self.delivery_from_port_to_terminal,
+            {
+                Incoterm.FCA: "FCA Калининград",
+                Incoterm.CIP: "CIP место назначения",
+                Incoterm.CPT: "CPT место назначения",
+            }[self.incoterm]
+        )
+
     @classmethod
     def create(cls):
+        from constants.pr1_control_info import pr1_control_info
         price_for_each = random.randrange(150, 501, 50)
         quantity = random.randrange(2500, 8001, 500)
         export_formal_payments = price_for_each * quantity * 0.15
         insurance = price_for_each * quantity * 0.02
         delivery_to_port = random.randrange(9000, 15001, 100)
         delivery_from_port_to_terminal = random.randrange(1500, 3501, 100)
-        incoterm = random.choice(pr2_control_info.random_incoterms[1])
+        incoterm = random.choice(pr1_control_info.random_incoterms[1])
 
         return cls(
             price_for_each=price_for_each,
@@ -1536,7 +1564,7 @@ class PR1ControlStep2(PR1ControlStepVariant):
             pre = f'{self.quantity} * '
             return pre + ' + '.join(nums)
 
-    def calculate_incoterm(self) -> int:
+    def calculate(self) -> int:
         if self.incoterm == Incoterm.FCA.value:
             return self.price_for_each * self.quantity + self.delivery_to_port + self.export_formal_payments
         elif self.incoterm == Incoterm.CIP.value:
@@ -1567,13 +1595,15 @@ class PR1ControlStep3(PR1ControlStepVariant):
 
     @classmethod
     def create(cls):
+        from constants.pr1_control_info import pr1_control_info
+
         quantity = random.randrange(100, 901, 50)
         price_for_each = random.randrange(200, 1001, 100)
         delivery_to_border = random.randrange(2000, 3001, 100)
         territory_delivery = delivery_to_border * 1.2
         export_formal_payments = price_for_each * quantity * 0.15
         import_formal_payments = price_for_each * quantity * 0.1
-        incoterm = random.choice(pr2_control_info.random_incoterms[2])
+        incoterm = random.choice(pr1_control_info.random_incoterms[2])
 
         return cls(
             quantity=quantity,
@@ -1583,6 +1613,22 @@ class PR1ControlStep3(PR1ControlStepVariant):
             export_formal_payments=int(export_formal_payments),
             import_formal_payments=int(import_formal_payments),
             incoterm=incoterm,
+        )
+
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[2].format(
+            self.quantity,
+            self.price_for_each,
+            self.delivery_to_border,
+            self.territory_delivery,
+            self.export_formal_payments,
+            self.import_formal_payments,
+            {
+                Incoterm.EXW: "EXW склад производителя",
+                Incoterm.DDP: "DDP место назначения",
+                Incoterm.DPU: "DPU место назначения",
+            }[self.incoterm],
         )
 
     def get_formula_with_nums(self) -> str:
@@ -1613,7 +1659,7 @@ class PR1ControlStep3(PR1ControlStepVariant):
             pre = f'{self.quantity} * '
             return pre + ' + '.join(nums)
 
-    def calculate_incoterm(self) -> int:
+    def calculate(self) -> int:
         if self.incoterm == Incoterm.EXW.value:
             return self.price_for_each * self.quantity
         elif self.incoterm == Incoterm.DDP.value:

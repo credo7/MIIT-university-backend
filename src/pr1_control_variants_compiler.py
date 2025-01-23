@@ -24,7 +24,7 @@ for index in range(5):
     incoterms = incoterms[:3]
 
     for incoterm in incoterms:
-        right_answer = event.calculate_incoterm(incoterm)
+        right_answer = event.calculate(incoterm)
         legend = event.legend.format(incoterm)
         doc += f'incoterm: {incoterm}\nЛегенда:\n{legend}\nПравильный ответ: {right_answer}\n\n'
 

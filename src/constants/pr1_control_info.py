@@ -3,43 +3,14 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from schemas import (
-    Incoterm,
-    TestQuestionPR1,
-)
-
-
-class PR1ControlVariant(BaseModel):
-    legend: str
-    product_price: int
-    product_quantity: int = 1
-    packaging: Optional[int] = 0
-    product_check: Optional[int] = 0
-    loading_expenses: Optional[int] = 0
-    delivery_to_main_carrier: Optional[int] = 0
-    export_formalities: Optional[int] = 0
-    loading_unloading_to_point: Optional[int] = 0
-    delivery_to_unloading_port: Optional[int] = 0
-    loading_on_board: Optional[int] = 0
-    transport_expenses_to_port: Optional[int] = 0
-    products_insurance: Optional[int] = 0
-    unloading_on_seller: Optional[int] = 0
-    import_formalities: Optional[int] = 0
-    unloading_on_terminal: Optional[int] = 0
-    incoterms: list[Incoterm]
-    test_questions: list[TestQuestionPR1]
-
-
-class PR1ControlInfo(BaseModel):
-    variants: list[PR1ControlVariant] = []
-
+from schemas import TestQuestionPR1, Incoterm, PR1ControlInfo
 
 raw_pr1_control_info = {
     'legends': [
         """В Выборг (Россия) из Бильбао (Испания) поставляется оливĸовое масло в бутылĸах. Договор оформляется на поставку морсĸим транспортом.
 
 Цена производителя – {0} у.е. за бутылку
-Размер партии 5000 {1} бутылок  
+Размер партии {1} бутылок  
 В расчете учитывать Цена производителя = Цена производителя * размер партии 
 Бутылки на производстве упаковывают в коробки по 12 штук и комплектуют в транспортный пакет на поддоне. 
 Отгружают партию товара на поддонах со склада производителя. 
@@ -636,32 +607,4 @@ raw_pr1_control_info = {
     ],
 }
 
-incoterms = [
-    Incoterm.EXW,
-    Incoterm.FCA,
-    Incoterm.CPT,
-    Incoterm.CIP,
-    Incoterm.DAP,
-    Incoterm.DPU,
-    Incoterm.DDP,
-    Incoterm.FAS,
-    Incoterm.FOB,
-    Incoterm.CFR,
-    Incoterm.CIF,
-]
-
-random.shuffle(incoterms)
-
-variant1 = PR1ControlVariant(
-    product_price=7500,
-    product_quantity=2,
-    loading_expenses=100,
-    delivery_to_unloading_port=300,
-    loading_on_board=200,
-    transport_expenses_to_port=2000,
-    products_insurance=1000,
-    incoterms=incoterms[:3],
-    **raw_pr1_control_info
-)
-
-pr1_control_info = PR1ControlInfo(variants=[variant1], **raw_pr1_control_info)
+pr1_control_info = PR1ControlInfo(**raw_pr1_control_info)

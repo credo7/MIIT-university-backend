@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Union
 
 from bson import ObjectId
 from fastapi import (
