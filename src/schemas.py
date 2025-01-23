@@ -1,4 +1,6 @@
 import enum
+import random
+from abc import ABCMeta, ABC, abstractmethod
 from datetime import datetime
 from typing import (
     Any,
@@ -15,6 +17,7 @@ from pydantic import (
 )
 from pydantic.class_validators import validator
 from typing_extensions import Annotated
+
 
 # TODO: Think about it
 # class CustomBaseModel(BaseModel):
@@ -206,17 +209,9 @@ class PR1ClassStep(str, enum.Enum):
 
 
 class PR1ControlStep(str, enum.Enum):
-    INCOTERM_EXW = 'INCOTERM_EXW'
-    INCOTERM_FCA = 'INCOTERM_FCA'
-    INCOTERM_CPT = 'INCOTERM_CPT'
-    INCOTERM_CIP = 'INCOTERM_CIP'
-    INCOTERM_DAP = 'INCOTERM_DAP'
-    INCOTERM_DPU = 'INCOTERM_DPU'
-    INCOTERM_DDP = 'INCOTERM_DDP'
-    INCOTERM_FAS = 'INCOTERM_FAS'
-    INCOTERM_FOB = 'INCOTERM_FOB'
-    INCOTERM_CFR = 'INCOTERM_CFR'
-    INCOTERM_CIF = 'INCOTERM_CIF'
+    PR1_CONTROL_1 = 'PR1_CONTROL_1'
+    PR1_CONTROL_2 = 'PR1_CONTROL_2'
+    PR1_CONTROL_3 = 'PR1_CONTROL_3'
     TEST_1 = 'TEST_1'
     TEST_2 = 'TEST_2'
     TEST_3 = 'TEST_3'
@@ -768,293 +763,293 @@ class PR1ClassVariables(BaseModel):
 #     event_type = EventType.PR1
 
 
-class PR1ControlEvent(EventInfo):
-    legend: str
-    test: Optional[list[TestQuestionPR1]]
-    incoterms: list[Incoterm]
-    product_price: int
-    product_quantity: Optional[int] = 0
-    packaging: Optional[int] = 0
-    product_check: Optional[int] = 0
-    loading_expenses: Optional[int] = 0
-    delivery_to_main_carrier: Optional[int] = 0
-    export_formalities: Optional[int] = 0
-    loading_unloading_to_point: Optional[int] = 0
-    delivery_to_unloading_port: Optional[int] = 0
-    loading_on_board: Optional[int] = 0
-    transport_expenses_to_port: Optional[int] = 0
-    products_insurance: Optional[int] = 0
-    unloading_on_seller: Optional[int] = 0
-    import_formalities: Optional[int] = 0
-    unloading_on_terminal: Optional[int] = 0
-
-    def get_formula_with_nums(self, incoterm: str) -> str:
-        if incoterm == Incoterm.EXW.value:
-            nums = [self.product_price, self.packaging, self.product_check]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.FCA:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_expenses,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.FOB.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_unloading_to_point,
-                self.delivery_to_unloading_port,
-                self.export_formalities,
-                self.loading_on_board,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.FAS.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_unloading_to_point,
-                self.delivery_to_unloading_port,
-                self.export_formalities,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.CFR.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_unloading_to_point,
-                self.delivery_to_unloading_port,
-                self.export_formalities,
-                self.loading_on_board,
-                self.transport_expenses_to_port,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.CIP.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_expenses,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-                self.transport_expenses_to_port,
-                self.products_insurance,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.CPT.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_expenses,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-                self.transport_expenses_to_port,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.CIF.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_unloading_to_point,
-                self.delivery_to_unloading_port,
-                self.export_formalities,
-                self.loading_on_board,
-                self.transport_expenses_to_port,
-                self.products_insurance,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.DDP.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_expenses,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-                self.transport_expenses_to_port,
-                self.unloading_on_seller,
-                self.import_formalities,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.DAP.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-                self.transport_expenses_to_port,
-                self.unloading_on_seller,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-        elif incoterm == Incoterm.DPU.value:
-            nums = [
-                self.product_price,
-                self.packaging,
-                self.product_check,
-                self.loading_expenses,
-                self.delivery_to_main_carrier,
-                self.export_formalities,
-                self.transport_expenses_to_port,
-                self.unloading_on_terminal,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
-            return pre + ' + '.join(nums)
-
-    def get_formula(self, incoterm: str):
-        formula_by_incoterm = {
-            'EXW': 'КС = Цена производителя + Упаковка + Проверка товара',
-            'FCA': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара основному перевозчику + Экспортные таможенные формальности и платежи',
-            'FOB': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна',
-            'FAS': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи',
-            'CFR': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения',
-            'CIP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на страхование груза',
-            'CPT': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения',
-            'CIF': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения + Расходы на страхование груза',
-            'DDP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу + Импортные таможенные формальности и платежи',
-            'DAP': 'КС = Цена производителя + Упаковка + Проверка товара + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу',
-            'DPU': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до терминала + Выгрузка товара на терминале',
-        }
-
-        return formula_by_incoterm[incoterm]
-
-    def calculate_incoterm(self, incoterm: str):
-        if incoterm == Incoterm.EXW.value:
-            return self.product_price * self.product_quantity + self.packaging + self.product_check
-        elif incoterm == Incoterm.FCA:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_expenses
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-            )
-        elif incoterm == Incoterm.FOB.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_unloading_to_point
-                + self.delivery_to_unloading_port
-                + self.export_formalities
-                + self.loading_on_board
-            )
-        elif incoterm == Incoterm.FAS.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_unloading_to_point
-                + self.delivery_to_unloading_port
-                + self.export_formalities
-            )
-        elif incoterm == Incoterm.CFR.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_unloading_to_point
-                + self.delivery_to_unloading_port
-                + self.export_formalities
-                + self.loading_on_board
-                + self.transport_expenses_to_port
-            )
-        elif incoterm == Incoterm.CIP.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_expenses
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-                + self.transport_expenses_to_port
-                + self.products_insurance
-            )
-        elif incoterm == Incoterm.CPT.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_expenses
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-                + self.transport_expenses_to_port
-            )
-        elif incoterm == Incoterm.CIF.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_unloading_to_point
-                + self.delivery_to_unloading_port
-                + self.export_formalities
-                + self.loading_on_board
-                + self.transport_expenses_to_port
-                + self.products_insurance
-            )
-        elif incoterm == Incoterm.DDP.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_expenses
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-                + self.transport_expenses_to_port
-                + self.unloading_on_seller
-                + self.import_formalities
-            )
-        elif incoterm == Incoterm.DAP.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-                + self.transport_expenses_to_port
-                + self.unloading_on_seller
-            )
-        elif incoterm == Incoterm.DPU.value:
-            return (
-                self.product_price * self.product_quantity
-                + self.packaging
-                + self.product_check
-                + self.loading_expenses
-                + self.delivery_to_main_carrier
-                + self.export_formalities
-                + self.transport_expenses_to_port
-                + self.unloading_on_terminal
-            )
+# class PR1ControlEvent(EventInfo):
+#     legend: str
+#     test: Optional[list[TestQuestionPR1]]
+#     incoterms: list[Incoterm]
+#     product_price: int
+#     product_quantity: Optional[int] = 0
+#     packaging: Optional[int] = 0
+#     product_check: Optional[int] = 0
+#     loading_expenses: Optional[int] = 0
+#     delivery_to_main_carrier: Optional[int] = 0
+#     export_formalities: Optional[int] = 0
+#     loading_unloading_to_point: Optional[int] = 0
+#     delivery_to_unloading_port: Optional[int] = 0
+#     loading_on_board: Optional[int] = 0
+#     transport_expenses_to_port: Optional[int] = 0
+#     products_insurance: Optional[int] = 0
+#     unloading_on_seller: Optional[int] = 0
+#     import_formalities: Optional[int] = 0
+#     unloading_on_terminal: Optional[int] = 0
+#
+#     def get_formula_with_nums(self, incoterm: str) -> str:
+#         if incoterm == Incoterm.EXW.value:
+#             nums = [self.product_price, self.packaging, self.product_check]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.FCA:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_expenses,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.FOB.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_unloading_to_point,
+#                 self.delivery_to_unloading_port,
+#                 self.export_formalities,
+#                 self.loading_on_board,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.FAS.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_unloading_to_point,
+#                 self.delivery_to_unloading_port,
+#                 self.export_formalities,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.CFR.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_unloading_to_point,
+#                 self.delivery_to_unloading_port,
+#                 self.export_formalities,
+#                 self.loading_on_board,
+#                 self.transport_expenses_to_port,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.CIP.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_expenses,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#                 self.transport_expenses_to_port,
+#                 self.products_insurance,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.CPT.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_expenses,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#                 self.transport_expenses_to_port,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.CIF.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_unloading_to_point,
+#                 self.delivery_to_unloading_port,
+#                 self.export_formalities,
+#                 self.loading_on_board,
+#                 self.transport_expenses_to_port,
+#                 self.products_insurance,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.DDP.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_expenses,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#                 self.transport_expenses_to_port,
+#                 self.unloading_on_seller,
+#                 self.import_formalities,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.DAP.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#                 self.transport_expenses_to_port,
+#                 self.unloading_on_seller,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#         elif incoterm == Incoterm.DPU.value:
+#             nums = [
+#                 self.product_price,
+#                 self.packaging,
+#                 self.product_check,
+#                 self.loading_expenses,
+#                 self.delivery_to_main_carrier,
+#                 self.export_formalities,
+#                 self.transport_expenses_to_port,
+#                 self.unloading_on_terminal,
+#             ]
+#             nums = [str(num) for num in nums if num != 0]
+#             pre = f'{self.product_quantity} * ' if self.product_quantity > 1 else ""
+#             return pre + ' + '.join(nums)
+#
+#     def get_formula(self, incoterm: str):
+#         formula_by_incoterm = {
+#             'EXW': 'КС = Цена производителя + Упаковка + Проверка товара',
+#             'FCA': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара основному перевозчику + Экспортные таможенные формальности и платежи',
+#             'FOB': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна',
+#             'FAS': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи',
+#             'CFR': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения',
+#             'CIP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на страхование груза',
+#             'CPT': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения',
+#             'CIF': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку-разгрузку при транспортировке до причала + Доставка товара до порта отгрузки + Экспортные таможенные формальности и платежи + Погрузка на борт судна + Транспортные расходы до порта назначения + Расходы на страхование груза',
+#             'DDP': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу + Импортные таможенные формальности и платежи',
+#             'DAP': 'КС = Цена производителя + Упаковка + Проверка товара + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до места назначения + Расходы на разгрузку, которые по договору перевозки относятся к продавцу',
+#             'DPU': 'КС = Цена производителя + Упаковка + Проверка товара + Расходы на погрузку + Доставка товара перевозчику + Экспортные таможенные формальности и платежи + Транспортные расходы до терминала + Выгрузка товара на терминале',
+#         }
+#
+#         return formula_by_incoterm[incoterm]
+#
+#     def calculate_incoterm(self, incoterm: str):
+#         if incoterm == Incoterm.EXW.value:
+#             return self.product_price * self.product_quantity + self.packaging + self.product_check
+#         elif incoterm == Incoterm.FCA:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_expenses
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#             )
+#         elif incoterm == Incoterm.FOB.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_unloading_to_point
+#                 + self.delivery_to_unloading_port
+#                 + self.export_formalities
+#                 + self.loading_on_board
+#             )
+#         elif incoterm == Incoterm.FAS.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_unloading_to_point
+#                 + self.delivery_to_unloading_port
+#                 + self.export_formalities
+#             )
+#         elif incoterm == Incoterm.CFR.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_unloading_to_point
+#                 + self.delivery_to_unloading_port
+#                 + self.export_formalities
+#                 + self.loading_on_board
+#                 + self.transport_expenses_to_port
+#             )
+#         elif incoterm == Incoterm.CIP.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_expenses
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#                 + self.transport_expenses_to_port
+#                 + self.products_insurance
+#             )
+#         elif incoterm == Incoterm.CPT.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_expenses
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#                 + self.transport_expenses_to_port
+#             )
+#         elif incoterm == Incoterm.CIF.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_unloading_to_point
+#                 + self.delivery_to_unloading_port
+#                 + self.export_formalities
+#                 + self.loading_on_board
+#                 + self.transport_expenses_to_port
+#                 + self.products_insurance
+#             )
+#         elif incoterm == Incoterm.DDP.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_expenses
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#                 + self.transport_expenses_to_port
+#                 + self.unloading_on_seller
+#                 + self.import_formalities
+#             )
+#         elif incoterm == Incoterm.DAP.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#                 + self.transport_expenses_to_port
+#                 + self.unloading_on_seller
+#             )
+#         elif incoterm == Incoterm.DPU.value:
+#             return (
+#                 self.product_price * self.product_quantity
+#                 + self.packaging
+#                 + self.product_check
+#                 + self.loading_expenses
+#                 + self.delivery_to_main_carrier
+#                 + self.export_formalities
+#                 + self.transport_expenses_to_port
+#                 + self.unloading_on_terminal
+#             )
 
 
 class PracticeOneVariant(EventInfo):
@@ -1122,8 +1117,9 @@ class PR2ClassInfo(BaseModel):
 
 
 class PR1ControlInfo(BaseModel):
-    steps: list[Step]
-    control_test_questions: list[TestQuestionPR1]
+    legends: list[str]
+    random_incoterms: list[list[Incoterm]]
+    test_questions: list[TestQuestionPR1]
 
 
 class UserCredentials(BaseModel):
@@ -1335,6 +1331,359 @@ class PR2ClassEvent(EventInfo):
     container_selection_explanation: Optional[str]
     delivery_option_explanation: Optional[str]
     risks_chosen_by_user: list[RisksWithRouteName] = Field(default_factory=list)
+
+
+class PR2ControlInfo(BaseModel):
+    legends: list[str]
+    random_incoterms: list[list[Incoterm]]
+
+class PR1ControlStepVariant(BaseModel, ABC):
+    incoterm: Incoterm
+
+    @classmethod
+    @abstractmethod
+    def create(cls):
+        pass
+
+    @abstractmethod
+    def get_formula_with_nums(self) -> str:
+        pass
+
+    @abstractmethod
+    def calculate(self) -> int:
+        pass
+
+    @abstractmethod
+    def get_formatted_legend(self) -> int:
+        pass
+
+
+class PR1ControlStep1(PR1ControlStepVariant):
+    price_for_each: int  # 5-50 (step 5)
+    quantity: int  # 5000-9000 (step 100)
+    transport_package_price: int  # price_for_each * quantity / 100
+    delivery_to_port: int  # 1000-5000 (step 100)
+    loading_unloading_expenses: int  # delivery_to_port * 0.1
+    sea_delivery_to_destination: int  # 9000-12000 (step 100)
+    loading_on_destination: int  # sea_delivery_to_destination * 0.05
+    insurance: int  # price_for_each * quantity * 0.02
+    export_formal_payments: int  # price_for_each * quantity * 0.15
+    incoterm: Incoterm  # FOB, CFR, CIF
+
+    @classmethod
+    def create(cls):
+        from constants.pr1_control_info import pr1_control_info
+
+        price_for_each = random.randrange(5, 56, 5)
+        quantity = random.randrange(5000, 9001, 100)
+        transport_package_price = price_for_each * quantity / 100
+        delivery_to_port = random.randrange(1000, 5001, 100)
+        loading_unloading_expenses = delivery_to_port * 0.1
+        sea_delivery_to_destination = random.randrange(9000, 12001, 100)
+        loading_on_destination = sea_delivery_to_destination * 0.05
+        insurance = price_for_each * quantity * 0.02
+        export_formal_payments = price_for_each * quantity * 0.15
+        incoterm = random.choice(pr1_control_info.random_incoterms[0])
+
+        return cls(
+            price_for_each=price_for_each,
+            quantity=quantity,
+            transport_package_price=int(transport_package_price),
+            delivery_to_port=delivery_to_port,
+            loading_unloading_expenses=int(loading_unloading_expenses),
+            sea_delivery_to_destination=sea_delivery_to_destination,
+            loading_on_destination=int(loading_on_destination),
+            insurance=int(insurance),
+            export_formal_payments=int(export_formal_payments),
+            incoterm=incoterm,
+        )
+
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[0].format(
+            self.price_for_each,
+            self.quantity,
+            self.transport_package_price,
+            self.delivery_to_port,
+            self.loading_unloading_expenses,
+            self.sea_delivery_to_destination,
+            self.loading_on_destination,
+            self.insurance,
+            self.export_formal_payments,
+            {
+                Incoterm.FAS: "FAS порт отправления",
+                Incoterm.FOB: "FOB порт отправления",
+                Incoterm.CFR: "CFR порт назначения",
+                Incoterm.CIF: "CIF порт назначения"
+            }[self.incoterm]
+        )
+
+    def get_formula_with_nums(self) -> str:
+        if self.incoterm == Incoterm.FOB.value:
+            nums = [
+                self.price_for_each,
+                self.transport_package_price,
+                self.loading_unloading_expenses,
+                self.sea_delivery_to_destination,
+                self.export_formal_payments,
+                self.loading_on_destination,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.CFR.value:
+            nums = [
+                self.price_for_each,
+                self.transport_package_price,
+                self.loading_unloading_expenses,
+                self.delivery_to_port,
+                self.export_formal_payments,
+                self.loading_on_destination,
+                self.insurance,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.CIF.value:
+            nums = [
+                self.price_for_each,
+                self.transport_package_price,
+                self.loading_unloading_expenses,
+                self.delivery_to_port,
+                self.sea_delivery_to_destination,
+                self.export_formal_payments,
+                self.insurance,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+
+    def calculate(self) -> int:
+        if self.incoterm == Incoterm.FOB.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.transport_package_price
+                + self.loading_unloading_expenses
+                + self.sea_delivery_to_destination
+                + self.export_formal_payments
+                + self.loading_on_destination
+            )
+        elif self.incoterm == Incoterm.CFR.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.transport_package_price
+                + self.loading_unloading_expenses
+                + self.delivery_to_port
+                + self.export_formal_payments
+                + self.loading_on_destination
+                + self.insurance
+            )
+        elif self.incoterm == Incoterm.CIF.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.transport_package_price
+                + self.loading_unloading_expenses
+                + self.delivery_to_port
+                + self.sea_delivery_to_destination
+                + self.export_formal_payments
+                + self.insurance
+            )
+
+
+class PR1ControlStep2(PR1ControlStepVariant):
+    price_for_each: int  # 150-500 (step 50)
+    quantity: int  # 2500-8000 (step 500)
+    export_formal_payments: int  # price_for_each * quantity * 0.15
+    insurance: int  # price_for_each * quantity * 0.02
+    delivery_to_port: int  # 9000-15000 (step 100)
+    delivery_from_port_to_terminal: int  # 1500-3500 (step 100)
+    incoterm: Incoterm  # FCA, CIP, CPT
+
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[1].format(
+            self.quantity,
+            self.price_for_each,
+            self.export_formal_payments,
+            self.insurance,
+            self.delivery_to_port,
+            self.delivery_from_port_to_terminal,
+            {
+                Incoterm.FCA: "FCA Калининград",
+                Incoterm.CIP: "CIP место назначения",
+                Incoterm.CPT: "CPT место назначения",
+            }[self.incoterm]
+        )
+
+    @classmethod
+    def create(cls):
+        from constants.pr1_control_info import pr1_control_info
+        price_for_each = random.randrange(150, 501, 50)
+        quantity = random.randrange(2500, 8001, 500)
+        export_formal_payments = price_for_each * quantity * 0.15
+        insurance = price_for_each * quantity * 0.02
+        delivery_to_port = random.randrange(9000, 15001, 100)
+        delivery_from_port_to_terminal = random.randrange(1500, 3501, 100)
+        incoterm = random.choice(pr1_control_info.random_incoterms[1])
+
+        return cls(
+            price_for_each=price_for_each,
+            quantity=quantity,
+            export_formal_payments=int(export_formal_payments),
+            insurance=int(insurance),
+            delivery_to_port=delivery_to_port,
+            delivery_from_port_to_terminal=delivery_from_port_to_terminal,
+            incoterm=incoterm,
+        )
+
+    def get_formula_with_nums(self) -> str:
+        if self.incoterm == Incoterm.FCA.value:
+            nums = [self.price_for_each, self.delivery_to_port, self.export_formal_payments]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.CIP.value:
+            nums = [
+                self.price_for_each,
+                self.delivery_to_port,
+                self.export_formal_payments,
+                self.delivery_from_port_to_terminal,
+                self.insurance,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.CPT.value:
+            nums = [
+                self.price_for_each,
+                self.delivery_to_port,
+                self.export_formal_payments,
+                self.delivery_from_port_to_terminal,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+
+    def calculate(self) -> int:
+        if self.incoterm == Incoterm.FCA.value:
+            return self.price_for_each * self.quantity + self.delivery_to_port + self.export_formal_payments
+        elif self.incoterm == Incoterm.CIP.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.delivery_to_port
+                + self.export_formal_payments
+                + self.delivery_from_port_to_terminal
+                + self.insurance
+            )
+        elif self.incoterm == Incoterm.CPT.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.delivery_to_port
+                + self.export_formal_payments
+                + self.delivery_from_port_to_terminal
+            )
+
+
+class PR1ControlStep3(PR1ControlStepVariant):
+    quantity: int  # 100-900 (step 50)
+    price_for_each: int  # 200-1000 (step 100)
+    delivery_to_border: int  # 2000-3000 (step 100)
+    territory_delivery: int  # delivery_to_border * 1.2
+    export_formal_payments: int  # price_for_each * quantity * 0.15
+    import_formal_payments: int  # price_for_each * quantity * 0.1
+    incoterm: Incoterm  # EXW(в 5 раз реже!), DDP, DPU
+
+    @classmethod
+    def create(cls):
+        from constants.pr1_control_info import pr1_control_info
+
+        quantity = random.randrange(100, 901, 50)
+        price_for_each = random.randrange(200, 1001, 100)
+        delivery_to_border = random.randrange(2000, 3001, 100)
+        territory_delivery = delivery_to_border * 1.2
+        export_formal_payments = price_for_each * quantity * 0.15
+        import_formal_payments = price_for_each * quantity * 0.1
+        incoterm = random.choice(pr1_control_info.random_incoterms[2])
+
+        return cls(
+            quantity=quantity,
+            price_for_each=price_for_each,
+            delivery_to_border=delivery_to_border,
+            territory_delivery=int(territory_delivery),
+            export_formal_payments=int(export_formal_payments),
+            import_formal_payments=int(import_formal_payments),
+            incoterm=incoterm,
+        )
+
+    def get_formatted_legend(self) -> int:
+        from constants.pr1_control_info import pr1_control_info
+        return pr1_control_info.legends[2].format(
+            self.quantity,
+            self.price_for_each,
+            self.delivery_to_border,
+            self.territory_delivery,
+            self.export_formal_payments,
+            self.import_formal_payments,
+            {
+                Incoterm.EXW: "EXW склад производителя",
+                Incoterm.DDP: "DDP место назначения",
+                Incoterm.DPU: "DPU место назначения",
+            }[self.incoterm],
+        )
+
+    def get_formula_with_nums(self) -> str:
+        if self.incoterm == Incoterm.EXW.value:
+            nums = [self.price_for_each]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.DDP.value:
+            nums = [
+                self.price_for_each,
+                self.delivery_to_border,
+                self.export_formal_payments,
+                self.territory_delivery,
+                self.import_formal_payments,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.DPU.value:
+            nums = [
+                self.price_for_each,
+                self.delivery_to_border,
+                self.export_formal_payments,
+                self.territory_delivery,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
+
+    def calculate(self) -> int:
+        if self.incoterm == Incoterm.EXW.value:
+            return self.price_for_each * self.quantity
+        elif self.incoterm == Incoterm.DDP.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.delivery_to_border
+                + self.export_formal_payments
+                + self.territory_delivery
+                + self.import_formal_payments
+            )
+        elif self.incoterm == Incoterm.DPU.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.delivery_to_border
+                + self.export_formal_payments
+                + self.territory_delivery
+            )
+
+
+class PR1ControlEvent(EventInfo):
+    step1: PR1ControlStep1
+    step2: PR1ControlStep2
+    step3: PR1ControlStep3
+    test: Optional[list[TestQuestionPR1]]
 
 
 class FormulaRow(BaseModel):
