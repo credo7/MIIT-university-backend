@@ -78,6 +78,20 @@ async def edit(
                 ),
             )
 
+        candidate = db[CollectionNames.USERS.value].find_one(
+            {
+                'first_name': user_update_dict.get('first_name') or current_user.first_name,
+                'last_name': user_update_dict.get('last_name') or current_user.last_name,
+                'surname': user_update_dict.get('surname') or current_user.surname,
+                'group_id': user_update_dict.get('group_id') or current_user.group_id,
+            }
+        )
+        if candidate:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="DUPLICATE_USER_ERROR",
+            )
+
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(current_user.id)},
             {'$set': {**user_update_dict, 'fix_for_approve_fields': None}},

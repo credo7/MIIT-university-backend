@@ -36,7 +36,7 @@ async def create(
 
     if candidate:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Группа с таким именем уже существует',
+            status_code=status.HTTP_400_BAD_REQUEST, detail='GROUP_ALREADY_CREATED',
         )
 
     inserted_group = db[CollectionNames.GROUPS.value].insert_one(group_create.dict())
