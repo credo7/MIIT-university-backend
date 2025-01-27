@@ -332,6 +332,7 @@ class ConnectedComputer(BaseModel):
     event_mode: Optional[EventMode] = None
     is_connected: Optional[bool] = False
     step_code: Optional[str] = None
+    help_requested: bool = False
     is_searching_someone: bool = False
 
 
@@ -345,6 +346,7 @@ class ConnectedComputerFrontResponse(BaseModel):
     step_code: Optional[str] = None
     percentage: int = 0
     is_searching_someone: bool = False
+    help_requested: bool = False
 
 
 class ActualizeComputerPayload(BaseModel):
