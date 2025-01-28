@@ -37,8 +37,15 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
         group_name=group['name'],
     )
 
-    candidate = db[CollectionNames.USERS.value].find_one({'username': username})
+    candidate = db[CollectionNames.USERS.value].find_one({
+        'first_name': user_dto.first_name,
+        'last_name': user_dto.last_name,
+        'surname': user_dto.surname,
+        'group_id':user_dto.group_id
+    })
+
     if (
+        candidate and
         candidate['first_name'] == user_dto.first_name
         and candidate['last_name'] == user_dto.last_name
         and candidate['surname'] == user_dto.surname
