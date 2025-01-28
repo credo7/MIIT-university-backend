@@ -453,9 +453,9 @@ def get_pr1_class_percentage(step_code: Union[str, int]):
 
 def get_pr1_control_percentage(step_code: Union[str, int]):
     pr1_control_percentage = {
-        1: 5,
-        2: 20,
-        3: 40,
+        'PR1_CONTROL_1': 5,
+        'PR1_CONTROL_2': 20,
+        'PR1_CONTROL_3': 40,
         'TEST_1': 60,
         'TEST_2': 62,
         'TEST_3': 64,
