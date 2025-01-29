@@ -1836,6 +1836,8 @@ class CurrentStepResponse(BaseModel):
 
     route_parts: Optional[list[RoutePart]]
 
+    incoterm: Optional[Incoterm]
+
 
 class CheckpointResponse(BaseModel):
     status: Optional[str] = None

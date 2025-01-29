@@ -132,6 +132,7 @@ class PracticeOneControl:
                 "2": "SHOES",
                 "3": "TV"
             }[step_n]
+            step_response.incoterm = step.incoterm
 
             step_response.legend = step.get_formatted_legend()
         return step_response
