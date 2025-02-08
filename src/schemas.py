@@ -1,5 +1,6 @@
 import enum
 import random
+import time
 from abc import ABCMeta, ABC, abstractmethod
 from datetime import datetime
 from typing import (
@@ -324,16 +325,37 @@ class MiniUser(UserBase):
     group_id: str
 
 
+class ConnectedComputerUpdate(BaseModel):
+    id: int
+    users_ids: Optional[list[str]] = None
+    event_id: Optional[str] = None
+    event_type: Optional[EventType] = None
+    event_mode: Optional[EventMode] = None
+    is_connected: Optional[bool] = None
+    step_code: Optional[str] = None
+    help_requested: Optional[bool] = None
+    is_searching_someone: Optional[bool] = None
+
+    last_action: float = Field(default_factory=time.time)
+
+
 class ConnectedComputer(BaseModel):
     id: int
     users_ids: list[str]
-    event_id: Optional[str]
+    event_id: Optional[str] = None
     event_type: Optional[EventType] = None
     event_mode: Optional[EventMode] = None
-    is_connected: Optional[bool] = False
+    is_connected: Optional[bool] = None
     step_code: Optional[str] = None
     help_requested: bool = False
     is_searching_someone: bool = False
+    last_action: float = Field(default_factory=time.time)
+
+    def is_expired(self, expire_min: int = 7) -> bool:
+        return (time.time() - self.last_action) > (expire_min * 60)
+
+    def update_last_time(self):
+        self.last_action = time.time()
 
 
 class ConnectedComputerFrontResponse(BaseModel):

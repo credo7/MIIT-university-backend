@@ -28,14 +28,14 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
             status_code=status.HTTP_403_FORBIDDEN, detail=f'Group with id {user_dto.group_id} is not found',
         )
 
-    hashed_password = utils.hash(user_dto.password)
+    hashed_password = utils.hash(user_dto.password.lower())
 
     username = utils.create_username(
         first_name=user_dto.first_name,
         last_name=user_dto.last_name,
         surname=user_dto.surname,
         group_name=group['name'],
-    )
+    ).lower()
 
     candidate = db[CollectionNames.USERS.value].find_one({
         'first_name': user_dto.first_name,
@@ -87,12 +87,12 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
 async def login(
     user_credentials: OAuth2PasswordRequestForm = Depends(), db: Database = Depends(get_db),
 ):
-    user_db = db[CollectionNames.USERS.value].find_one({'username': user_credentials.username})
+    user_db = db[CollectionNames.USERS.value].find_one({'username': user_credentials.username.lower()})
 
     if not user_db:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Username not found')
 
-    if not utils.verify(user_credentials.password, user_db['password']):
+    if not utils.verify(user_credentials.password.lower(), user_db['password']):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')
 
     user: schemas.UserOutWithEvents = normalize_mongo(user_db, schemas.UserOutWithEvents)

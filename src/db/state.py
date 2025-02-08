@@ -1,69 +1,107 @@
-from typing import Dict
+import asyncio
+import logging
+from fastapi.websockets import WebSocket
 
-from fastapi import WebSocket
+from schemas import ConnectedComputer, ConnectedComputerUpdate
 
-from schemas import ConnectedComputer
+logger = logging.getLogger(__name__)
 
 
 class WebsocketServiceState:
-    connected_computers: Dict[int, ConnectedComputer] = {}
+    connected_computers: dict[int, ConnectedComputer] = {}
     active_connections: dict[int, WebSocket] = {}
+    lock = asyncio.Lock()
 
     @staticmethod
     async def accept_ws_connection_and_add_to_list_of_active_ws_connections(websocket: WebSocket, computer_id: int):
         await websocket.accept()
-        WebsocketServiceState.active_connections[computer_id] = websocket
+        async with WebsocketServiceState.lock:
+            WebsocketServiceState.active_connections[computer_id] = websocket
+            logger.info(f"WebSocket connected for computer {computer_id}")
 
     @staticmethod
-    def upsert_connected_computer(connected_computer: ConnectedComputer):
-        if connected_computer.id in WebsocketServiceState.connected_computers:
-            existed_computer = WebsocketServiceState.connected_computers[connected_computer.id]
+    async def remove_connected_computer(computer_id: int):
+        async with WebsocketServiceState.lock:
+            WebsocketServiceState.connected_computers.pop(computer_id, None)
 
-            # Если новые user_ids, то ставим новый стейт
-            if connected_computer.users_ids != existed_computer.users_ids:
-                WebsocketServiceState.connected_computers[connected_computer.id] = connected_computer
-            else:
-                existed_computer.event_id = connected_computer.event_id
-                existed_computer.step_code = connected_computer.step_code
-                existed_computer.event_mode = connected_computer.event_mode
-                existed_computer.event_type = connected_computer.event_type
-
-                # Чтоб не менять is_connected при вызове из rest api ( start_event, checkpoint )
-                if connected_computer.is_connected is not None:
-                    existed_computer.is_connected = connected_computer.is_connected
-        else:
+    @staticmethod
+    async def create_connected_computer(connected_computer: ConnectedComputer):
+        async with WebsocketServiceState.lock:
             WebsocketServiceState.connected_computers[connected_computer.id] = connected_computer
 
     @staticmethod
-    async def safe_broadcast(message: any):
-        for connection in WebsocketServiceState.active_connections.values():
-            try:
-                await connection.send_json(message)
-            except Exception as exc:
-                pass
+    async def update_connected_computer(connected_computer: ConnectedComputerUpdate):
+        async with WebsocketServiceState.lock:
+            if connected_computer.id in WebsocketServiceState.connected_computers:
+                existing_computer = WebsocketServiceState.connected_computers[connected_computer.id]
+                update_data = {k: v for k, v in vars(connected_computer).items() if v is not None}
+                existing_computer.__dict__.update(update_data)
+                return True  # Update successful
+            return False  # ID not found
 
     @staticmethod
-    async def safe_broadcast_all_connected_computers():
-        dict_connected_computers = [{key: v.dict()} for key, v in WebsocketServiceState.connected_computers.items()]
-        for connection in WebsocketServiceState.active_connections.values():
-            try:
-                await connection.send_json(dict_connected_computers)
-            except Exception as exc:
-                pass
+    async def safe_broadcast(message: any):
+        async with WebsocketServiceState.lock:
+            for computer_id, connection in list(WebsocketServiceState.active_connections.items()):
+                try:
+                    await connection.send_json(message)
+                except Exception as exc:
+                    logger.error(f"Error sending message to {computer_id}: {exc}")
+                    del WebsocketServiceState.active_connections[computer_id]  # Remove broken WebSocket
+
+    @staticmethod
+    async def safe_broadcast_all_connected_computers(self):
+        """Send all connected computers' data to active WebSocket clients."""
+        async with WebsocketServiceState.lock:
+            dict_connected_computers = {key: v.dict() for key, v in WebsocketServiceState.connected_computers.items()}
+            for computer_id, connection in list(WebsocketServiceState.active_connections.items()):
+                try:
+                    await connection.send_json(dict_connected_computers)
+                except Exception as exc:
+                    logger.error(f"Error sending connected computers to {computer_id}: {exc}")
+                    del WebsocketServiceState.active_connections[computer_id]  # Remove failed WebSocket
 
     @staticmethod
     async def update_is_connected_on_false(computer_id: int):
-        WebsocketServiceState.connected_computers[computer_id].is_connected = False
+        """Mark a computer as disconnected in the state."""
+        async with WebsocketServiceState.lock:
+            if computer_id in WebsocketServiceState.connected_computers:
+                WebsocketServiceState.connected_computers[computer_id].is_connected = False
+                logger.info(f"Computer {computer_id} marked as disconnected")
 
     @staticmethod
-    async def clean_all_connected_computers_and_active_connections():
-        for ws in WebsocketServiceState.active_connections.values():
-            try:
-                await ws.close()
-            except:
-                pass
-        WebsocketServiceState.active_connections = {}
-        WebsocketServiceState.connected_computers = {}
+    async def clean_all_connected_computers_and_active_connections(self):
+        """Close all WebSocket connections and clear the state."""
+        async with WebsocketServiceState.lock:
+            for computer_id, ws in list(WebsocketServiceState.active_connections.items()):
+                try:
+                    await ws.close()
+                    logger.info(f"WebSocket for {computer_id} closed successfully")
+                except Exception as e:
+                    logger.warning(f"Failed to close WebSocket for {computer_id}: {e}")
+                finally:
+                    del WebsocketServiceState.active_connections[computer_id]  # Ensure removal even if error occurs
 
+            WebsocketServiceState.connected_computers.clear()
+            logger.info("All connected computers and active WebSocket connections cleared.")
 
-state = WebsocketServiceState()
+    @staticmethod
+    def is_computer_connected(computer_id: int) -> bool:
+        if computer_id in WebsocketServiceState.connected_computers and WebsocketServiceState.connected_computers[computer_id].is_connected:
+            return True
+        return False
+
+    @staticmethod
+    def is_computer_exists_and_same_users(computer_id: int, users_ids: list[str]) -> bool:
+        if computer_id not in WebsocketServiceState.connected_computers:
+            print("==================================")
+            print(f"computer_id={computer_id}")
+            print(f"WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}")
+            print("==================================")
+            return False
+        if users_ids == WebsocketServiceState.connected_computers[computer_id].users_ids:
+            print(f"users_ids={users_ids}")
+            print(f"WebsocketServiceState.connected_computers[computer_id].users_ids={WebsocketServiceState.connected_computers[computer_id].users_ids}")
+            return True
+        print("DIFFERENT COMPUTER USERS")
+        return False

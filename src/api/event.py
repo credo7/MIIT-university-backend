@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import time
+from copy import deepcopy
 from typing import Union
 
 from bson import ObjectId
@@ -34,7 +36,7 @@ from schemas import (
     PR2ClassEvent,
     StartEventDto,
     StartEventResponse,
-    Step,
+    Step, ConnectedComputerUpdate,
 )
 from services import oauth2
 from services.create_event import create_event
@@ -66,18 +68,25 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
             detail=f'Неизвестный режим. type={start_event_dto.type}. mode={start_event_dto.mode}',
         )
 
-    connected_computer = ConnectedComputer(
-        id=start_event_dto.computer_id,
-        users_ids=event.users_ids,
-        event_type=event.event_type,
-        event_mode=event.event_mode,
-        step_code=event.current_step.code if isinstance(event.current_step, Step) else event.current_step,
-        event_id=event.id,
-    )
-
-    WebsocketServiceState.upsert_connected_computer(connected_computer)
-    print(f'WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}')
-    await WebsocketServiceState.safe_broadcast_all_connected_computers()
+    if WebsocketServiceState.is_computer_exists_and_same_users(start_event_dto.computer_id, event.users_ids):
+        computer_update = ConnectedComputerUpdate(
+            id=start_event_dto.computer_id,
+            event_id=event.id,
+            event_type=event.event_type,
+            event_mode=event.event_mode,
+        )
+        await WebsocketServiceState.update_connected_computer(computer_update)
+    else:
+        connected_computer = ConnectedComputer(
+            id=start_event_dto.computer_id,
+            users_ids=event.users_ids,
+            event_type=event.event_type,
+            event_mode=event.event_mode,
+            step_code=event.current_step.code if isinstance(event.current_step, Step) else event.current_step,
+            event_id=event.id,
+            last_action=time.time(),
+        )
+        await WebsocketServiceState.create_connected_computer(connected_computer)
 
     return StartEventResponse(event_id=event.id)
 
@@ -185,21 +194,38 @@ async def create_checkpoint(
             computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
         ).checkpoint(event, checkpoint_dto)
 
-    print(f'checkpoint_response={checkpoint_response}')
+    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(checkpoint_dto.event_id)})
+    if not event_db:
+        raise Exception('Вариант не найден')
+    event_info = normalize_mongo(event_db, EventInfo)
 
-    connected_computer = ConnectedComputer(
-        id=event_info.computer_id,
-        users_ids=event_info.users_ids,
-        event_id=event_info.id,
-        event_type=event_info.event_type,
-        event_mode=event_info.event_mode,
-        step_code=event_info.current_step.code
-        if isinstance(event_info.current_step, Step)
-        else event_info.current_step,
-    )
+    if WebsocketServiceState.is_computer_exists_and_same_users(event_info.computer_id, event_info.users_ids):
+        computer_update = ConnectedComputerUpdate(
+            id=event_info.computer_id,
+            step_code=event_info.current_step.code if isinstance(event_info.current_step, Step) else event_info.current_step,
+            event_type=event_info.event_type,
+            event_mode=event_info.event_mode,
+            event_id=event_info.id,
+        )
+        await WebsocketServiceState.update_connected_computer(computer_update)
+    else:
+        connected_computer = ConnectedComputer(
+            id=event_info.computer_id,
+            users_ids=event_info.users_ids,
+            event_type=event_info.event_type,
+            event_mode=event_info.event_mode,
+            step_code=event_info.current_step.code if isinstance(event_info.current_step, Step) else event_info.current_step,
+            event_id=event_info.id,
+            last_action=time.time()
+        )
+        await WebsocketServiceState.create_connected_computer(connected_computer)
 
-    WebsocketServiceState.upsert_connected_computer(connected_computer)
-    await WebsocketServiceState.safe_broadcast_all_connected_computers()
+    if event_info.current_step == "FINISHED" or (isinstance(event_info.current_step, Step) and event_info.current_step.code == "FINISHED"):
+        computer_update = ConnectedComputerUpdate(
+            id=event_info.computer_id,
+            help_requested=False
+        )
+        await WebsocketServiceState.update_connected_computer(computer_update)
 
     return checkpoint_response
 
@@ -338,6 +364,13 @@ async def continue_work(
 async def get_all_computers_states(db: Database = Depends(get_db)):
     connected_computers_front = []
 
+    connected_computers = deepcopy(WebsocketServiceState.connected_computers)
+    for connected_computer_id, connected_computer in connected_computers.items():
+        if not connected_computer.is_connected and connected_computer.is_expired():
+            await WebsocketServiceState.remove_connected_computer(connected_computer_id)
+
+    print(WebsocketServiceState.connected_computers)
+
     for connected_computer in WebsocketServiceState.connected_computers.values():
         mini_users = []
         for user_id in connected_computer.users_ids:
@@ -367,7 +400,6 @@ async def finish_events_by_teacher(_current_teacher: schemas.UserOut = Depends(o
     await WebsocketServiceState.safe_broadcast('FINISHED')
     await asyncio.sleep(2)
     await WebsocketServiceState.clean_all_connected_computers_and_active_connections()
-    await WebsocketServiceState.safe_broadcast_all_connected_computers()
 
 
 @router.get('/{event_id}')

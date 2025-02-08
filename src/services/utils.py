@@ -83,7 +83,7 @@ def verify(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_username(first_name, last_name, surname, group_name):
+def create_username(first_name, last_name, surname, group_name) -> str:
     first_name_en = translit(first_name, 'ru', reversed=True)[:2]
     last_name_en = translit(last_name, 'ru', reversed=True)[:2]
     surname_en = ''

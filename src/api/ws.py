@@ -8,14 +8,12 @@
 import logging
 
 import asyncio
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+import time
+from copy import deepcopy
 
-from handlers.raise_hand import RaiseHand
-from schemas import (
-    WSMessage,
-    WSCommandTypes,
-    ConnectedComputer,
-)
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, HTTPException
+
+from schemas import ConnectedComputer, ConnectedComputerUpdate
 from db.mongo import Database, get_db
 from db.state import WebsocketServiceState
 from services.oauth2 import extract_ws_info_raise_if_teacher
@@ -26,34 +24,53 @@ router = APIRouter(tags=['ws'], prefix='')
 
 db: Database = get_db()
 
-
-ws_handlers = {
-    # WSCommandTypes.FINISH: EventService(db).finish_current_lesson, ???
-    WSCommandTypes.RAISE_HAND: RaiseHand(db).run,
-    # WSCommandTypes.EXIT: State.users_exit,
-}
-
-
-# @router.websocket('/ws/{computer_id}')
-# async def websocket_endpoint(ws: WebSocket, computer_id: int):
-#     try:
-#         is_teacher, users = extract_ws_info(ws.headers)
-#
-#     except Exception as exc:
-#         logger.error(exc, exc_info=True)
-
-
 @router.websocket('/ws/{computer_id}')
 async def websocket_endpoint(ws: WebSocket, computer_id: int):
     try:
         users = extract_ws_info_raise_if_teacher(ws.headers)
 
-        connected_computer = ConnectedComputer(id=computer_id, users_ids=[user.id for user in users], is_connected=True)
+        connected_computers = deepcopy(WebsocketServiceState.connected_computers)
+        for computer_id, computer in connected_computers.items():
+            if computer_id == computer_id:
+                continue
+            for user in users:
+                if user.id not in computer.users_ids:
+                    continue
+                if not computer.is_connected:
+                    print("1234567")
+                    await WebsocketServiceState.remove_connected_computer(computer_id)
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=f"{user.last_name} {user.first_name} уже подключен к компьютеру #{computer_id}"
+                    )
+
+        if WebsocketServiceState.is_computer_connected(computer_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Компьютер уже подключен"
+            )
+
+        users_ids = [user.id for user in users]
+
+        if WebsocketServiceState.is_computer_exists_and_same_users(computer_id, users_ids):
+            print("is_computer_exists_and_same_users = TRUE")
+            computer_update = ConnectedComputerUpdate(
+                id=computer_id,
+                is_connected=True
+            )
+            await WebsocketServiceState.update_connected_computer(computer_update)
+        else:
+            print("is_computer_exists_and_same_users = FALSE")
+            connected_computer = ConnectedComputer(
+                id=computer_id,
+                users_ids=users_ids,
+                is_connected=True,
+                last_action=time.time()
+            )
+            await WebsocketServiceState.create_connected_computer(connected_computer)
 
         await WebsocketServiceState.accept_ws_connection_and_add_to_list_of_active_ws_connections(ws, computer_id)
-        WebsocketServiceState.upsert_connected_computer(connected_computer)
-        await WebsocketServiceState.safe_broadcast_all_connected_computers()
-
         await handle_websocket_messages(ws, users, computer_id)
     except WebSocketDisconnect as exc:
         pass
@@ -62,7 +79,6 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
         await WebsocketServiceState.safe_broadcast({'error': str(exc)})
     finally:
         await WebsocketServiceState.update_is_connected_on_false(computer_id)
-        await WebsocketServiceState.safe_broadcast_all_connected_computers()
 
 
 async def handle_websocket_messages(ws, users, computer_id):
@@ -70,19 +86,11 @@ async def handle_websocket_messages(ws, users, computer_id):
         message = None
         try:
             _data = await ws.receive_json()
-            # message = WSMessage(**data)
-            # await ws_handlers[message.type](
-            #     computer_id=computer_id, payload=message.payload, ws=ws
-            # )
-            # logger.info(
-            #     f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|type:{message.type}|succesfully'
-            # )
         except WebSocketDisconnect:
             raise WebSocketDisconnect
         except Exception as exc:
             logger.error(
                 f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|'
-                # f'type:{message.type if message is not None else message}'
                 f'|err={str(exc)}',
                 exc_info=True,
             )
