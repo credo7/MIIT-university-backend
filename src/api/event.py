@@ -369,8 +369,6 @@ async def get_all_computers_states(db: Database = Depends(get_db)):
         if not connected_computer.is_connected and connected_computer.is_expired():
             await WebsocketServiceState.remove_connected_computer(connected_computer_id)
 
-    print(WebsocketServiceState.connected_computers)
-
     for connected_computer in WebsocketServiceState.connected_computers.values():
         mini_users = []
         for user_id in connected_computer.users_ids:

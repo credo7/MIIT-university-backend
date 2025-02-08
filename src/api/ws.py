@@ -37,7 +37,6 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
                 if user.id not in computer.users_ids:
                     continue
                 if not computer.is_connected:
-                    print("1234567")
                     await WebsocketServiceState.remove_connected_computer(computer_id)
                 else:
                     raise HTTPException(
