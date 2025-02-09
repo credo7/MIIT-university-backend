@@ -9,6 +9,7 @@ from pymongo.database import Database
 
 import schemas
 from db.mongo import get_db, CollectionNames
+from db.state import WebsocketServiceState
 from services import oauth2, utils
 from services.utils import normalize_mongo
 
@@ -96,6 +97,16 @@ async def login(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')
 
     user: schemas.UserOutWithEvents = normalize_mongo(user_db, schemas.UserOutWithEvents)
+
+    computer_id = WebsocketServiceState.is_user_connected(user.id)
+    if computer_id != -1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error_code": "ALREADY_CONNECTED",
+                "message": f"Пользователь {user.username} уже авторизован за компьютером {computer_id}"
+            },
+        )
 
     access_token = oauth2.create_access_token(data={'user_id': user.id})
 

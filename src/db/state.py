@@ -13,6 +13,13 @@ class WebsocketServiceState:
     lock = asyncio.Lock()
 
     @staticmethod
+    def is_user_connected(user_id: str) -> int:
+        for computer_id, computer in WebsocketServiceState.connected_computers.items():
+            if user_id in computer.users_ids:
+                return computer_id
+        return -1
+
+    @staticmethod
     async def accept_ws_connection_and_add_to_list_of_active_ws_connections(websocket: WebSocket, computer_id: int):
         await websocket.accept()
         async with WebsocketServiceState.lock:
