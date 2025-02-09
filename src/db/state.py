@@ -15,7 +15,7 @@ class WebsocketServiceState:
     @staticmethod
     def is_user_connected(user_id: str) -> int:
         for computer_id, computer in WebsocketServiceState.connected_computers.items():
-            if user_id in computer.users_ids:
+            if computer.is_connected and user_id in computer.users_ids:
                 return computer_id
         return -1
 
