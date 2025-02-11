@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import auth, group, user, event, help_request, ws, dev
+from api import auth, group, user, event, help_request, ws, dev, computer_state
 from services.error_log_handling_middleware import ErrorLogHandlingMiddleware
 from tg_logger import tg_wrapper
 
@@ -30,6 +30,7 @@ app.include_router(event.router)
 app.include_router(help_request.router)
 app.include_router(dev.router)
 app.include_router(ws.router)
+app.include_router(computer_state.router)
 
 
 app.add_middleware(ErrorLogHandlingMiddleware)
