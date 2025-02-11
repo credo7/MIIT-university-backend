@@ -39,23 +39,19 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
     ).lower()
 
     candidate = db[CollectionNames.USERS.value].find_one({
-        'first_name': user_dto.first_name,
-        'last_name': user_dto.last_name,
-        'surname': user_dto.surname,
+        'first_name': user_dto.first_name.capitalize(),
+        'last_name': user_dto.last_name.capitalize(),
+        'surname': user_dto.surname.capitalize() if user_dto.surname else None,
         'group_id':user_dto.group_id
     })
 
-    if (
-        candidate and
-        candidate['first_name'] == user_dto.first_name
-        and candidate['last_name'] == user_dto.last_name
-        and candidate['surname'] == user_dto.surname
-        and candidate['group_id'] == user_dto.group_id
-    ):
+    if candidate:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="USER_ALREADY_REGISTERED",
         )
+
+    username = generate_unique_username(username, db)
 
     new_user = schemas.UserCreateDB(
         username=username,
@@ -113,3 +109,18 @@ async def login(
     logger.info(f'User logined. user={user}')
 
     return {'access_token': access_token, 'token_type': 'bearer', 'user_info': user}
+
+
+def generate_unique_username(initial_username, db, retries=10):
+    candidate_username = initial_username
+
+    for _ in range(retries):
+        if not db[CollectionNames.USERS.value].find_one({"username": candidate_username}):
+            return candidate_username
+
+        candidate_username += random.choice(string.ascii_lowercase)
+
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail="USER_ALREADY_REGISTERED",
+    )

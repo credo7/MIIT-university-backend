@@ -30,20 +30,21 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
         users = extract_ws_info_raise_if_teacher(ws.headers)
 
         connected_computers = deepcopy(WebsocketServiceState.connected_computers)
-        for computer_id, computer in connected_computers.items():
-            if computer_id == computer_id:
+        for cmp_id, computer in connected_computers.items():
+            if cmp_id == computer_id:
                 continue
             for user in users:
                 if user.id not in computer.users_ids:
                     continue
                 if not computer.is_connected:
-                    await WebsocketServiceState.remove_connected_computer(computer_id)
+                    await WebsocketServiceState.remove_connected_computer(cmp_id)
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
-                        detail=f"{user.last_name} {user.first_name} уже подключен к компьютеру #{computer_id}"
+                        detail=f"{user.last_name} {user.first_name} уже подключен к компьютеру #{cmp_id}"
                     )
 
+        print(f"WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}")
         if WebsocketServiceState.is_computer_connected(computer_id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
