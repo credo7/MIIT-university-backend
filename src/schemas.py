@@ -351,7 +351,7 @@ class ConnectedComputer(BaseModel):
     is_searching_someone: bool = False
     last_action: float = Field(default_factory=time.time)
 
-    def is_expired(self, expire_min: int = 7) -> bool:
+    def is_expired(self, expire_min: int = 12) -> bool:
         return (time.time() - self.last_action) > (expire_min * 60)
 
     def update_last_time(self):
