@@ -1,5 +1,6 @@
 import logging
 import copy
+from datetime import datetime
 from typing import List
 
 import pymongo
@@ -94,7 +95,7 @@ async def edit(
 
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(current_user.id)},
-            {'$set': {**user_update_dict, 'fix_for_approve_fields': None}},
+            {'$set': {**user_update_dict, 'fix_for_approve_fields': None, 'updated_at': datetime.now()}},
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
@@ -113,7 +114,9 @@ async def approve_user(
 ):
     try:
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
-            {'_id': ObjectId(user_id)}, {'$set': {'approved': True}}, return_document=pymongo.ReturnDocument.AFTER
+            {'_id': ObjectId(user_id)},
+            {'$set': {'approved': True, 'updated_at': datetime.now()}},
+            return_document=pymongo.ReturnDocument.AFTER
         )
 
         if not user_db:
@@ -140,7 +143,7 @@ async def request_edits(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Поля не заданы.')
 
     user_db = db[CollectionNames.USERS.value].find_one_and_update(
-        {'_id': ObjectId(body.user_id), 'approved': False}, {'$set': {'fix_for_approve_fields': fix_for_approve_fields}}
+        {'_id': ObjectId(body.user_id), 'approved': False}, {'$set': {'fix_for_approve_fields': fix_for_approve_fields, 'updated_at': datetime.now()}}
     )
 
     if not user_db:
@@ -203,7 +206,7 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
 
     user = normalize_mongo(user_db, schemas.UserOut)
 
-    db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user.id)}, {'$set': {'password': hash_password}})
+    db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}})
 
     return user
 
@@ -282,5 +285,5 @@ async def make_teacher(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user), db: Database = Depends(get_db),
 ):
     db[CollectionNames.USERS.value].update_one(
-        {'_id': ObjectId(current_user.id)}, {'$set': {'approved': True, 'role': 'TEACHER'}}
+        {'_id': ObjectId(current_user.id)}, {'$set': {'approved': True, 'role': 'TEACHER', "updated_at": datetime.now()}}
     )

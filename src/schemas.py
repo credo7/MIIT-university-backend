@@ -317,12 +317,14 @@ class UserBase(BaseModel):
     last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
     surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
     student_id: str
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
 
 class MiniUser(UserBase):
     id: str
     group_name: str
     group_id: str
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
 
 class ConnectedComputerUpdate(BaseModel):
@@ -455,6 +457,7 @@ class UserCreateDB(UserCreateBody):
     history: list[UserEventHistory] = Field(default_factory=list)
     incoterms: dict[Incoterm, int] = Field(default_factory=dict)
     fix_for_approve_fields: Optional[list[str]] = None
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
 
 class FullUser(UserCreateDB):
@@ -548,6 +551,7 @@ class TokenData(BaseModel):
 
 class GroupBase(BaseModel):
     name: str
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
 
 class GroupCreate(GroupBase):

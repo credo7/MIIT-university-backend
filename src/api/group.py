@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import (
     List,
     Optional,
@@ -52,7 +53,7 @@ async def create(
 @router.post('/hide/{group_id}', status_code=status.HTTP_200_OK)
 async def hide_group(group_id: str, db: Database = Depends(get_db)):
     group_db = db[CollectionNames.GROUPS.value].find_one_and_update(
-        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': True}}
+        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': True, "updated_at": datetime.now()}},
     )
 
     if not group_db:
@@ -62,7 +63,7 @@ async def hide_group(group_id: str, db: Database = Depends(get_db)):
 @router.post('/make-visible/{group_id}', status_code=status.HTTP_200_OK)
 async def unhide_group(group_id: str, db: Database = Depends(get_db)):
     group_db = db[CollectionNames.GROUPS.value].find_one_and_update(
-        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': False}}
+        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': False, "updated_at": datetime.now()}}
     )
 
     if not group_db:
