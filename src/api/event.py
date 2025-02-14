@@ -332,6 +332,14 @@ async def retake_test(
         for user_id in event.users_ids:
             db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {'$pop': {'history': 1}})
 
+        for comp_id, comp in WebsocketServiceState.connected_computers.items():
+            if comp.event_id == event_id:
+                computer_update = ConnectedComputerUpdate(
+                    id=comp_id,
+                    step_code=first_test_step.code
+                )
+                await WebsocketServiceState.update_connected_computer(computer_update)
+                break
 
 @router.post('/continue-work', status_code=status.HTTP_200_OK)
 async def continue_work(
@@ -362,13 +370,14 @@ async def continue_work(
 
 @router.get('/computers-states', response_model=list[schemas.ConnectedComputerFrontResponse])
 async def get_all_computers_states(db: Database = Depends(get_db)):
-    connected_computers_front = []
 
     connected_computers = deepcopy(WebsocketServiceState.connected_computers)
-    for connected_computer_id, connected_computer in connected_computers.items():
-        if not connected_computer.is_connected and connected_computer.is_expired():
-            await WebsocketServiceState.remove_connected_computer(connected_computer_id)
 
+    for conn_computer_id, conn_computer in connected_computers.items():
+        if not conn_computer.is_connected and conn_computer.is_expired():
+            await WebsocketServiceState.remove_connected_computer(conn_computer_id)
+
+    connected_computers_front = []
     for connected_computer in WebsocketServiceState.connected_computers.values():
         mini_users = []
         for user_id in connected_computer.users_ids:
@@ -391,13 +400,6 @@ async def get_all_computers_states(db: Database = Depends(get_db)):
         )
 
     return connected_computers_front
-
-
-@router.post('/finish-events-by-teacher')
-async def finish_events_by_teacher(_current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),):
-    await WebsocketServiceState.safe_broadcast('FINISHED')
-    await asyncio.sleep(2)
-    await WebsocketServiceState.clean_all_connected_computers_and_active_connections()
 
 
 @router.get('/{event_id}')

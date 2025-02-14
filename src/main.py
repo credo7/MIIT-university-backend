@@ -1,6 +1,9 @@
+import asyncio
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from db.state import WebsocketServiceState
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import auth, group, user, event, help_request, ws, dev, computer_state
@@ -22,6 +25,8 @@ app.add_middleware(
     CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=['*'], allow_headers=['*'],
 )
 
+app = FastAPI()
+
 
 app.include_router(auth.router)
 app.include_router(group.router)
@@ -34,6 +39,7 @@ app.include_router(computer_state.router)
 
 
 app.add_middleware(ErrorLogHandlingMiddleware)
+
 
 
 import uvicorn

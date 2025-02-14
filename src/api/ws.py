@@ -1,21 +1,13 @@
-""" Логика
-    Студент(ы) подключа(ется/ются) к компу -> upsert connected_компьютер
-    Старт работы -> если не было, то add_without_connected = True, else просто обновляем код
-    Финиш работ учителя -> очищаем весь список, отправляем всем "work_finished" по WS
-"""
-
-
-import logging
-
 import asyncio
+import logging
 import time
 from copy import deepcopy
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, HTTPException
 
+from db.state import WebsocketServiceState
 from schemas import ConnectedComputer, ConnectedComputerUpdate
 from db.mongo import Database, get_db
-from db.state import WebsocketServiceState
 from services.oauth2 import extract_ws_info_raise_if_teacher
 
 logger = logging.getLogger(__name__)
@@ -29,6 +21,7 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
     try:
         users = extract_ws_info_raise_if_teacher(ws.headers)
 
+        # Check if any computer already has these users
         connected_computers = deepcopy(WebsocketServiceState.connected_computers)
         for cmp_id, computer in connected_computers.items():
             if cmp_id == computer_id:
@@ -70,6 +63,7 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
             )
             await WebsocketServiceState.create_connected_computer(connected_computer)
 
+        # Accept connection and add to active connections.
         await WebsocketServiceState.accept_ws_connection_and_add_to_list_of_active_ws_connections(ws, computer_id)
         await handle_websocket_messages(ws, users, computer_id)
     except WebSocketDisconnect as exc:
@@ -81,17 +75,25 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
         await WebsocketServiceState.update_is_connected_on_false(computer_id)
 
 
-async def handle_websocket_messages(ws, users, computer_id):
+async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
     while True:
-        message = None
         try:
-            _data = await ws.receive_json()
+            message = await ws.receive_json()
+            # Check if this is a pong message
+            if message.get("type") == "pong":
+                # async with WebsocketServiceState.lock:
+                if computer_id in WebsocketServiceState.connected_computers:
+                    WebsocketServiceState.connected_computers[computer_id].last_pong = time.time()
+                    print(f"IN HANDLE {WebsocketServiceState.connected_computers[computer_id].last_pong}")
+                logger.info(f"✅ Received Pong from computer {computer_id}")
+            else:
+                # Custom handling for other message types
+                logger.info(f"📩 Received message from computer {computer_id}: {message}")
         except WebSocketDisconnect:
             raise WebSocketDisconnect
         except Exception as exc:
             logger.error(
-                f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|'
-                f'|err={str(exc)}',
+                f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|err={str(exc)}',
                 exc_info=True,
             )
         finally:

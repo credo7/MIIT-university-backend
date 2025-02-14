@@ -1,10 +1,12 @@
 import asyncio
 import logging
-from fastapi.websockets import WebSocket
+import time
 
+from fastapi import WebSocket
 from schemas import ConnectedComputer, ConnectedComputerUpdate
 
 logger = logging.getLogger(__name__)
+
 
 
 class WebsocketServiceState:
@@ -20,16 +22,67 @@ class WebsocketServiceState:
         return -1
 
     @staticmethod
+    async def remove_connected_computer(computer_id: int):
+        """Remove a disconnected computer from the state."""
+        # async with WebsocketServiceState.lock:
+        WebsocketServiceState.connected_computers.pop(computer_id, None)
+        WebsocketServiceState.active_connections.pop(computer_id, None)
+        logger.info(f"❌ Computer {computer_id} removed from active connections.")
+
+    @staticmethod
+    async def update_is_connected_on_false(computer_id: int):
+        """Mark a computer as disconnected (set is_connected to False)."""
+        # async with WebsocketServiceState.lock:
+        if computer_id in WebsocketServiceState.connected_computers:
+            update_computer = ConnectedComputerUpdate(id=computer_id, is_connected=False)
+            await WebsocketServiceState.update_connected_computer(update_computer)
+            logger.info(f"🚫 Computer {computer_id} marked as disconnected")
+
+    @staticmethod
     async def accept_ws_connection_and_add_to_list_of_active_ws_connections(websocket: WebSocket, computer_id: int):
         await websocket.accept()
         # async with WebsocketServiceState.lock:
         WebsocketServiceState.active_connections[computer_id] = websocket
         logger.info(f"WebSocket connected for computer {computer_id}")
 
+        # Use the current running loop to create the background task.
+        loop = asyncio.get_running_loop()
+        loop.create_task(WebsocketServiceState.ping_pong_task(computer_id, websocket))
+
     @staticmethod
-    async def remove_connected_computer(computer_id: int):
+    async def ping_pong_task(computer_id: int, websocket: WebSocket):
+        """Background task to send pings and check if the connection is still alive."""
+        try:
+            while True:
+                await asyncio.sleep(10)  # Send a ping every 20 seconds
+                ping_message = {"type": "ping"}
+                await websocket.send_json(ping_message)
+                logger.info(f"🔄 Sent Ping to computer {computer_id}")
+
+                # Check if a recent pong was received by comparing timestamps.
+                # async with WebsocketServiceState.lock:
+                computer = WebsocketServiceState.connected_computers.get(computer_id)
+                if computer is None:
+                    break  # The computer entry was removed.
+                # Assume computer.last_pong is maintained elsewhere (e.g., in your receive loop).
+                print(f"IN ping_pong_task last_pong = {computer.last_pong}")
+                if time.time() - getattr(computer, "last_pong", time.time()) > 30 and computer.is_connected and time.time() - computer.last_action > 30:
+                    logger.warning(f"❌ No recent Pong received from computer {computer_id}. Marking as disconnected.")
+                    await WebsocketServiceState.mark_as_disconnected(computer_id)
+                    await websocket.close()
+                    WebsocketServiceState.active_connections.pop(computer_id, None)
+                    break
+        except Exception as e:
+            logger.error(f"⚠️ Error in Ping-Pong task for computer {computer_id}: {e}")
+
+    @staticmethod
+    async def mark_as_disconnected(computer_id: int):
+        """Mark a computer as disconnected instead of removing it immediately."""
         # async with WebsocketServiceState.lock:
-        WebsocketServiceState.connected_computers.pop(computer_id, None)
+        if computer_id in WebsocketServiceState.connected_computers:
+            update_computer = ConnectedComputerUpdate(id=computer_id, is_connected=False)
+            await WebsocketServiceState.update_connected_computer(update_computer)
+            logger.info(f"🚫 Computer {computer_id} marked as disconnected")
 
     @staticmethod
     async def create_connected_computer(connected_computer: ConnectedComputer):
@@ -48,68 +101,37 @@ class WebsocketServiceState:
 
     @staticmethod
     async def safe_broadcast(message: any):
+        """Broadcast message to all active WebSocket connections."""
         # async with WebsocketServiceState.lock:
         for computer_id, connection in list(WebsocketServiceState.active_connections.items()):
             try:
                 await connection.send_json(message)
             except Exception as exc:
                 logger.error(f"Error sending message to {computer_id}: {exc}")
-                del WebsocketServiceState.active_connections[computer_id]  # Remove broken WebSocket
+                del WebsocketServiceState.active_connections[computer_id]  # Remove broken connection
 
     @staticmethod
-    async def safe_broadcast_all_connected_computers(self):
-        """Send all connected computers' data to active WebSocket clients."""
-        # async with WebsocketServiceState.lock:
-        dict_connected_computers = {key: v.dict() for key, v in WebsocketServiceState.connected_computers.items()}
-        for computer_id, connection in list(WebsocketServiceState.active_connections.items()):
-            try:
-                await connection.send_json(dict_connected_computers)
-            except Exception as exc:
-                logger.error(f"Error sending connected computers to {computer_id}: {exc}")
-                del WebsocketServiceState.active_connections[computer_id]  # Remove failed WebSocket
-
-    @staticmethod
-    async def update_is_connected_on_false(computer_id: int):
-        """Mark a computer as disconnected in the state."""
-        # async with WebsocketServiceState.lock:
-        if computer_id in WebsocketServiceState.connected_computers:
-            update_computer = ConnectedComputerUpdate(id=computer_id, is_connected=False)
-            await WebsocketServiceState.update_connected_computer(update_computer)
-            logger.info(f"Computer {computer_id} marked as disconnected")
-
-    @staticmethod
-    async def clean_all_connected_computers_and_active_connections(self):
-        """Close all WebSocket connections and clear the state."""
-        # async with WebsocketServiceState.lock:
-        for computer_id, ws in list(WebsocketServiceState.active_connections.items()):
-            try:
-                await ws.close()
-                logger.info(f"WebSocket for {computer_id} closed successfully")
-            except Exception as e:
-                logger.warning(f"Failed to close WebSocket for {computer_id}: {e}")
-            finally:
-                del WebsocketServiceState.active_connections[computer_id]  # Ensure removal even if error occurs
-
-        WebsocketServiceState.connected_computers.clear()
-        logger.info("All connected computers and active WebSocket connections cleared.")
+    async def clean_expired_computers():
+        """Periodically remove expired disconnected computers."""
+        while True:
+            await asyncio.sleep(60)  # Run every 60 seconds
+            # async with WebsocketServiceState.lock:
+            expired_computers = []
+            for computer_id, computer in list(WebsocketServiceState.connected_computers.items()):
+                if not computer.is_connected and computer.is_expired():
+                    expired_computers.append(computer_id)
+            for computer_id in expired_computers:
+                del WebsocketServiceState.connected_computers[computer_id]
+                logger.info(f"🗑️ Removed expired disconnected computer {computer_id}")
+            logger.info(f"🧹 Cleanup complete. Removed {len(expired_computers)} computers.")
 
     @staticmethod
     def is_computer_connected(computer_id: int) -> bool:
-        if computer_id in WebsocketServiceState.connected_computers and WebsocketServiceState.connected_computers[computer_id].is_connected:
-            return True
-        return False
+        return computer_id in WebsocketServiceState.connected_computers and WebsocketServiceState.connected_computers[computer_id].is_connected
 
     @staticmethod
     def is_computer_exists_and_same_users(computer_id: int, users_ids: list[str]) -> bool:
-        if computer_id not in WebsocketServiceState.connected_computers:
-            print("==================================")
-            print(f"computer_id={computer_id}")
-            print(f"WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}")
-            print("==================================")
-            return False
-        if users_ids == WebsocketServiceState.connected_computers[computer_id].users_ids:
-            print(f"users_ids={users_ids}")
-            print(f"WebsocketServiceState.connected_computers[computer_id].users_ids={WebsocketServiceState.connected_computers[computer_id].users_ids}")
-            return True
-        print("DIFFERENT COMPUTER USERS")
-        return False
+        return computer_id in WebsocketServiceState.connected_computers and users_ids == WebsocketServiceState.connected_computers[computer_id].users_ids
+
+# Note: Do not call create_task() at the module level. Instead, ensure that any background tasks (like clean_expired_computers)
+# are scheduled in a startup event in your FastAPI app.
