@@ -81,7 +81,6 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
             message = await ws.receive_json()
             # Check if this is a pong message
             if message.get("type") == "pong":
-                # async with WebsocketServiceState.lock:
                 if computer_id in WebsocketServiceState.connected_computers:
                     WebsocketServiceState.connected_computers[computer_id].last_pong = time.time()
                     print(f"IN HANDLE {WebsocketServiceState.connected_computers[computer_id].last_pong}")
@@ -90,11 +89,24 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
                 # Custom handling for other message types
                 logger.info(f"📩 Received message from computer {computer_id}: {message}")
         except WebSocketDisconnect:
-            raise WebSocketDisconnect
+            logger.info(f"WebSocket disconnected for computer {computer_id}. Exiting loop.")
+            break
+        except RuntimeError as exc:
+            # Check if the error is because the WebSocket is closed
+            if "not connected" in str(exc):
+                logger.info(f"WebSocket closed for computer {computer_id}. Exiting loop.")
+                break
+            else:
+                logger.error(
+                    f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|err={str(exc)}',
+                    exc_info=True,
+                )
+                break
         except Exception as exc:
             logger.error(
                 f'websocket|computer_id:{computer_id}|user_ids:{[user.id for user in users]}|err={str(exc)}',
                 exc_info=True,
             )
-        finally:
-            await asyncio.sleep(0.01)
+            break
+        await asyncio.sleep(0.01)
+
