@@ -559,7 +559,7 @@ def get_pr2_class_percentage(step_code: Union[str, int]):
         'SCREEN_11_OPTIMAL_RESULTS_3PL2': 91,
         'SCREEN_11_OPTIMAL_RESULTS_3PL3': 94,
         'SCREEN_11_OPTIMAL_RESULTS_COMBO': 97,
-        'SCREEN_13_CHOOSE_LOGIST': 99,
+        'SCREEN_13_CHOOSE_LOGIST': 98,
         'FINISHED': 100,
     }
 
