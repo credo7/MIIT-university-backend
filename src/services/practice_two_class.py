@@ -778,7 +778,7 @@ class PracticeTwoClass:
         #     checkpoint_response.hint = 'Все уже заполнено за нас'
 
         if checkpoint_dto.step_code == 'SCREEN_13_CHOOSE_LOGIST':
-            next_step = Step(id=-1, code='FINISH',)
+            next_step = Step(id=-1, code='FINISHED',)
 
             event.delivery_option_explanation = checkpoint_dto.text
 
