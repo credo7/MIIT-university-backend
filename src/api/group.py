@@ -74,7 +74,7 @@ async def unhide_group(group_id: str, db: Database = Depends(get_db)):
 async def get_groups(show_hidden: Optional[bool] = False, db: Database = Depends(get_db)):
     filters = {}
     if not show_hidden:
-        filters['is_hidden'] = False
+        filters['$or'] = [{'is_hidden': False}, {'is_hidden': {'$exists': False}}]
     groups_db = db[CollectionNames.GROUPS.value].find(filters)
     groups = normalize_mongo(groups_db, schemas.GroupOut)
     return groups
