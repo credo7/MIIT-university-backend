@@ -85,6 +85,9 @@ async def edit(
                 'last_name': user_update_dict.get('last_name') or current_user.last_name,
                 'surname': user_update_dict.get('surname') or current_user.surname,
                 'group_id': user_update_dict.get('group_id') or current_user.group_id,
+                'student_id': user_update_dict.get('student_id') or current_user.student_id,
+                'group_name': user_update_dict.get('group_name') or current_user.group_name,
+
             }
         )
         if candidate:

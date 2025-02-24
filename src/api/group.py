@@ -72,6 +72,9 @@ async def unhide_group(group_id: str, db: Database = Depends(get_db)):
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=List[schemas.GroupOut])
 async def get_groups(show_hidden: Optional[bool] = False, db: Database = Depends(get_db)):
-    groups_db = db[CollectionNames.GROUPS.value].find()
+    filters = {}
+    if not show_hidden:
+        filters['is_hidden'] = False
+    groups_db = db[CollectionNames.GROUPS.value].find(filters)
     groups = normalize_mongo(groups_db, schemas.GroupOut)
     return groups

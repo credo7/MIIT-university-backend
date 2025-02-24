@@ -54,6 +54,7 @@ class WebsocketServiceState:
         """Background task to send pings and check if the connection is still alive."""
         try:
             while True:
+                print("in ping_pong_task")
                 await asyncio.sleep(10)  # Send a ping every 20 seconds
                 ping_message = {"type": "ping"}
                 await websocket.send_json(ping_message)
@@ -114,6 +115,7 @@ class WebsocketServiceState:
     async def clean_expired_computers():
         """Periodically remove expired disconnected computers."""
         while True:
+            print(f"in clean_expired_computers", flush=True)
             await asyncio.sleep(60)  # Run every 60 seconds
             # async with WebsocketServiceState.lock:
             expired_computers = []
