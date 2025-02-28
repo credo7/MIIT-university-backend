@@ -516,12 +516,16 @@ class PracticeOneClass:
                     )
 
                     incoterms = {inc: CorrectOrError.CORRECT for inc in list(Incoterm)}
+                    incoterms_v2 = {inc: AnswerStatus.CORRECT for inc in list(Incoterm)}
                     for step in event.steps_results:
                         if step.step_code == 'DESCRIBE_OPTION':
                             history_element.description = step.description
                         if user_id in step.users_ids:
                             if step.fails >= 3:
                                 incoterms[step.incoterm] = CorrectOrError.ERROR
+                                incoterms_v2[step.incoterm] = AnswerStatus.FAILED.value
+                            elif step.fails > 0:
+                                incoterms_v2[step.incoterm] = AnswerStatus.CORRECT_WITH_FAILS.value
 
                     best = TestCorrectsAndErrors(correct=0, error=20)
                     for test_result in event.test_results:
@@ -535,6 +539,7 @@ class PracticeOneClass:
                             best = copy.deepcopy(current)
 
                     history_element.incoterms = incoterms
+                    history_element.incoterms_v2 = incoterms_v2
                     history_element.test = best
 
                     self.db[CollectionNames.USERS.value].update_one(
@@ -671,7 +676,8 @@ class PracticeOneClass:
 
         for test in tests:
             for question in test:
-                random.shuffle(question.options)
+                if not question.question == 'Особенность базиса поставки CIP?':
+                    random.shuffle(question.options)
                 if len([option for option in question.options if option.is_correct]) > 1:
                     question.multiple_options = True
                 question.right_ids = [option.id for option in question.options if option.is_correct]

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import time
 from copy import deepcopy
@@ -38,8 +37,6 @@ from schemas import (
     StartEventResponse,
     Step, ConnectedComputerUpdate,
 )
-from services import oauth2
-from services.create_event import create_event
 from services.oauth2 import extract_users_ids_rest
 from services.practice_one_class import PracticeOneClass
 from services.practice_one_control import PracticeOneControl

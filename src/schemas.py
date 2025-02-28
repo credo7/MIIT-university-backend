@@ -489,6 +489,7 @@ class UserHistoryElement(BaseModel):
     created_at: datetime
     finished_at: datetime
     incoterms: Optional[dict[Incoterm, CorrectOrError]] = Field(default_factory=dict)
+    incoterms_v2: Optional[dict[Incoterm, AnswerStatus]] = Field(default_factory=dict)
     incoterm_points_mapping: Optional[dict[Incoterm, int]] = Field(default_factory=dict)
     test: Optional[TestCorrectsAndErrors] = None
     description: Optional[str] = None
@@ -733,7 +734,6 @@ class QuestionOption(BaseModel):
     id: int
     value: str
     is_correct: bool = False
-
 
 class TestQuestionPR1(BaseModel):
     id: int
