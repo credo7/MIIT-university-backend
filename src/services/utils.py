@@ -90,9 +90,10 @@ def create_username(first_name, last_name, surname, group_name) -> str:
     if surname:
         surname_en = translit(surname, 'ru', reversed=True)[:2]
     group_name_en = translit(group_name, 'ru', reversed=True)
-    username_without_spaces = str.lower(first_name_en + last_name_en + surname_en + group_name_en).replace(' ', "")
 
-    return username_without_spaces
+    username = (first_name_en + last_name_en + surname_en + group_name_en).lower()
+    username_clean = (username.replace(' ', '').replace('-', '').replace('–', '').replace('—', ''))
+    return username_clean
 
 
 def generate_password(length=8):

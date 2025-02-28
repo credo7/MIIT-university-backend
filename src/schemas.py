@@ -313,9 +313,22 @@ class StartEventResponse(BaseModel):
 
 
 class UserBase(BaseModel):
-    first_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    last_name: constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
+    first_name: constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )
+    last_name: constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )
+    surname: Optional[constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )] = None
+
     student_id: str
     updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
@@ -1157,9 +1170,22 @@ class UserCredentials(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    last_name: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')]
-    surname: Optional[constr(min_length=2, max_length=35, regex='^[а-яА-ЯёЁ]+$')] = None
+    first_name: constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )
+    last_name: constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )
+    surname: Optional[constr(
+        min_length=2,
+        max_length=35,
+        regex=r'^[а-яА-ЯёЁ \-–—]+$'
+    )] = None
+
     student_id: Optional[str]
     group_id: Optional[str] = None
     group_name: Optional[str] = None
