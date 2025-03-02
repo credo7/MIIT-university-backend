@@ -76,7 +76,7 @@ async def hide_group(group_id: str, db: Database = Depends(get_db)):
     db[CollectionNames.USERS.value].update_many(
         {'group_id': str(group_db['_id'])},
         {
-            '$set': {'is_approved': False},
+            '$set': {'approved': False},
             '$push': {'fix_for_approve_fields': 'group_id'}
         }
     )
@@ -96,7 +96,7 @@ async def unhide_group(group_id: str, db: Database = Depends(get_db)):
 
     user_collection.update_many(
         {'group_id': str(group_db['_id']), 'fix_for_approve_fields': ["group_id"]},
-        {'$set': {'fix_for_approve_fields': None, 'is_approved': True}}
+        {'$set': {'fix_for_approve_fields': None, 'approved': True}}
     )
 
     user_collection.update_many(
