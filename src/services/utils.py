@@ -66,9 +66,6 @@ def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
     if user_search.group_id is not None:
         filter['group_id'] = user_search.group_id
 
-    if user_search.group_name is not None:
-        filter['group_name'] = user_search.group_name
-
     if sort is None or sort == 'AZ':
         return db[CollectionNames.USERS.value].find(filter).sort('last_name', pymongo.ASCENDING)
     else:

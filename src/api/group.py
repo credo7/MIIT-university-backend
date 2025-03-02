@@ -77,7 +77,7 @@ async def hide_group(group_id: str, db: Database = Depends(get_db)):
         {'group_id': str(group_db['_id'])},
         {
             '$set': {'approved': False},
-            '$push': {'fix_for_approve_fields': 'group_id'}
+            '$addToSet': {'fix_for_approve_fields': 'group_id'}
         }
     )
 

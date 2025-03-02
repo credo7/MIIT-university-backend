@@ -443,7 +443,7 @@ class RequestEditsBody(BaseModel):
     last_name: Optional[bool] = False
     surname: Optional[bool] = False
     student_id: Optional[bool] = False
-    group: Optional[bool] = False
+    group_id: Optional[bool] = False
 
 
 class CheckApprovalResponse(BaseModel):
@@ -543,7 +543,6 @@ class UserOutWithEvents(UserOut):
 class UserSearch(BaseModel):
     search: Optional[str] = None
     group_id: Optional[str] = None
-    group_name: Optional[str] = None
 
 
 class Token(BaseModel):
@@ -1188,7 +1187,6 @@ class UserUpdate(BaseModel):
 
     student_id: Optional[str]
     group_id: Optional[str] = None
-    group_name: Optional[str] = None
     username: Optional[str] = None
 
 

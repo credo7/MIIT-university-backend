@@ -24,12 +24,11 @@ logger = logging.getLogger(__name__)
 async def get_users(
     search: str = Query(None, description='Search by first name, last name, or surname'),
     group_id: str = Query(None, description='Filter by group ID'),
-    group_name: str = Query(None, description='Filter by group name'),
     sort: str = Query(None, description='AZ or ZA'),
     _current_user: schemas.FullUser = Depends(oauth2.get_current_user),
 ):
     found_users = utils.search_users_by_group(
-        schemas.UserSearch(search=search, group_id=group_id, group_name=group_name), sort
+        schemas.UserSearch(search=search, group_id=group_id), sort
     )
     return normalize_mongo(found_users, schemas.UserOut)
 
@@ -44,8 +43,6 @@ async def edit(
         group_filter = {}
         if user_update.group_id:
             group_filter['_id'] = ObjectId(user_update.group_id)
-        if user_update.group_name:
-            group_filter['name'] = user_update.group_name
 
         if group_filter:
             group_db = db[CollectionNames.GROUPS.value].find_one(group_filter)
@@ -55,14 +52,11 @@ async def edit(
             user_update.group_name = group_db['name']
 
         user_update_dict = {}
-        required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id', 'group_name']
+        required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id']
         required_to_change = current_user.fix_for_approve_fields
         for field, value in user_update.dict().items():
             if field in required_fields and value is not None:
-
                 if required_to_change:
-                    if 'group' in field and 'group' in required_to_change:
-                        required_to_change.remove('group')
                     if field in required_to_change:
                         required_to_change.remove(field)
 
@@ -74,7 +68,7 @@ async def edit(
                 content=jsonable_encoder(
                     {
                         'detail': 'Заполнены не все требуемые поля!',
-                        'rest_fields': [field if field != 'group' else 'group_id' for field in required_to_change],
+                        'rest_fields': required_to_change,
                     }
                 ),
             )
@@ -178,24 +172,6 @@ async def get_unapproved_users(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
-# @router.post('/forgot-password')
-# async def forgot_password(
-#     body: schemas.ForgotPasswordBody, db: Database = Depends(get_db),
-# ):
-#     new_password = utils.generate_password()
-#
-# hash_password = utils.hash(new_password)
-#
-#     user_db = db[CollectionNames.USERS.value].find_one_and_update(
-#         {'username': body.username, 'student_id': body.student_id}, {'$set': {'password': hash_password}}
-#     )
-#
-#     if user_db is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с таким данными не найден')
-#
-#     return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
-
-
 @router.post('/change-password', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def change_password(body: schemas.ChangePasswordBody, db: Database = Depends(get_db)):
     user_db = db[CollectionNames.USERS.value].find_one(
@@ -212,38 +188,6 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
     db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}})
 
     return user
-
-
-# @router.patch(
-#     '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserCredentials,
-# )
-# async def change_password(
-#     user_id: str,
-#     _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
-#     db: Database = Depends(get_db),
-# ):
-#     try:
-#         new_password = utils.generate_password()
-#
-#         hash_password = utils.hash(new_password)
-#
-#         user_db = db[CollectionNames.USERS.value].find_one_and_update(
-#             {'_id': ObjectId(user_id)}, {'$set': {'password': hash_password}}
-#         )
-#
-#         if not user_db:
-#             raise HTTPException(status_code=404, detail='Пользователь не найден')
-#
-#         logger.info(f"password change for user with id {user_db['_id']}")
-#
-#         return schemas.UserCredentials(username=user_db['username'], password=new_password)
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
-
-
-@router.get('/me')
-async def get_me(current_user: schemas.UserOut = Depends(oauth2.get_current_user)):
-    return current_user
 
 
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.GetUserResponse)
