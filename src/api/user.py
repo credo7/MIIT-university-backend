@@ -44,14 +44,14 @@ async def edit(
         if user_update.group_id:
             group_filter['_id'] = ObjectId(user_update.group_id)
 
+        user_update_dict = {}
         if group_filter:
             group_db = db[CollectionNames.GROUPS.value].find_one(group_filter)
             if not group_db:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, 'Группа не найдена')
             user_update.group_id = str(group_db['_id'])
-            user_update.group_name = group_db['name']
+            user_update_dict["group_name"] = group_db['name']
 
-        user_update_dict = {}
         required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id']
         required_to_change = current_user.fix_for_approve_fields
         for field, value in user_update.dict().items():

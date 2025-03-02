@@ -1169,23 +1169,23 @@ class UserCredentials(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: constr(
+    first_name: Optional[constr(
         min_length=2,
         max_length=35,
         regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )
-    last_name: constr(
+    )] = None
+    last_name: Optional[constr(
         min_length=2,
         max_length=35,
         regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )
+    )] = None
     surname: Optional[constr(
         min_length=2,
         max_length=35,
         regex=r'^[а-яА-ЯёЁ \-–—]+$'
     )] = None
 
-    student_id: Optional[str]
+    student_id: Optional[str] = None
     group_id: Optional[str] = None
     username: Optional[str] = None
 

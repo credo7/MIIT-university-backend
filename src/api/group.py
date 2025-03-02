@@ -20,7 +20,6 @@ from db.mongo import (
     CollectionNames,
     get_db,
 )
-from services import oauth2
 from services.utils import normalize_mongo
 
 router = APIRouter(tags=['Groups'], prefix='/groups')
