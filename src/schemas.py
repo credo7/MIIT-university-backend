@@ -1464,7 +1464,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
             self.insurance,
             self.export_formal_payments,
             {
-                Incoterm.FAS: "FAS порт отправления",
+                Incoterm.FAS: "FAS порт отправления", # TODO: А где он?
                 Incoterm.FOB: "FOB порт отправления",
                 Incoterm.CFR: "CFR порт назначения",
                 Incoterm.CIF: "CIF порт назначения"
@@ -1477,7 +1477,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each,
                 self.transport_package_price,
                 self.loading_unloading_expenses,
-                self.sea_delivery_to_destination,
                 self.export_formal_payments,
                 self.loading_on_destination,
             ]
@@ -1504,6 +1503,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.loading_unloading_expenses,
                 self.delivery_to_port,
                 self.sea_delivery_to_destination,
+                self.loading_on_destination,
                 self.export_formal_payments,
                 self.insurance,
             ]
@@ -1897,3 +1897,9 @@ class CheckpointResponse(BaseModel):
     missed_ids: Optional[list[int]] = Field(default_factory=list)
     not_needed_ids: Optional[list[int]] = Field(default_factory=list)
     hint: Optional[str]
+
+
+if __name__ == '__main__':
+    pr1 = PR1ControlStep3.create()
+    print(pr1.get_formatted_legend())
+    print(pr1.get_formula_with_nums())

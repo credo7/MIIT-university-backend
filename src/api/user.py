@@ -96,10 +96,11 @@ async def edit(
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
-        logger.info(f'user updated {user_db}')
-
         return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
+        logger.info(f"user_update={user_update}")
+        logger.info(f"current_user={current_user}")
+        logger.error(e, exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
