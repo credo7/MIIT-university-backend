@@ -83,18 +83,19 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
             if message.get("type") == "pong":
                 if computer_id in WebsocketServiceState.connected_computers:
                     WebsocketServiceState.connected_computers[computer_id].last_pong = time.time()
-                    print(f"IN HANDLE {WebsocketServiceState.connected_computers[computer_id].last_pong}")
-                logger.info(f"✅ Received Pong from computer {computer_id}")
+                    # print(f"IN HANDLE {WebsocketServiceState.connected_computers[computer_id].last_pong}")
+                # logger.info(f"✅ Received Pong from computer {computer_id}")
             else:
                 # Custom handling for other message types
-                logger.info(f"📩 Received message from computer {computer_id}: {message}")
+                ...
+                # logger.info(f"📩 Received message from computer {computer_id}: {message}")
         except WebSocketDisconnect:
-            logger.info(f"WebSocket disconnected for computer {computer_id}. Exiting loop.")
+            # logger.info(f"WebSocket disconnected for computer {computer_id}. Exiting loop.")
             break
         except RuntimeError as exc:
             # Check if the error is because the WebSocket is closed
             if "not connected" in str(exc):
-                logger.info(f"WebSocket closed for computer {computer_id}. Exiting loop.")
+                # logger.info(f"WebSocket closed for computer {computer_id}. Exiting loop.")
                 break
             else:
                 logger.error(
