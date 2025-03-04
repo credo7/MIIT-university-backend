@@ -39,6 +39,15 @@ async def edit(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user),
     db: Database = Depends(get_db),
 ):
+    if user_update.first_name:
+        user_update.first_name = user_update.first_name.capitalize()
+    if user_update.last_name:
+        user_update.last_name = user_update.last_name.capitalize()
+    if user_update.surname:
+        user_update.surname = user_update.surname.capitalize()
+    if user_update.student_id:
+        user_update.student_id = user_update.student_id.upper()
+
     try:
         group_filter = {}
         if user_update.group_id:
@@ -80,8 +89,6 @@ async def edit(
                 'surname': user_update_dict.get('surname') or current_user.surname,
                 'group_id': user_update_dict.get('group_id') or current_user.group_id,
                 'student_id': user_update_dict.get('student_id') or current_user.student_id,
-                'group_name': user_update_dict.get('group_name') or current_user.group_name,
-
             }
         )
         if candidate:
