@@ -1187,7 +1187,6 @@ class UserUpdate(BaseModel):
 
     student_id: Optional[str] = None
     group_id: Optional[str] = None
-    username: Optional[str] = None
 
 
 class ResponseMessage(BaseModel):
