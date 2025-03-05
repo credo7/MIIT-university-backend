@@ -327,7 +327,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.EXW',
+                'incoterm': Incoterm.EXW,
             },
             {
                 'id': 12,
@@ -347,7 +347,7 @@ raw_practice_one_info = {
                         'value': 'Риск случайной гибели товара переходит\nот поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
                 ],
-                'incoterm': 'Incoterm.EXW',
+                'incoterm': Incoterm.EXW,
             },
             {
                 'id': 13,
@@ -363,7 +363,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Загружает товар на транспорт покупателя'},
                     {'id': 4, 'value': 'Оформляет таможенный экспорт'},
                 ],
-                'incoterm': 'Incoterm.EXW',
+                'incoterm': Incoterm.EXW,
             },
             {
                 'id': 14,
@@ -380,7 +380,7 @@ raw_practice_one_info = {
                     {'id': 4, 'value': 'Маркирует товар'},
                     {'id': 5, 'value': 'Упаковывает товар'},
                 ],
-                'incoterm': 'Incoterm.EXW',
+                'incoterm': Incoterm.EXW,
             },
             {
                 'id': 15,
@@ -391,7 +391,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.FCA',
+                'incoterm': Incoterm.FCA,
             },
             {
                 'id': 16,
@@ -411,7 +411,7 @@ raw_practice_one_info = {
                         'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                'incoterm': 'Incoterm.FCA',
+                'incoterm': Incoterm.FCA,
             },
             {
                 'id': 17,
@@ -424,7 +424,7 @@ raw_practice_one_info = {
                     {'id': 4, 'value': 'Оформляет таможенный импорт'},
                     {'id': 5, 'value': 'Выгружает товар из транспорта продавца'},
                 ],
-                'incoterm': 'Incoterm.FCA',
+                'incoterm': Incoterm.FCA,
             },
             {
                 'id': 18,
@@ -440,7 +440,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Загружает товар на транспорт покупателя'},
                     {'id': 4, 'value': 'Страхует товар в ходе всей основной перевозки'},
                 ],
-                'incoterm': 'Incoterm.FCA',
+                'incoterm': Incoterm.FCA,
             },
             {
                 'id': 19,
@@ -451,7 +451,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.FAS',
+                'incoterm': Incoterm.FAS,
             },
             {
                 'id': 20,
@@ -471,7 +471,7 @@ raw_practice_one_info = {
                         'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                'incoterm': 'Incoterm.FAS',
+                'incoterm': Incoterm.FAS,
             },
             {
                 'id': 21,
@@ -484,7 +484,7 @@ raw_practice_one_info = {
                     {'id': 4, 'value': 'Оформляет таможенный импорт'},
                     {'id': 5, 'value': 'Загружает товар на судно покупателя'},
                 ],
-                'incoterm': 'Incoterm.FAS',
+                'incoterm': Incoterm.FAS,
             },
             {
                 'id': 22,
@@ -501,7 +501,7 @@ raw_practice_one_info = {
                     {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                     {'id': 5, 'value': 'Доставка груза от склада поставщика в порт'},
                 ],
-                'incoterm': 'Incoterm.FAS',
+                'incoterm': Incoterm.FAS,
             },
             {
                 'id': 23,
@@ -512,7 +512,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.FOB',
+                'incoterm': Incoterm.FOB,
             },
             {
                 'id': 24,
@@ -532,7 +532,7 @@ raw_practice_one_info = {
                         'value': 'Риски переходят после передачи продавцом товара перевозчику, а не в пункте назначения',
                     },
                 ],
-                'incoterm': 'Incoterm.FOB',
+                'incoterm': Incoterm.FOB,
             },
             {
                 'id': 25,
@@ -545,7 +545,7 @@ raw_practice_one_info = {
                     {'id': 4, 'value': 'Оформляет таможенный импорт'},
                     {'id': 5, 'value': 'Фрахтует место на судне'},
                 ],
-                'incoterm': 'Incoterm.FOB',
+                'incoterm': Incoterm.FOB,
             },
             {
                 'id': 26,
@@ -561,7 +561,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Грузит товар на судно'},
                     {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                'incoterm': 'Incoterm.FOB',
+                'incoterm': Incoterm.FOB,
             },
             {
                 'id': 27,
@@ -572,7 +572,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.CFR',
+                'incoterm': Incoterm.CFR,
             },
             {
                 'id': 28,
@@ -589,7 +589,7 @@ raw_practice_one_info = {
                     },
                     {'id': 2, 'value': 'Риски переходят на складе продавца'},
                 ],
-                'incoterm': 'Incoterm.CFR',
+                'incoterm': Incoterm.CFR,
             },
             {
                 'id': 29,
@@ -603,7 +603,7 @@ raw_practice_one_info = {
                     {'id': 5, 'value': 'Выгружает товар с судна'},
                     {'id': 6, 'value': 'Оформляет таможенный импорт'},
                 ],
-                'incoterm': 'Incoterm.CFR',
+                'incoterm': Incoterm.CFR,
             },
             {
                 'id': 30,
@@ -615,7 +615,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Грузит товар на судно'},
                     {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                'incoterm': 'Incoterm.CFR',
+                'incoterm': Incoterm.CFR,
             },
             {
                 'id': 31,
@@ -626,7 +626,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.CIF',
+                'incoterm': Incoterm.CIF,
             },
             {
                 'id': 32,
@@ -643,7 +643,7 @@ raw_practice_one_info = {
                     },
                     {'id': 2, 'value': 'Риски переходят в пункте назначения'},
                 ],
-                'incoterm': 'Incoterm.CIF',
+                'incoterm': Incoterm.CIF,
             },
             {
                 'id': 33,
@@ -658,7 +658,7 @@ raw_practice_one_info = {
                     {'id': 6, 'value': 'Выгружает товар с судна'},
                     {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                'incoterm': 'Incoterm.CIF',
+                'incoterm': Incoterm.CIF,
             },
             {
                 'id': 34,
@@ -670,7 +670,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Грузит товар на судно'},
                     {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                'incoterm': 'Incoterm.CIF',
+                'incoterm': Incoterm.CIF,
             },
             {
                 'id': 35,
@@ -681,7 +681,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.CIP',
+                'incoterm': Incoterm.CIP,
             },
             {
                 'id': 36,
@@ -699,7 +699,7 @@ raw_practice_one_info = {
                         'value': 'Риски случайной гибели товара переходят\nот поставщика к покупателю в момент окончания разгрузки товара вдоль борта судна',
                     },
                 ],
-                'incoterm': 'Incoterm.CIP',
+                'incoterm': Incoterm.CIP,
             },
             {
                 'id': 37,
@@ -714,7 +714,7 @@ raw_practice_one_info = {
                     {'id': 6, 'value': 'Выгружает товар с судна'},
                     {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                'incoterm': 'Incoterm.CIP',
+                'incoterm': Incoterm.CIP,
             },
             {
                 'id': 38,
@@ -726,7 +726,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Грузит товар на судно'},
                     {'id': 4, 'value': 'Осуществляет экспортное таможенное оформление'},
                 ],
-                'incoterm': 'Incoterm.CIP',
+                'incoterm': Incoterm.CIP,
             },
             {
                 'id': 39,
@@ -737,7 +737,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.CPT',
+                'incoterm': Incoterm.CPT,
             },
             {
                 'id': 40,
@@ -754,7 +754,7 @@ raw_practice_one_info = {
                         'value': 'Риски случайной порчи товара переходят\nот продавца к покупателю на складе продавца',
                     },
                 ],
-                'incoterm': 'Incoterm.CPT',
+                'incoterm': Incoterm.CPT,
             },
             {
                 'id': 41,
@@ -768,7 +768,7 @@ raw_practice_one_info = {
                     {'id': 5, 'value': 'Выгружает товар в месте назначения'},
                     {'id': 6, 'value': 'Страхует груз от транспортных рисков', 'is_correct': True},
                 ],
-                'incoterm': 'Incoterm.CPT',
+                'incoterm': Incoterm.CPT,
             },
             {
                 'id': 42,
@@ -780,7 +780,7 @@ raw_practice_one_info = {
                     {'id': 3, 'value': 'Выгружает товар в месте назначения', 'is_correct': True},
                     {'id': 4, 'value': 'Страхует груз от транспортных рисков'},
                 ],
-                'incoterm': 'Incoterm.CPT',
+                'incoterm': Incoterm.CPT,
             },
             {
                 'id': 43,
@@ -791,7 +791,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.DAP',
+                'incoterm': Incoterm.DAP,
             },
             {
                 'id': 44,
@@ -811,7 +811,7 @@ raw_practice_one_info = {
                         'value': 'Риск случайной гибели товара переходит\nот продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                'incoterm': 'Incoterm.DAP',
+                'incoterm': Incoterm.DAP,
             },
             {
                 'id': 45,
@@ -826,7 +826,7 @@ raw_practice_one_info = {
                     {'id': 6, 'value': 'Выгружает товар'},
                     {'id': 7, 'value': 'Оформляет таможенный импорт'},
                 ],
-                'incoterm': 'Incoterm.DAP',
+                'incoterm': Incoterm.DAP,
             },
             {
                 'id': 46,
@@ -837,7 +837,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Оформляет таможенный экспорт'},
                     {'id': 3, 'value': 'Страхует груз'},
                 ],
-                'incoterm': 'Incoterm.DAP',
+                'incoterm': Incoterm.DAP,
             },
             {
                 'id': 47,
@@ -848,7 +848,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.DPU',
+                'incoterm': Incoterm.DPU,
             },
             {
                 'id': 48,
@@ -868,7 +868,7 @@ raw_practice_one_info = {
                         'value': 'Риск случайной гибели товара переходит\nот продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                'incoterm': 'Incoterm.DPU',
+                'incoterm': Incoterm.DPU,
             },
             {
                 'id': 49,
@@ -882,7 +882,7 @@ raw_practice_one_info = {
                     {'id': 5, 'value': 'Страхует груз от транспортных рисков покупателя'},
                     {'id': 6, 'value': 'Оформляет таможенный импорт'},
                 ],
-                'incoterm': 'Incoterm.DPU',
+                'incoterm': Incoterm.DPU,
             },
             {
                 'id': 50,
@@ -893,7 +893,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Страхует груз'},
                     {'id': 3, 'value': 'Загружает груз на транспорт'},
                 ],
-                'incoterm': 'Incoterm.DPU',
+                'incoterm': Incoterm.DPU,
             },
             {
                 'id': 51,
@@ -904,7 +904,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Автомобильные перевозки'},
                     {'id': 3, 'value': 'Авиационные перевозки'},
                 ],
-                'incoterm': 'Incoterm.DDP',
+                'incoterm': Incoterm.DDP,
             },
             {
                 'id': 52,
@@ -920,7 +920,7 @@ raw_practice_one_info = {
                         'value': 'Риск случайной гибели товара переходит\nот продавца к покупателю в момент погрузки товара на транспорт покупателя',
                     },
                 ],
-                'incoterm': 'Incoterm.DDP',
+                'incoterm': Incoterm.DDP,
             },
             {
                 'id': 53,
@@ -934,7 +934,7 @@ raw_practice_one_info = {
                     {'id': 5, 'value': 'Выгружает товар из транспорта продавца'},
                     {'id': 6, 'value': 'Страхует груз от транспортных рисков покупателя'},
                 ],
-                'incoterm': 'Incoterm.DDP',
+                'incoterm': Incoterm.DDP,
             },
             {
                 'id': 54,
@@ -945,7 +945,7 @@ raw_practice_one_info = {
                     {'id': 2, 'value': 'Оформляет таможенный экспорт'},
                     {'id': 3, 'value': 'Страхует груз'},
                 ],
-                'incoterm': 'Incoterm.DDP',
+                'incoterm': Incoterm.DDP,
             },
         ],
     },
