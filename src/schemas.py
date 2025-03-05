@@ -1455,6 +1455,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each,
                 self.transport_package_price,
                 self.delivery_to_port,
+                self.sea_delivery_to_destination,
                 self.loading_unloading_expenses,
                 self.export_formal_payments,
                 self.loading_on_destination,
@@ -1536,16 +1537,13 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 + self.insurance
             )
         elif self.incoterm == Incoterm.FAS.value:
-            nums = [
-                self.price_for_each,
-                self.transport_package_price,
-                self.loading_unloading_expenses,
-                self.delivery_to_port,
-                self.export_formal_payments,
-            ]
-            nums = [str(num) for num in nums if num != 0]
-            pre = f'{self.quantity} * '
-            return pre + ' + '.join(nums)
+            return (
+                self.price_for_each * self.quantity
+                + self.transport_package_price
+                + self.loading_unloading_expenses
+                + self.delivery_to_port
+                + self.export_formal_payments
+            )
 
 
 class PR1ControlStep2(PR1ControlStepVariant):
