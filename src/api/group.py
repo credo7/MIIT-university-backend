@@ -53,8 +53,7 @@ async def create(
 @router.post('/hide/{group_id}', status_code=status.HTTP_200_OK)
 async def hide_group(group_id: str, db: Database = Depends(get_db)):
     group_db = db[CollectionNames.GROUPS.value].find_one_and_update(
-        {'_id': ObjectId(group_id)},
-        {'$set': {'is_hidden': True, 'updated_at': datetime.now()}},
+        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': True, 'updated_at': datetime.now()}},
     )
 
     if not group_db:
@@ -62,22 +61,13 @@ async def hide_group(group_id: str, db: Database = Depends(get_db)):
 
     # Ensure fix_for_approve_fields is an array if it's currently null.
     db[CollectionNames.USERS.value].update_many(
-        {
-            'group_id': str(group_db['_id']),
-            'fix_for_approve_fields': None
-        },
-        {
-            '$set': {'fix_for_approve_fields': []}
-        }
+        {'group_id': str(group_db['_id']), 'fix_for_approve_fields': None}, {'$set': {'fix_for_approve_fields': []}}
     )
 
     # Now perform the update with $push
     db[CollectionNames.USERS.value].update_many(
         {'group_id': str(group_db['_id'])},
-        {
-            '$set': {'approved': False},
-            '$addToSet': {'fix_for_approve_fields': 'group_id'}
-        }
+        {'$set': {'approved': False}, '$addToSet': {'fix_for_approve_fields': 'group_id'}},
     )
 
 
@@ -87,20 +77,20 @@ async def unhide_group(group_id: str, db: Database = Depends(get_db)):
     user_collection: Collection = db[CollectionNames.USERS.value]
 
     group_db = group_collection.find_one_and_update(
-        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': False, "updated_at": datetime.now()}}
+        {'_id': ObjectId(group_id)}, {'$set': {'is_hidden': False, 'updated_at': datetime.now()}}
     )
 
     if not group_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Группа не найдена')
 
     user_collection.update_many(
-        {'group_id': str(group_db['_id']), 'fix_for_approve_fields': ["group_id"]},
-        {'$set': {'fix_for_approve_fields': None, 'approved': True}}
+        {'group_id': str(group_db['_id']), 'fix_for_approve_fields': ['group_id']},
+        {'$set': {'fix_for_approve_fields': None, 'approved': True}},
     )
 
     user_collection.update_many(
         {'group_id': str(group_db['_id']), 'fix_for_approve_fields': {'$elemMatch': {'$eq': 'group_id'}}},
-        {'$pull': {'fix_for_approve_fields': "group_id"}}
+        {'$pull': {'fix_for_approve_fields': 'group_id'}},
     )
 
 

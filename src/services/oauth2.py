@@ -171,7 +171,7 @@ def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
 
     token2 = None
     if rq_token2 is not None:
-        print(f"rq_token2={rq_token2}")
+        print(f'rq_token2={rq_token2}')
         token2 = verify_access_token(token=rq_token2, credentials_exception=None, raise_on_error=False)
 
     users = []

@@ -35,7 +35,8 @@ from schemas import (
     PR2ClassEvent,
     StartEventDto,
     StartEventResponse,
-    Step, ConnectedComputerUpdate,
+    Step,
+    ConnectedComputerUpdate,
 )
 from services.oauth2 import extract_users_ids_rest
 from services.practice_one_class import PracticeOneClass
@@ -67,10 +68,7 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
 
     if WebsocketServiceState.is_computer_exists_and_same_users(start_event_dto.computer_id, event.users_ids):
         computer_update = ConnectedComputerUpdate(
-            id=start_event_dto.computer_id,
-            event_id=event.id,
-            event_type=event.event_type,
-            event_mode=event.event_mode,
+            id=start_event_dto.computer_id, event_id=event.id, event_type=event.event_type, event_mode=event.event_mode,
         )
         await WebsocketServiceState.update_connected_computer(computer_update)
     else:
@@ -199,7 +197,9 @@ async def create_checkpoint(
     if WebsocketServiceState.is_computer_exists_and_same_users(event_info.computer_id, event_info.users_ids):
         computer_update = ConnectedComputerUpdate(
             id=event_info.computer_id,
-            step_code=event_info.current_step.code if isinstance(event_info.current_step, Step) else event_info.current_step,
+            step_code=event_info.current_step.code
+            if isinstance(event_info.current_step, Step)
+            else event_info.current_step,
             event_type=event_info.event_type,
             event_mode=event_info.event_mode,
             event_id=event_info.id,
@@ -211,17 +211,18 @@ async def create_checkpoint(
             users_ids=event_info.users_ids,
             event_type=event_info.event_type,
             event_mode=event_info.event_mode,
-            step_code=event_info.current_step.code if isinstance(event_info.current_step, Step) else event_info.current_step,
+            step_code=event_info.current_step.code
+            if isinstance(event_info.current_step, Step)
+            else event_info.current_step,
             event_id=event_info.id,
-            last_action=time.time()
+            last_action=time.time(),
         )
         await WebsocketServiceState.create_connected_computer(connected_computer)
 
-    if event_info.current_step == "FINISHED" or (isinstance(event_info.current_step, Step) and event_info.current_step.code == "FINISHED"):
-        computer_update = ConnectedComputerUpdate(
-            id=event_info.computer_id,
-            help_requested=False
-        )
+    if event_info.current_step == 'FINISHED' or (
+        isinstance(event_info.current_step, Step) and event_info.current_step.code == 'FINISHED'
+    ):
+        computer_update = ConnectedComputerUpdate(id=event_info.computer_id, help_requested=False)
         await WebsocketServiceState.update_connected_computer(computer_update)
 
     return checkpoint_response
@@ -331,12 +332,10 @@ async def retake_test(
 
         for comp_id, comp in WebsocketServiceState.connected_computers.items():
             if comp.event_id == event_id:
-                computer_update = ConnectedComputerUpdate(
-                    id=comp_id,
-                    step_code=first_test_step.code
-                )
+                computer_update = ConnectedComputerUpdate(id=comp_id, step_code=first_test_step.code)
                 await WebsocketServiceState.update_connected_computer(computer_update)
                 break
+
 
 @router.post('/continue-work', status_code=status.HTTP_200_OK)
 async def continue_work(

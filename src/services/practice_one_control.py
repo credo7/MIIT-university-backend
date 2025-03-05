@@ -36,7 +36,10 @@ from schemas import (
     TestCorrectsAndErrors,
     UserHistoryElement,
     UserOut,
-    PR1ControlStep1, PR1ControlStep3, PR1ControlStep2, PR1ControlStepVariant,
+    PR1ControlStep1,
+    PR1ControlStep3,
+    PR1ControlStep2,
+    PR1ControlStepVariant,
 )
 from services.utils import normalize_mongo
 
@@ -123,15 +126,11 @@ class PracticeOneControl:
             step_response.test_question = event.test[test_question_index]
         else:
             step_n = event.current_step.code[-1]
-            step: PR1ControlStepVariant = getattr(event, f"step{step_n}")
+            step: PR1ControlStepVariant = getattr(event, f'step{step_n}')
             step_response.right_answer = step.calculate()
-            step_response.right_formula = "Надо?"
+            step_response.right_formula = 'Надо?'
             step_response.right_formula_with_nums = step.get_formula_with_nums()
-            step_response.image_name = {
-                "1": "OIL",
-                "2": "SHOES",
-                "3": "TV"
-            }[step_n]
+            step_response.image_name = {'1': 'OIL', '2': 'SHOES', '3': 'TV'}[step_n]
             step_response.incoterm = step.incoterm
 
             step_response.legend = step.get_formatted_legend()
@@ -233,7 +232,7 @@ class PracticeOneControl:
                 event.current_step = next_step
         else:
             step_n = event.current_step.code[-1]
-            step: PR1ControlStepVariant = getattr(event, f"step{step_n}")
+            step: PR1ControlStepVariant = getattr(event, f'step{step_n}')
             right_answer = step.calculate()
 
             if not event.steps_results or event.steps_results[-1].step_code != event.current_step.code:
@@ -263,14 +262,14 @@ class PracticeOneControl:
                 checkpoint_response.next_step = event.current_step
             else:
 
-                if step_n == "3":
+                if step_n == '3':
                     next_step = Step(id=4, code='TEST_1', name=f'Тестовый вопрос #1', role=StepRole.ALL)
                 else:
                     next_step_n = int(step_n) + 1
-                    _next_step: PR1ControlStepVariant = getattr(event, f"step{next_step_n}")
+                    _next_step: PR1ControlStepVariant = getattr(event, f'step{next_step_n}')
                     next_step = Step(
                         id=next_step_n,
-                        code=f"PR1_CONTROL_{next_step_n}",
+                        code=f'PR1_CONTROL_{next_step_n}',
                         name=f'Условие {_next_step.incoterm}',
                         role=StepRole.ALL,
                     )

@@ -313,21 +313,9 @@ class StartEventResponse(BaseModel):
 
 
 class UserBase(BaseModel):
-    first_name: constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )
-    last_name: constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )
-    surname: Optional[constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )] = None
+    first_name: constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')
+    last_name: constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')
+    surname: Optional[constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')] = None
 
     student_id: str
     updated_at: Optional[datetime] = Field(default_factory=datetime.now)
@@ -746,6 +734,7 @@ class QuestionOption(BaseModel):
     id: int
     value: str
     is_correct: bool = False
+
 
 class TestQuestionPR1(BaseModel):
     id: int
@@ -1169,21 +1158,9 @@ class UserCredentials(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    first_name: Optional[constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )] = None
-    last_name: Optional[constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )] = None
-    surname: Optional[constr(
-        min_length=2,
-        max_length=35,
-        regex=r'^[а-яА-ЯёЁ \-–—]+$'
-    )] = None
+    first_name: Optional[constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')] = None
+    last_name: Optional[constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')] = None
+    surname: Optional[constr(min_length=2, max_length=35, regex=r'^[а-яА-ЯёЁ \-–—]+$')] = None
 
     student_id: Optional[str] = None
     group_id: Optional[str] = None
@@ -1389,6 +1366,7 @@ class PR2ControlInfo(BaseModel):
     legends: list[str]
     random_incoterms: list[list[Incoterm]]
 
+
 class PR1ControlStepVariant(BaseModel, ABC):
     incoterm: Incoterm
 
@@ -1420,7 +1398,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
     loading_on_destination: int  # sea_delivery_to_destination * 0.05
     insurance: int  # price_for_each * quantity * 0.02
     export_formal_payments: int  # price_for_each * quantity * 0.15
-    incoterm: Incoterm  # FOB, CFR, CIF
+    incoterm: Incoterm  # FOB, CFR, CIF, FAS
 
     @classmethod
     def create(cls):
@@ -1452,6 +1430,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
 
     def get_formatted_legend(self) -> int:
         from constants.pr1_control_info import pr1_control_info
+
         return pr1_control_info.legends[0].format(
             self.price_for_each,
             self.quantity,
@@ -1463,11 +1442,11 @@ class PR1ControlStep1(PR1ControlStepVariant):
             self.insurance,
             self.export_formal_payments,
             {
-                Incoterm.FAS: "FAS порт отправления", # TODO: А где он?
-                Incoterm.FOB: "FOB порт отправления",
-                Incoterm.CFR: "CFR порт назначения",
-                Incoterm.CIF: "CIF порт назначения"
-            }[self.incoterm]
+                Incoterm.FAS: 'FAS порт отправления',  # TODO: А где он?
+                Incoterm.FOB: 'FOB порт отправления',
+                Incoterm.CFR: 'CFR порт назначения',
+                Incoterm.CIF: 'CIF порт назначения',
+            }[self.incoterm],
         )
 
     def get_formula_with_nums(self) -> str:
@@ -1475,6 +1454,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
             nums = [
                 self.price_for_each,
                 self.transport_package_price,
+                self.delivery_to_port,
                 self.loading_unloading_expenses,
                 self.export_formal_payments,
                 self.loading_on_destination,
@@ -1487,6 +1467,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each,
                 self.transport_package_price,
                 self.loading_unloading_expenses,
+                self.sea_delivery_to_destination,
                 self.delivery_to_port,
                 self.export_formal_payments,
                 self.loading_on_destination,
@@ -1509,6 +1490,17 @@ class PR1ControlStep1(PR1ControlStepVariant):
             nums = [str(num) for num in nums if num != 0]
             pre = f'{self.quantity} * '
             return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.FAS.value:
+            nums = [
+                self.price_for_each,
+                self.transport_package_price,
+                self.loading_unloading_expenses,
+                self.delivery_to_port,
+                self.export_formal_payments,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
 
     def calculate(self) -> int:
         if self.incoterm == Incoterm.FOB.value:
@@ -1516,6 +1508,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each * self.quantity
                 + self.transport_package_price
                 + self.loading_unloading_expenses
+                + self.delivery_to_port
                 + self.sea_delivery_to_destination
                 + self.export_formal_payments
                 + self.loading_on_destination
@@ -1525,6 +1518,7 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each * self.quantity
                 + self.transport_package_price
                 + self.loading_unloading_expenses
+                + self.sea_delivery_to_destination
                 + self.delivery_to_port
                 + self.export_formal_payments
                 + self.loading_on_destination
@@ -1536,10 +1530,22 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 + self.transport_package_price
                 + self.loading_unloading_expenses
                 + self.delivery_to_port
+                + self.loading_on_destination
                 + self.sea_delivery_to_destination
                 + self.export_formal_payments
                 + self.insurance
             )
+        elif self.incoterm == Incoterm.FAS.value:
+            nums = [
+                self.price_for_each,
+                self.transport_package_price,
+                self.loading_unloading_expenses,
+                self.delivery_to_port,
+                self.export_formal_payments,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
 
 
 class PR1ControlStep2(PR1ControlStepVariant):
@@ -1553,6 +1559,7 @@ class PR1ControlStep2(PR1ControlStepVariant):
 
     def get_formatted_legend(self) -> int:
         from constants.pr1_control_info import pr1_control_info
+
         return pr1_control_info.legends[1].format(
             self.quantity,
             self.price_for_each,
@@ -1561,15 +1568,16 @@ class PR1ControlStep2(PR1ControlStepVariant):
             self.delivery_to_port,
             self.delivery_from_port_to_terminal,
             {
-                Incoterm.FCA: "FCA Калининград",
-                Incoterm.CIP: "CIP место назначения",
-                Incoterm.CPT: "CPT место назначения",
-            }[self.incoterm]
+                Incoterm.FCA: 'FCA Калининград',
+                Incoterm.CIP: 'CIP место назначения',
+                Incoterm.CPT: 'CPT место назначения',
+            }[self.incoterm],
         )
 
     @classmethod
     def create(cls):
         from constants.pr1_control_info import pr1_control_info
+
         price_for_each = random.randrange(150, 501, 50)
         quantity = random.randrange(2500, 8001, 500)
         export_formal_payments = price_for_each * quantity * 0.15
@@ -1669,6 +1677,7 @@ class PR1ControlStep3(PR1ControlStepVariant):
 
     def get_formatted_legend(self) -> int:
         from constants.pr1_control_info import pr1_control_info
+
         return pr1_control_info.legends[2].format(
             self.quantity,
             self.price_for_each,
@@ -1677,9 +1686,9 @@ class PR1ControlStep3(PR1ControlStepVariant):
             self.export_formal_payments,
             self.import_formal_payments,
             {
-                Incoterm.EXW: "EXW склад производителя",
-                Incoterm.DDP: "DDP место назначения",
-                Incoterm.DPU: "DPU место назначения",
+                Incoterm.EXW: 'EXW склад производителя',
+                Incoterm.DDP: 'DDP место назначения',
+                Incoterm.DPU: 'DPU место назначения',
             }[self.incoterm],
         )
 
@@ -1898,7 +1907,29 @@ class CheckpointResponse(BaseModel):
     hint: Optional[str]
 
 
-if __name__ == '__main__':
-    pr1 = PR1ControlStep3.create()
-    print(pr1.get_formatted_legend())
-    print(pr1.get_formula_with_nums())
+# if __name__ == '__main__':
+#     for incoterm in (Incoterm.FOB, Incoterm.CFR, Incoterm.CIF, Incoterm.FAS):
+#         pr1_inc = PR1ControlStep1.create(incoterm)
+#         print(f'Инкотерм: {incoterm}\n')
+#         print(f'Легенда:')
+#         print(pr1_inc.get_formatted_legend())
+#         print(f'Формула: {pr1_inc.get_formula_with_nums()} = {pr1_inc.calculate()}')
+#         print('\n\n')
+#
+#     # FCA, CIP, CPT
+#     for incoterm in (Incoterm.FCA, Incoterm.CIP, Incoterm.CPT):
+#         pr1_inc = PR1ControlStep2.create(incoterm)
+#         print(f'Инкотерм: {incoterm}\n')
+#         print(f'Легенда:')
+#         print(pr1_inc.get_formatted_legend())
+#         print(f'Формула: {pr1_inc.get_formula_with_nums()} = {pr1_inc.calculate()}')
+#         print('\n\n')
+#
+#     # EXW(в 5 раз реже!), DDP, DPU
+#     for incoterm in (Incoterm.EXW, Incoterm.DDP, Incoterm.DPU):
+#         pr1_inc = PR1ControlStep3.create(incoterm)
+#         print(f'Инкотерм: {incoterm}\n')
+#         print(f'Легенда:')
+#         print(pr1_inc.get_formatted_legend())
+#         print(f'Формула: {pr1_inc.get_formula_with_nums()} = {pr1_inc.calculate()}')
+#         print('\n\n')

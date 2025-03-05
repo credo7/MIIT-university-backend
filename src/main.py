@@ -41,7 +41,6 @@ app.include_router(computer_state.router)
 app.add_middleware(ErrorLogHandlingMiddleware)
 
 
-
 import uvicorn
 
 if __name__ == '__main__':

@@ -89,7 +89,7 @@ def create_username(first_name, last_name, surname, group_name) -> str:
     group_name_en = translit(group_name, 'ru', reversed=True)
 
     username = (first_name_en + last_name_en + surname_en + group_name_en).lower()
-    username_clean = (username.replace(' ', '').replace('-', '').replace('–', '').replace('—', ''))
+    username_clean = username.replace(' ', '').replace('-', '').replace('–', '').replace('—', '')
     return username_clean
 
 

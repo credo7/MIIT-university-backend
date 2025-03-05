@@ -27,9 +27,7 @@ async def get_users(
     sort: str = Query(None, description='AZ or ZA'),
     _current_user: schemas.FullUser = Depends(oauth2.get_current_user),
 ):
-    found_users = utils.search_users_by_group(
-        schemas.UserSearch(search=search, group_id=group_id), sort
-    )
+    found_users = utils.search_users_by_group(schemas.UserSearch(search=search, group_id=group_id), sort)
     return normalize_mongo(found_users, schemas.UserOut)
 
 
@@ -59,7 +57,7 @@ async def edit(
             if not group_db:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, 'Группа не найдена')
             user_update.group_id = str(group_db['_id'])
-            user_update_dict["group_name"] = group_db['name']
+            user_update_dict['group_name'] = group_db['name']
 
         required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id']
         required_to_change = current_user.fix_for_approve_fields
@@ -75,15 +73,13 @@ async def edit(
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content=jsonable_encoder(
-                    {
-                        'detail': 'Заполнены не все требуемые поля!',
-                        'rest_fields': required_to_change,
-                    }
+                    {'detail': 'Заполнены не все требуемые поля!', 'rest_fields': required_to_change,}
                 ),
             )
 
         candidate = db[CollectionNames.USERS.value].find_one(
             {
+                '_id': {'$ne': ObjectId(current_user.id)},
                 'first_name': user_update_dict.get('first_name') or current_user.first_name,
                 'last_name': user_update_dict.get('last_name') or current_user.last_name,
                 'surname': user_update_dict.get('surname') or current_user.surname,
@@ -93,8 +89,7 @@ async def edit(
         )
         if candidate:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="DUPLICATE_USER_ERROR",
+                status_code=status.HTTP_409_CONFLICT, detail='DUPLICATE_USER_ERROR',
             )
 
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
@@ -105,8 +100,8 @@ async def edit(
 
         return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
-        logger.info(f"user_update={user_update}")
-        logger.info(f"current_user={current_user}")
+        logger.info(f'user_update={user_update}')
+        logger.info(f'current_user={current_user}')
         logger.error(e, exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
@@ -121,7 +116,7 @@ async def approve_user(
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(user_id)},
             {'$set': {'approved': True, 'updated_at': datetime.now()}},
-            return_document=pymongo.ReturnDocument.AFTER
+            return_document=pymongo.ReturnDocument.AFTER,
         )
 
         if not user_db:
@@ -148,7 +143,8 @@ async def request_edits(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Поля не заданы.')
 
     user_db = db[CollectionNames.USERS.value].find_one_and_update(
-        {'_id': ObjectId(body.user_id), 'approved': False}, {'$set': {'fix_for_approve_fields': fix_for_approve_fields, 'updated_at': datetime.now()}}
+        {'_id': ObjectId(body.user_id), 'approved': False},
+        {'$set': {'fix_for_approve_fields': fix_for_approve_fields, 'updated_at': datetime.now()}},
     )
 
     if not user_db:
@@ -193,7 +189,9 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
 
     user = normalize_mongo(user_db, schemas.UserOut)
 
-    db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}})
+    db[CollectionNames.USERS.value].update_one(
+        {'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}}
+    )
 
     return user
 
@@ -240,5 +238,6 @@ async def make_teacher(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user), db: Database = Depends(get_db),
 ):
     db[CollectionNames.USERS.value].update_one(
-        {'_id': ObjectId(current_user.id)}, {'$set': {'approved': True, 'role': 'TEACHER', "updated_at": datetime.now()}}
+        {'_id': ObjectId(current_user.id)},
+        {'$set': {'approved': True, 'role': 'TEACHER', 'updated_at': datetime.now()}},
     )

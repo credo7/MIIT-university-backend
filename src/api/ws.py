@@ -16,6 +16,7 @@ router = APIRouter(tags=['ws'], prefix='')
 
 db: Database = get_db()
 
+
 @router.websocket('/ws/{computer_id}')
 async def websocket_endpoint(ws: WebSocket, computer_id: int):
     try:
@@ -34,32 +35,23 @@ async def websocket_endpoint(ws: WebSocket, computer_id: int):
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
-                        detail=f"{user.last_name} {user.first_name} уже подключен к компьютеру #{cmp_id}"
+                        detail=f'{user.last_name} {user.first_name} уже подключен к компьютеру #{cmp_id}',
                     )
 
-        print(f"WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}")
+        print(f'WebsocketServiceState.connected_computers={WebsocketServiceState.connected_computers}')
         if WebsocketServiceState.is_computer_connected(computer_id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Компьютер уже подключен"
-            )
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'Компьютер уже подключен')
 
         users_ids = [user.id for user in users]
 
         if WebsocketServiceState.is_computer_exists_and_same_users(computer_id, users_ids):
-            print("is_computer_exists_and_same_users = TRUE")
-            computer_update = ConnectedComputerUpdate(
-                id=computer_id,
-                is_connected=True
-            )
+            print('is_computer_exists_and_same_users = TRUE')
+            computer_update = ConnectedComputerUpdate(id=computer_id, is_connected=True)
             await WebsocketServiceState.update_connected_computer(computer_update)
         else:
-            print("is_computer_exists_and_same_users = FALSE")
+            print('is_computer_exists_and_same_users = FALSE')
             connected_computer = ConnectedComputer(
-                id=computer_id,
-                users_ids=users_ids,
-                is_connected=True,
-                last_action=time.time()
+                id=computer_id, users_ids=users_ids, is_connected=True, last_action=time.time()
             )
             await WebsocketServiceState.create_connected_computer(connected_computer)
 
@@ -80,7 +72,7 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
         try:
             message = await ws.receive_json()
             # Check if this is a pong message
-            if message.get("type") == "pong":
+            if message.get('type') == 'pong':
                 if computer_id in WebsocketServiceState.connected_computers:
                     WebsocketServiceState.connected_computers[computer_id].last_pong = time.time()
                     # print(f"IN HANDLE {WebsocketServiceState.connected_computers[computer_id].last_pong}")
@@ -94,7 +86,7 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
             break
         except RuntimeError as exc:
             # Check if the error is because the WebSocket is closed
-            if "not connected" in str(exc):
+            if 'not connected' in str(exc):
                 # logger.info(f"WebSocket closed for computer {computer_id}. Exiting loop.")
                 break
             else:
@@ -110,4 +102,3 @@ async def handle_websocket_messages(ws: WebSocket, users, computer_id: int):
             )
             break
         await asyncio.sleep(0.01)
-

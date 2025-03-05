@@ -38,17 +38,18 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
         group_name=group['name'],
     ).lower()
 
-    candidate = db[CollectionNames.USERS.value].find_one({
-        'first_name': user_dto.first_name.capitalize(),
-        'last_name': user_dto.last_name.capitalize(),
-        'surname': user_dto.surname.capitalize() if user_dto.surname else None,
-        'group_id':user_dto.group_id
-    })
+    candidate = db[CollectionNames.USERS.value].find_one(
+        {
+            'first_name': user_dto.first_name.capitalize(),
+            'last_name': user_dto.last_name.capitalize(),
+            'surname': user_dto.surname.capitalize() if user_dto.surname else None,
+            'group_id': user_dto.group_id,
+        }
+    )
 
     if candidate:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="USER_ALREADY_REGISTERED",
+            status_code=status.HTTP_409_CONFLICT, detail='USER_ALREADY_REGISTERED',
         )
 
     username = generate_unique_username(username, db)
@@ -99,8 +100,8 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={
-                "error_code": "ALREADY_CONNECTED",
-                "message": f"Пользователь {user.username} уже авторизован за компьютером {computer_id}"
+                'error_code': 'ALREADY_CONNECTED',
+                'message': f'Пользователь {user.username} уже авторизован за компьютером {computer_id}',
             },
         )
 
@@ -115,12 +116,11 @@ def generate_unique_username(initial_username, db, retries=10):
     candidate_username = initial_username
 
     for _ in range(retries):
-        if not db[CollectionNames.USERS.value].find_one({"username": candidate_username}):
+        if not db[CollectionNames.USERS.value].find_one({'username': candidate_username}):
             return candidate_username
 
         candidate_username += random.choice(string.ascii_lowercase)
 
     raise HTTPException(
-        status_code=status.HTTP_409_CONFLICT,
-        detail="USER_ALREADY_REGISTERED",
+        status_code=status.HTTP_409_CONFLICT, detail='USER_ALREADY_REGISTERED',
     )

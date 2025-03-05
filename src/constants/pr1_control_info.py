@@ -65,7 +65,7 @@ raw_pr1_control_info = {
 Сделка заключена на условиях поставки {6}""",
     ],
     'random_incoterms': [
-        [Incoterm.FOB.value, Incoterm.CFR.value, Incoterm.CIF.value],
+        [Incoterm.FOB.value, Incoterm.CFR.value, Incoterm.CIF.value, Incoterm.FAS.value],
         [Incoterm.FCA.value, Incoterm.CIP.value, Incoterm.CPT.value],
         [
             Incoterm.EXW.value,

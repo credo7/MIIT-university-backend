@@ -36,7 +36,6 @@ def get_database(retry_interval: int = 5, max_retries: int = 100) -> Database:
 if __name__ == '__main__':
     db = get_database()
 
-
     # exist_collections = db.list_collection_names()
     #
     # for collection, file_path in files_to_init_map.items():
