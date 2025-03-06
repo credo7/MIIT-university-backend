@@ -1649,7 +1649,7 @@ class PR1ControlStep3(PR1ControlStepVariant):
     territory_delivery: int  # delivery_to_border * 1.2
     export_formal_payments: int  # price_for_each * quantity * 0.15
     import_formal_payments: int  # price_for_each * quantity * 0.1
-    incoterm: Incoterm  # EXW(в 5 раз реже!), DDP, DPU
+    incoterm: Incoterm  # EXW(в 5 раз реже!), DDP, DPU, DAP
 
     @classmethod
     def create(cls):
@@ -1687,6 +1687,7 @@ class PR1ControlStep3(PR1ControlStepVariant):
                 Incoterm.EXW: 'EXW склад производителя',
                 Incoterm.DDP: 'DDP место назначения',
                 Incoterm.DPU: 'DPU место назначения',
+                Incoterm.DAP: 'DAP место назначения'
             }[self.incoterm],
         )
 
@@ -1717,6 +1718,16 @@ class PR1ControlStep3(PR1ControlStepVariant):
             nums = [str(num) for num in nums if num != 0]
             pre = f'{self.quantity} * '
             return pre + ' + '.join(nums)
+        elif self.incoterm == Incoterm.DAP.value:
+            nums = [
+                self.price_for_each,
+                self.delivery_to_border,
+                self.export_formal_payments,
+                self.territory_delivery,
+            ]
+            nums = [str(num) for num in nums if num != 0]
+            pre = f'{self.quantity} * '
+            return pre + ' + '.join(nums)
 
     def calculate(self) -> int:
         if self.incoterm == Incoterm.EXW.value:
@@ -1730,6 +1741,13 @@ class PR1ControlStep3(PR1ControlStepVariant):
                 + self.import_formal_payments
             )
         elif self.incoterm == Incoterm.DPU.value:
+            return (
+                self.price_for_each * self.quantity
+                + self.delivery_to_border
+                + self.export_formal_payments
+                + self.territory_delivery
+            )
+        elif self.incoterm == Incoterm.DAP.value:
             return (
                 self.price_for_each * self.quantity
                 + self.delivery_to_border

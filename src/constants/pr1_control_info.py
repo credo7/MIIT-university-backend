@@ -69,6 +69,11 @@ raw_pr1_control_info = {
         [Incoterm.FCA.value, Incoterm.CIP.value, Incoterm.CPT.value],
         [
             Incoterm.EXW.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
             Incoterm.DDP.value,
             Incoterm.DDP.value,
             Incoterm.DDP.value,
