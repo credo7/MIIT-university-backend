@@ -115,7 +115,7 @@ async def approve_all(
     filter = {'approved': False, 'fix_for_approve_fields': None}
     if group_id:
         filter['group_id'] = group_id
-    db[CollectionNames.USERS.value].update(filter, {"$set": {'approved': True}})
+    db[CollectionNames.USERS.value].update_many(filter, {"$set": {'approved': True}})
 
 
 @router.post('/approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
