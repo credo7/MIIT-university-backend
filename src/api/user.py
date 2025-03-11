@@ -110,6 +110,7 @@ async def edit(
 async def approve_all(
     _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
     group_id: str = None,
+    db: Database = Depends(get_db),
 ):
     filter = {'approved': False, 'fix_for_approve_fields': None}
     if group_id:
