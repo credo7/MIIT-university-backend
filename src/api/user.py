@@ -106,6 +106,17 @@ async def edit(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
+@router.post('/approve/all', status_code=status.HTTP_200_OK)
+async def approve_all(
+    _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+    group_id: str = None,
+):
+    filter = {'approved': False, 'fix_for_approve_fields': None}
+    if group_id:
+        filter['group_id'] = group_id
+    db[CollectionNames.USERS.value].update(filter, {"$set": {'approved': True}})
+
+
 @router.post('/approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def approve_user(
     user_id: str,
