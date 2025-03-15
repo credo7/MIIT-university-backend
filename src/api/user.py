@@ -1,5 +1,6 @@
 import logging
 import copy
+from datetime import datetime
 from typing import List
 
 import pymongo
@@ -23,13 +24,10 @@ logger = logging.getLogger(__name__)
 async def get_users(
     search: str = Query(None, description='Search by first name, last name, or surname'),
     group_id: str = Query(None, description='Filter by group ID'),
-    group_name: str = Query(None, description='Filter by group name'),
     sort: str = Query(None, description='AZ or ZA'),
     _current_user: schemas.FullUser = Depends(oauth2.get_current_user),
 ):
-    found_users = utils.search_users_by_group(
-        schemas.UserSearch(search=search, group_id=group_id, group_name=group_name), sort
-    )
+    found_users = utils.search_users_by_group(schemas.UserSearch(search=search, group_id=group_id), sort)
     return normalize_mongo(found_users, schemas.UserOut)
 
 
@@ -39,29 +37,33 @@ async def edit(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user),
     db: Database = Depends(get_db),
 ):
+    if user_update.first_name:
+        user_update.first_name = user_update.first_name.capitalize()
+    if user_update.last_name:
+        user_update.last_name = user_update.last_name.capitalize()
+    if user_update.surname:
+        user_update.surname = user_update.surname.capitalize()
+    if user_update.student_id:
+        user_update.student_id = user_update.student_id.upper()
+
     try:
         group_filter = {}
         if user_update.group_id:
             group_filter['_id'] = ObjectId(user_update.group_id)
-        if user_update.group_name:
-            group_filter['name'] = user_update.group_name
 
+        user_update_dict = {}
         if group_filter:
             group_db = db[CollectionNames.GROUPS.value].find_one(group_filter)
             if not group_db:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, 'Группа не найдена')
             user_update.group_id = str(group_db['_id'])
-            user_update.group_name = group_db['name']
+            user_update_dict['group_name'] = group_db['name']
 
-        user_update_dict = {}
-        required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id', 'group_name']
+        required_fields = ['first_name', 'last_name', 'surname', 'student_id', 'group_id']
         required_to_change = current_user.fix_for_approve_fields
         for field, value in user_update.dict().items():
             if field in required_fields and value is not None:
-
                 if required_to_change:
-                    if 'group' in field and 'group' in required_to_change:
-                        required_to_change.remove('group')
                     if field in required_to_change:
                         required_to_change.remove(field)
 
@@ -71,24 +73,49 @@ async def edit(
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content=jsonable_encoder(
-                    {
-                        'detail': 'Заполнены не все требуемые поля!',
-                        'rest_fields': [field if field != 'group' else 'group_id' for field in required_to_change],
-                    }
+                    {'detail': 'Заполнены не все требуемые поля!', 'rest_fields': required_to_change,}
                 ),
+            )
+
+        candidate = db[CollectionNames.USERS.value].find_one(
+            {
+                '_id': {'$ne': ObjectId(current_user.id)},
+                'first_name': user_update_dict.get('first_name') or current_user.first_name,
+                'last_name': user_update_dict.get('last_name') or current_user.last_name,
+                'surname': user_update_dict.get('surname') or current_user.surname,
+                'group_id': user_update_dict.get('group_id') or current_user.group_id,
+                'student_id': user_update_dict.get('student_id') or current_user.student_id,
+            }
+        )
+        if candidate:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail='DUPLICATE_USER_ERROR',
             )
 
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(current_user.id)},
-            {'$set': {**user_update_dict, 'fix_for_approve_fields': None}},
+            {'$set': {**user_update_dict, 'fix_for_approve_fields': None, 'updated_at': datetime.now()}},
             return_document=pymongo.ReturnDocument.AFTER,
         )
 
-        logger.info(f'user updated {user_db}')
-
         return normalize_mongo(user_db, schemas.UserOut)
     except Exception as e:
+        logger.info(f'user_update={user_update}')
+        logger.info(f'current_user={current_user}')
+        logger.error(e, exc_info=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
+
+
+@router.post('/approve/all', status_code=status.HTTP_200_OK)
+async def approve_all(
+    _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
+    group_id: str = None,
+    db: Database = Depends(get_db),
+):
+    filter = {'approved': False, 'fix_for_approve_fields': None}
+    if group_id:
+        filter['group_id'] = group_id
+    db[CollectionNames.USERS.value].update_many(filter, {"$set": {'approved': True}})
 
 
 @router.post('/approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -99,7 +126,9 @@ async def approve_user(
 ):
     try:
         user_db = db[CollectionNames.USERS.value].find_one_and_update(
-            {'_id': ObjectId(user_id)}, {'$set': {'approved': True}}, return_document=pymongo.ReturnDocument.AFTER
+            {'_id': ObjectId(user_id)},
+            {'$set': {'approved': True, 'updated_at': datetime.now()}},
+            return_document=pymongo.ReturnDocument.AFTER,
         )
 
         if not user_db:
@@ -126,7 +155,8 @@ async def request_edits(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Поля не заданы.')
 
     user_db = db[CollectionNames.USERS.value].find_one_and_update(
-        {'_id': ObjectId(body.user_id), 'approved': False}, {'$set': {'fix_for_approve_fields': fix_for_approve_fields}}
+        {'_id': ObjectId(body.user_id), 'approved': False},
+        {'$set': {'fix_for_approve_fields': fix_for_approve_fields, 'updated_at': datetime.now()}},
     )
 
     if not user_db:
@@ -158,24 +188,6 @@ async def get_unapproved_users(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
 
 
-# @router.post('/forgot-password')
-# async def forgot_password(
-#     body: schemas.ForgotPasswordBody, db: Database = Depends(get_db),
-# ):
-#     new_password = utils.generate_password()
-#
-# hash_password = utils.hash(new_password)
-#
-#     user_db = db[CollectionNames.USERS.value].find_one_and_update(
-#         {'username': body.username, 'student_id': body.student_id}, {'$set': {'password': hash_password}}
-#     )
-#
-#     if user_db is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь с таким данными не найден')
-#
-#     return schemas.ForgotPasswordResponse(username=body.username, new_password=new_password)
-
-
 @router.post('/change-password', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def change_password(body: schemas.ChangePasswordBody, db: Database = Depends(get_db)):
     user_db = db[CollectionNames.USERS.value].find_one(
@@ -189,135 +201,21 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
 
     user = normalize_mongo(user_db, schemas.UserOut)
 
-    db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user.id)}, {'$set': {'password': hash_password}})
+    db[CollectionNames.USERS.value].update_one(
+        {'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}}
+    )
 
     return user
 
 
-# @router.patch(
-#     '/change-password/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserCredentials,
-# )
-# async def change_password(
-#     user_id: str,
-#     _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
-#     db: Database = Depends(get_db),
-# ):
-#     try:
-#         new_password = utils.generate_password()
-#
-#         hash_password = utils.hash(new_password)
-#
-#         user_db = db[CollectionNames.USERS.value].find_one_and_update(
-#             {'_id': ObjectId(user_id)}, {'$set': {'password': hash_password}}
-#         )
-#
-#         if not user_db:
-#             raise HTTPException(status_code=404, detail='Пользователь не найден')
-#
-#         logger.info(f"password change for user with id {user_db['_id']}")
-#
-#         return schemas.UserCredentials(username=user_db['username'], password=new_password)
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
-
-
-@router.get('/me')
-async def get_me(current_user: schemas.UserOut = Depends(oauth2.get_current_user)):
-    return current_user
-
-
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.GetUserResponse)
 async def get_user(id: str, db: Database = Depends(get_db)):
-
     user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(id)})
 
     if not user_db:
         raise HTTPException(status_code=404, detail='User not found')
 
     user = normalize_mongo(user_db, schemas.UserOut)
-
-    history = []
-
-    events = (
-        db[CollectionNames.EVENTS.value]
-        .find(
-            {
-                'is_finished': True,
-                'users_ids': {'$in': [user.id]},
-                '$or': [
-                    {'event_mode': 'CONTROL'},
-                    {'$and': [{'event_mode': 'CLASS'}, {'test_results': {'$exists': True}}]},
-                ],
-            }
-        )
-        .sort('created_at', -1)
-    )
-
-    for event_db in events:
-        event = normalize_mongo(event_db, schemas.EventInfo)
-
-        print({'event_id': event.id, 'type': event.event_type, 'event_mode': event.event_mode})
-        history_element = schemas.UserHistoryElement(
-            id=event.id,
-            type=event.event_type,
-            mode=event.event_mode,
-            created_at=event.created_at,
-            finished_at=event.finished_at,
-        )
-
-        if event.event_type == schemas.EventType.PR1:
-            if event.event_mode == schemas.EventMode.CLASS:
-                for step in event.steps_results:
-                    if step.step_code == 'DESCRIBE_OPTION':
-                        history_element.description = step.description
-                        break
-
-                incoterms = {inc: schemas.CorrectOrError.CORRECT for inc in list(schemas.Incoterm)}
-                for step in event.steps_results:
-                    if user.id in step.users_ids:
-                        if step.fails >= 3:
-                            incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
-
-                best = schemas.TestCorrectsAndErrors(correct=0, error=20)
-                for test_result in event.test_results:
-                    current = schemas.TestCorrectsAndErrors(correct=0, error=0)
-                    for step in test_result:
-                        if step.fails > 0:
-                            current.error += 1
-                        else:
-                            current.correct += 1
-                    if current.correct > best.correct:
-                        best = copy.deepcopy(current)
-            else:
-                incoterms = {
-                    event.steps_results[0].incoterm: schemas.CorrectOrError.CORRECT,
-                    event.steps_results[1].incoterm: schemas.CorrectOrError.CORRECT,
-                    event.steps_results[2].incoterm: schemas.CorrectOrError.CORRECT,
-                }
-                for step in event.steps_results[:3]:
-                    if step.fails >= 3:
-                        incoterms[step.incoterm] = schemas.CorrectOrError.ERROR
-
-                best = schemas.TestCorrectsAndErrors(correct=0, error=0)
-                for step in event.steps_results[3:]:
-                    if step.fails > 0:
-                        best.error += 1
-                    else:
-                        best.correct += 1
-
-                fails_points_mapping = {0: 3, 1: 2, 2: 1, 3: 0}
-
-                incoterm_points_mapping = {
-                    event.steps_results[0].incoterm: fails_points_mapping[event.steps_results[0].fails],
-                    event.steps_results[1].incoterm: fails_points_mapping[event.steps_results[1].fails],
-                    event.steps_results[2].incoterm: fails_points_mapping[event.steps_results[2].fails],
-                }
-
-                history_element.incoterm_points_mapping = incoterm_points_mapping
-
-            history_element.incoterms = incoterms
-            history_element.test = best
-            history.append(history_element)
 
     return schemas.GetUserResponse(
         id=user.id,
@@ -327,7 +225,7 @@ async def get_user(id: str, db: Database = Depends(get_db)):
         username=user.username,
         group_id=user.group_id,
         group_name=user.group_name,
-        history=history,
+        history=user.history,
     )
 
 
@@ -352,5 +250,6 @@ async def make_teacher(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user), db: Database = Depends(get_db),
 ):
     db[CollectionNames.USERS.value].update_one(
-        {'_id': ObjectId(current_user.id)}, {'$set': {'approved': True, 'role': 'TEACHER'}}
+        {'_id': ObjectId(current_user.id)},
+        {'$set': {'approved': True, 'role': 'TEACHER', 'updated_at': datetime.now()}},
     )

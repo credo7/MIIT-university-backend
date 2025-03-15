@@ -1,55 +1,91 @@
+import random
 from typing import Optional
 
 from pydantic import BaseModel
 
-from schemas import Incoterm, TestQuestionPR1
-
-
-class PR1ControlVariant(BaseModel):
-    legend: str
-    product_price: int
-    product_quantity: int = 1
-    packaging: Optional[int] = 0
-    product_check: Optional[int] = 0
-    loading_expenses: Optional[int] = 0
-    delivery_to_main_carrier: Optional[int] = 0
-    export_formalities: Optional[int] = 0
-    loading_unloading_to_point: Optional[int] = 0
-    delivery_to_unloading_port: Optional[int] = 0
-    loading_on_board: Optional[int] = 0
-    transport_expenses_to_port: Optional[int] = 0
-    products_insurance: Optional[int] = 0
-    unloading_on_seller: Optional[int] = 0
-    import_formalities: Optional[int] = 0
-    unloading_on_terminal: Optional[int] = 0
-    incoterms: list[Incoterm]
-    test_questions: list[TestQuestionPR1]
-
-
-class PR1ControlInfo(BaseModel):
-    variants: list[PR1ControlVariant] = []
-
+from schemas import TestQuestionPR1, Incoterm, PR1ControlInfo
 
 raw_pr1_control_info = {
-    'legend': """В Выборг (Россия) из Бильбао (Испания) поставляется оливĸовое масло в бутылĸах. 
+    'legends': [
+        """В Выборг (Россия) из Бильбао (Испания) поставляется оливĸовое масло 
+в бутылĸах. Договор оформляется на поставку морсĸим транспортом.
 
-Цена товара – 2 евро за бут., всего 7 500 бут. 
+Цена производителя – {0} у.е. за бутылку
 
-Товар следует морсĸим транспортом. 
+Размер партии – {1} бутылок  
 
-Расходы на погрузку – 100 евро. 
+Бутылки на производстве упаковывают в коробки по 12 штук 
+и комплектуют в транспортный пакет на поддоне. Отгружают партию товара на поддонах со склада производителя.
 
-Доставĸа товара в порт отгрузĸи – 300 евро. 
+Транспортная упаковка товара – {2} у.е. за партию товара
 
-Стоимость погрузĸи на борт судна в порту Бильбао составляет 200 евро. 
+Доставĸа товара до порта отгрузĸи – {3} у.е. 
 
-Транспортные расходы из Бильбао в Выборг – 2 000 евро. 
+Расходы на погрузку–разгрузку при перевозке до причала – {4} у.е. 
 
-Товар застрахован, расходы на страхование 1 000 евро. 
+Стоимость морской перевозки до порта назначения – {5} у.е.
 
-Сделĸа заĸлючена на условиях поставĸи {0}-порт Бильбао. 
+Стоимость погрузĸи на борт судна в порту отправления – {6} у.е. 
 
-Определить ĸонтраĸтную стоимость.""",
+Товар застрахован, расходы на страхование – {7} у.е. 
+
+Экспортные таможенные формальности и платежи – {8} у.е.
+
+Сделĸа заĸлючена на условиях поставĸи {9}""",
+        """В Москву (Россия) из Гамбурга (Германия) поставляется партия обуви. Договор заключен на {0} пар обуви за {1} у.е. за пару.
+
+Продукция отгружается со склада продавца, упакована на поддонах. Стоимость упаковки включена в стоимость товара.
+
+Поставка осуществляется из порта Гамбург в порт Калининград, 
+а затем в Москву железнодорожным транспортом.
+
+Экспортные таможенные формальности и платежи – {2} у.е.
+
+Товар застрахован, расходы на страхование – {3} у.е. 
+
+Доставку до порта Калининград обеспечивает международный логистический провайдер за {4} у.е. с учетом доставки в порт Гамбург автомобильным транспортом, погрузки на судно, доставки в порт Калининград и выгрузки на терминале
+
+Перевозку с терминала порта Калининград до терминала в Москве обеспечивает российская компания за {5} у.е. 
+
+Сделĸа заĸлючена на условиях поставĸи {6}""",
+        """Из Шанхая (Китай) в Хабаровск (Россия) ввозится партия телевизоров 
+в количестве {0} штук по {1} у.е. за телевизор.
+
+Товар отгружается со склада производителя в транспортной упаковке\nна поддонах.
+
+Доставку до границы обеспечивает международный перевозчик 
+по стоимости {2} у.е.
+
+Доставку по территории России до места назначения обеспечивает логистический провайдер по стоимости {3} у.е. с учетом разгрузки\nв месте назначения
+
+Экспортные таможенные формальности и платежи – {4} у.е. 
+
+Импортные таможенные формальности и платежи – {5} у.е. 
+
+Сделка заключена на условиях поставки {6}""",
+    ],
+    'random_incoterms': [
+        [Incoterm.FOB.value, Incoterm.CFR.value, Incoterm.CIF.value, Incoterm.FAS.value],
+        [Incoterm.FCA.value, Incoterm.CIP.value, Incoterm.CPT.value],
+        [
+            Incoterm.EXW.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DAP.value,
+            Incoterm.DDP.value,
+            Incoterm.DDP.value,
+            Incoterm.DDP.value,
+            Incoterm.DDP.value,
+            Incoterm.DDP.value,
+            Incoterm.DPU.value,
+            Incoterm.DPU.value,
+            Incoterm.DPU.value,
+            Incoterm.DPU.value,
+            Incoterm.DPU.value,
+        ],
+    ],
     'test_questions': [
         {
             'id': 1,
@@ -600,16 +636,4 @@ raw_pr1_control_info = {
     ],
 }
 
-variant1 = PR1ControlVariant(
-    product_price=7500,
-    product_quantity=2,
-    loading_expenses=100,
-    delivery_to_unloading_port=300,
-    loading_on_board=200,
-    transport_expenses_to_port=2000,
-    products_insurance=1000,
-    incoterms=[Incoterm.EXW, Incoterm.FAS, Incoterm.FOB],
-    **raw_pr1_control_info
-)
-
-pr1_control_info = PR1ControlInfo(variants=[variant1], **raw_pr1_control_info)
+pr1_control_info = PR1ControlInfo(**raw_pr1_control_info)

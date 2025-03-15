@@ -1,42 +1,59 @@
+import copy
 import random
+from copy import deepcopy
 from datetime import datetime
-from typing import List, Dict, Optional, Type, Union
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Type,
+    Union,
+)
+
 from bson import ObjectId
 
-from copy import deepcopy
 from constants.practice_one_info import practice_one_info
-from db.mongo import get_db, CollectionNames
+from db.mongo import (
+    CollectionNames,
+    get_db,
+)
 from schemas import (
-    PracticeOneBet,
-    Logist,
-    OptionPR1,
-    PracticeOneBetOut,
-    TablePR1,
-    Incoterm,
-    StartEventDto,
-    PR1ClassEvent,
-    PR1ClassVariables,
+    AnswerStatus,
+    BetsRolePR1,
     CheckpointData,
     CheckpointResponse,
-    EventStepResult,
     CheckpointResponseStatus,
-    PR1ClassResults,
-    UserOut,
-    SubResult,
-    AnswerStatus,
-    EventInfo,
     ChosenOption,
-    PR1ClassBetType,
-    BetsRolePR1,
-    PR1ClassChosenBet,
+    CorrectOrError,
+    CurrentStepResponse,
+    EventInfo,
+    EventStepResult,
+    Incoterm,
     IncotermInfo,
+    IncotermInfoSummarize,
+    Logist,
+    OptionPR1,
+    PR1ClassBetType,
+    PR1ClassChosenBet,
+    PR1ClassEvent,
+    PR1ClassResults,
+    PR1ClassStep,
+    PR1ClassVariables,
+    PracticeOneBet,
+    PracticeOneBetOut,
+    StartEventDto,
     Step,
     StepRole,
-    CurrentStepResponse,
-    IncotermInfoSummarize,
-    PR1ClassStep,
+    SubResult,
+    TablePR1,
+    TestCorrectsAndErrors,
+    UserHistoryElement,
+    UserOut,
 )
-from services.utils import normalize_mongo, format_with_spaces
+from services.utils import (
+    format_with_spaces,
+    normalize_mongo,
+)
 
 
 class PracticeOneClass:
@@ -307,18 +324,21 @@ class PracticeOneClass:
                     required_bets.append(bet)
                 if 'BUYER' in event.current_step.code and incoterm in bet.bet_pattern.buyer:
                     required_bets.append(bet)
-                if incoterm in bet.bet_pattern.common:
-                    common_bets.append(bet)
+                # if incoterm in bet.bet_pattern.common:
+                #     common_bets.append(bet)
 
             required_bets_map = {bet.id: bet for bet in required_bets}
-            common_bets_map = {bet.id: bet for bet in common_bets}
+            # common_bets_map = {bet.id: bet for bet in common_bets}
 
             # Если покупатель, то он должен довыбрать все общие ставки, если такие остались
-            if 'BUYER' in event.current_step.code:
-                if incoterm in event.common_bets_ids_chosen_by_seller:
-                    for id in event.common_bets_ids_chosen_by_seller[incoterm]:
-                        del common_bets_map[int(id)]
-                    required_bets_map.update(common_bets_map)
+            # if 'BUYER' in event.current_step.code:
+            #     if incoterm in event.common_bets_ids_chosen_by_seller:
+            #         for id in event.common_bets_ids_chosen_by_seller[incoterm]:
+            #             del common_bets_map[int(id)]
+            #         required_bets_map.update(common_bets_map)
+
+            required_bets_for_comments = list(required_bets_map.values())
+            # common_bets_for_comments = list(common_bets_map.values())
 
             not_needed_ids = []
             common_bets_ids_chosen_by_buyer = []
@@ -326,9 +346,9 @@ class PracticeOneClass:
             for user_bet_id in checkpoint_dto.answer_ids:
                 if user_bet_id in required_bets_map:
                     del required_bets_map[user_bet_id]
-                elif user_bet_id in common_bets_map:
-                    common_bets_ids_chosen_by_buyer.append(user_bet_id)
-                    del common_bets_map[user_bet_id]
+                # elif user_bet_id in common_bets_map:
+                #     common_bets_ids_chosen_by_buyer.append(user_bet_id)
+                #     del common_bets_map[user_bet_id]
                 else:
                     not_needed_ids.append(user_bet_id)
 
@@ -352,8 +372,19 @@ class PracticeOneClass:
                 else:
                     users_ids.append(event.users_ids[0])
 
+                if 'SELLER' in event.current_step.code:
+                    comments = f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}\n"  # f"Необязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in common_bets_for_comments]}"
+                else:
+                    comments = (
+                        f"Обязательные ставки: {[f'{bet.name}: {bet.rate}' for bet in required_bets_for_comments]}"
+                    )
+
                 new_step_result = EventStepResult(
-                    step_code=event.current_step.code, users_ids=users_ids, fails=0, incoterm=incoterm
+                    step_code=event.current_step.code,
+                    users_ids=users_ids,
+                    fails=0,
+                    incoterm=incoterm,
+                    comments=comments,
                 )
                 event.steps_results.append(new_step_result)
 
@@ -384,17 +415,17 @@ class PracticeOneClass:
         ):
             checkpoint_response.status = CheckpointResponseStatus.SUCCESS.value
 
+            comments = ""
             if event.current_step.code == 'SELECT_LOGIST':
+                comments = 'Выбираем логиста. Ни на что не влияет в ПО'
                 event.chosen_logist_letter = checkpoint_dto.chosen_letter
 
-            if event.current_step.code == 'OPTIONS_COMPARISON':
+            elif event.current_step.code == 'OPTIONS_COMPARISON':
+                comments = 'Табличка для сравнения инкотермов, ничего не делаем, можно лишь нажать далее'
                 pass
 
-            if event.current_step.code == 'DESCRIBE_OPTION':
-                pass
-
-            if event.current_step.code == 'CONDITIONS_SELECTION':
-                event.chosen_option = ChosenOption(
+            elif event.current_step.code == 'CONDITIONS_SELECTION':
+                chosen_option = ChosenOption(
                     agreement_price_seller=event.options_comparison[
                         checkpoint_dto.chosen_incoterm
                     ].agreement_price_seller,
@@ -402,6 +433,12 @@ class PracticeOneClass:
                     total=event.options_comparison[checkpoint_dto.chosen_incoterm].total,
                     incoterm=checkpoint_dto.chosen_incoterm.value,
                 )
+                event.chosen_option = chosen_option
+                comments = f'Студент выбирает любой вариант ( ни на что не влияет в ПО )'
+
+            elif event.current_step.code == 'DESCRIBE_OPTION':
+                comments = 'Пишем обоснование ( не менее 150 символов )'
+                pass
 
             step_result = EventStepResult(
                 step_code=event.current_step.code,
@@ -409,6 +446,7 @@ class PracticeOneClass:
                 fails=0,
                 is_finished=True,
                 description=checkpoint_dto.text,
+                comments=comments,
             )
             event.steps_results.append(step_result)
 
@@ -467,6 +505,47 @@ class PracticeOneClass:
             if next_step.code == 'FINISHED':
                 event.is_finished = True
                 event.finished_at = datetime.now()
+                event.results = self.get_results(event)
+                for i, user_id in enumerate(event.users_ids):
+                    history_element = UserHistoryElement(
+                        id=event.id,
+                        type=event.event_type,
+                        mode=event.event_mode,
+                        created_at=event.created_at,
+                        finished_at=event.finished_at,
+                    )
+
+                    incoterms = {inc: CorrectOrError.CORRECT for inc in list(Incoterm)}
+                    incoterms_v2 = {inc: AnswerStatus.CORRECT for inc in list(Incoterm)}
+                    for step in event.steps_results:
+                        if step.step_code == 'DESCRIBE_OPTION':
+                            history_element.description = step.description
+                        if user_id in step.users_ids:
+                            if step.fails >= 3:
+                                incoterms[step.incoterm] = CorrectOrError.ERROR
+                                incoterms_v2[step.incoterm] = AnswerStatus.FAILED.value
+                            elif step.fails > 0:
+                                incoterms_v2[step.incoterm] = AnswerStatus.CORRECT_WITH_FAILS.value
+
+                    best = TestCorrectsAndErrors(correct=0, error=20)
+                    for test_result in event.test_results:
+                        current = TestCorrectsAndErrors(correct=0, error=0)
+                        for step in test_result:
+                            if step.fails > 0:
+                                current.error += 1
+                            else:
+                                current.correct += 1
+                        if current.correct > best.correct:
+                            best = copy.deepcopy(current)
+
+                    history_element.incoterms = incoterms
+                    history_element.incoterms_v2 = incoterms_v2
+                    history_element.test = best
+
+                    self.db[CollectionNames.USERS.value].update_one(
+                        {'_id': ObjectId(user_id)}, {'$push': {'history': history_element.dict()}}
+                    )
+
             checkpoint_response.next_step = next_step
 
         self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
@@ -597,7 +676,8 @@ class PracticeOneClass:
 
         for test in tests:
             for question in test:
-                random.shuffle(question.options)
+                if not question.question == 'Особенность базиса поставки CIP?':
+                    random.shuffle(question.options)
                 if len([option for option in question.options if option.is_correct]) > 1:
                     question.multiple_options = True
                 question.right_ids = [option.id for option in question.options if option.is_correct]

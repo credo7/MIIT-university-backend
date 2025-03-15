@@ -36,12 +36,6 @@ def get_database(retry_interval: int = 5, max_retries: int = 100) -> Database:
 if __name__ == '__main__':
     db = get_database()
 
-    try:
-        db[CollectionNames.EVENTS.value].create_index([('computer_id', 1), ('lesson_id', 1)], unique=True)
-    except:
-        # already exists
-        pass
-
     # exist_collections = db.list_collection_names()
     #
     # for collection, file_path in files_to_init_map.items():

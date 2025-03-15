@@ -66,9 +66,6 @@ def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
     if user_search.group_id is not None:
         filter['group_id'] = user_search.group_id
 
-    if user_search.group_name is not None:
-        filter['group_name'] = user_search.group_name
-
     if sort is None or sort == 'AZ':
         return db[CollectionNames.USERS.value].find(filter).sort('last_name', pymongo.ASCENDING)
     else:
@@ -83,16 +80,17 @@ def verify(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_username(first_name, last_name, surname, group_name):
+def create_username(first_name, last_name, surname, group_name) -> str:
     first_name_en = translit(first_name, 'ru', reversed=True)[:2]
     last_name_en = translit(last_name, 'ru', reversed=True)[:2]
     surname_en = ''
     if surname:
         surname_en = translit(surname, 'ru', reversed=True)[:2]
     group_name_en = translit(group_name, 'ru', reversed=True)
-    username_without_spaces = str.lower(first_name_en + last_name_en + surname_en + group_name_en).replace(' ', "")
 
-    return username_without_spaces
+    username = (first_name_en + last_name_en + surname_en + group_name_en).lower()
+    username_clean = username.replace(' ', '').replace('-', '').replace('–', '').replace('—', '')
+    return username_clean
 
 
 def generate_password(length=8):
