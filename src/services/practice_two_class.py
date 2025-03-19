@@ -1511,15 +1511,23 @@ class PracticeTwoClass:
             7: 4,
         }
 
-        only_borders_text = 'последовательно выбирая пункт отправления, погранпереходы и пункт назначения на карте.\nВы можете предварительно изучить объекты, кликнув по ним'
-        ports_and_borders_text = 'последовательно выбирая пункт отправления, порты, погранпереходы и пункт назначения на карте.\nВы можете предварительно изучить объекты, кликнув по ним'
+        only_borders_text = 'последовательно выбирая пункт отправления, погранпереходы и пункт назначения на карте.'
+        ports_and_borders_text = 'последовательно выбирая пункт отправления, порты, погранпереходы и пункт назначения на карте.'
+        last_sentence = "\nВы можете предварительно изучить объекты, кликнув по ним"
+        last_sentence_without_new_line = " Вы можете предварительно изучить объекты, кликнув по ним"
 
         mini_route_index = mini_route_index_by_route_index[route_index]
+
+        is_south_korea_netherlands_route = (
+                event.source_data.mini_routes[mini_route_index].from_country == 'Южная Корея' and
+                event.source_data.mini_routes[mini_route_index].to_country == 'Нидерланды'
+        )
 
         step_response.screen_texts = [
             f'Сформируйте маршрут {event.source_data.mini_routes[mini_route_index].from_country}-'
             f'{event.source_data.mini_routes[mini_route_index].to_country} {event.source_data.full_routes[route_index].through}, '
             f'{only_borders_text if route_index <= 2 else ports_and_borders_text}'
+            f'{last_sentence if not is_south_korea_netherlands_route else last_sentence_without_new_line}'
         ]
 
         all_point_cities_from_routes = []
