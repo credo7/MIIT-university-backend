@@ -1471,7 +1471,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.delivery_to_port,
                 self.export_formal_payments,
                 self.loading_on_destination,
-                self.insurance,
             ]
             nums = [str(num) for num in nums if num != 0]
             pre = f'{self.quantity} * '
@@ -1521,7 +1520,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 + self.delivery_to_port
                 + self.export_formal_payments
                 + self.loading_on_destination
-                + self.insurance
             )
         elif self.incoterm == Incoterm.CIF.value:
             return (
