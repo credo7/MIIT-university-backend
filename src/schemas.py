@@ -1455,7 +1455,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 self.price_for_each,
                 self.transport_package_price,
                 self.delivery_to_port,
-                self.sea_delivery_to_destination,
                 self.loading_unloading_expenses,
                 self.export_formal_payments,
                 self.loading_on_destination,
@@ -1510,7 +1509,6 @@ class PR1ControlStep1(PR1ControlStepVariant):
                 + self.transport_package_price
                 + self.loading_unloading_expenses
                 + self.delivery_to_port
-                + self.sea_delivery_to_destination
                 + self.export_formal_payments
                 + self.loading_on_destination
             )
