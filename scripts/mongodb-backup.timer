@@ -1,0 +1,19 @@
+# MongoDB Backup Timer
+# Копировать в: /etc/systemd/system/mongodb-backup.timer
+# Или использовать: make backup-install
+
+[Unit]
+Description=Daily MongoDB Backup Timer
+
+[Timer]
+# Запуск каждый день в 03:00
+OnCalendar=*-*-* 03:00:00
+
+# Если сервер был выключен в момент бэкапа - выполнить при включении
+Persistent=true
+
+# Случайная задержка до 5 минут (чтобы не все бэкапы стартовали одновременно)
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

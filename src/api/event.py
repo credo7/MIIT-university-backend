@@ -55,11 +55,11 @@ async def start_event(start_event_dto: StartEventDto, users_ids: list[str] = Dep
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Юзеры не найдены')
 
     if start_event_dto.type == EventType.PR1 and start_event_dto.mode == EventMode.CLASS:
-        event = PracticeOneClass(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
+        event = await PracticeOneClass(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
     elif start_event_dto.type == EventType.PR1 and start_event_dto.mode == EventMode.CONTROL:
-        event = PracticeOneControl(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
+        event = await PracticeOneControl(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
     elif start_event_dto.type == EventType.PR2 and start_event_dto.mode == EventMode.CLASS:
-        event = PracticeTwoClass(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
+        event = await PracticeTwoClass(computer_id=start_event_dto.computer_id, users_ids=users_ids).create(start_event_dto)
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -93,7 +93,7 @@ async def get_allowed_modes(
     allowed_modes = [AllowedModes.PR1_CLASS, AllowedModes.PR1_CONTROL, AllowedModes.PR2_CLASS]
 
     for user_id in users_ids:
-        at_least_one_finished_pr1_class = db[CollectionNames.EVENTS.value].find_one(
+        at_least_one_finished_pr1_class = await db[CollectionNames.EVENTS.value].find_one(
             {'users_ids': {'$in': [user_id]}, 'event_type': 'PR1', 'event_mode': 'CLASS', 'is_finished': True}
         )
         if at_least_one_finished_pr1_class is None:
@@ -107,11 +107,9 @@ async def get_allowed_modes(
 async def find_active_or_not_finished_events(
     users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
 ):
-    events_db = list(
-        db[CollectionNames.EVENTS.value].find(
-            {'is_finished': False, 'users_ids': {'$size': len(users_ids), '$all': users_ids}}
-        )
-    )
+    events_db = await db[CollectionNames.EVENTS.value].find(
+        {'is_finished': False, 'users_ids': {'$size': len(users_ids), '$all': users_ids}}
+    ).to_list(length=None)
 
     # TODO
     # if len(events_db) > 1:
@@ -124,7 +122,7 @@ async def find_active_or_not_finished_events(
 async def get_current_step(
     event_id: str, users_ids: list[str] = Depends(extract_users_ids_rest), db: Database = Depends(get_db)
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Вариант не найден')
@@ -133,7 +131,7 @@ async def get_current_step(
 
     if event.event_type == EventType.PR1 and event.event_mode == EventMode.CLASS:
         pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
-        return PracticeOneClass(computer_id=pr1_class_event.computer_id, users_ids=users_ids).get_current_step(
+        return await PracticeOneClass(computer_id=pr1_class_event.computer_id, users_ids=users_ids).get_current_step(
             pr1_class_event
         )
     elif event.event_type == EventType.PR1 and event.event_mode == EventMode.CONTROL:
@@ -159,7 +157,7 @@ async def create_checkpoint(
     # users_ids: list[str] = Depends(extract_users_ids_rest),
     db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(checkpoint_dto.event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(checkpoint_dto.event_id)})
 
     if not event_db:
         raise Exception('Вариант не найден')
@@ -173,23 +171,23 @@ async def create_checkpoint(
 
     if event_info.event_type == EventType.PR1 and event_info.event_mode == EventMode.CLASS:
         event = normalize_mongo(event_db, PR1ClassEvent)
-        checkpoint_response = PracticeOneClass(
+        checkpoint_response = await PracticeOneClass(
             computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
         ).checkpoint(event, checkpoint_dto)
 
     if event_info.event_type == EventType.PR1 and event_info.event_mode == EventMode.CONTROL:
         event = normalize_mongo(event_db, PR1ControlEvent)
-        checkpoint_response = PracticeOneControl(
+        checkpoint_response = await PracticeOneControl(
             computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
         ).checkpoint(event, checkpoint_dto)
 
     if event_info.event_type == EventType.PR2 and event_info.event_mode == EventMode.CLASS:
         event = normalize_mongo(event_db, PR2ClassEvent)
-        checkpoint_response = PracticeTwoClass(
+        checkpoint_response = await PracticeTwoClass(
             computer_id=checkpoint_dto.computer_id, users_ids=event.users_ids
         ).checkpoint(event, checkpoint_dto)
 
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(checkpoint_dto.event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(checkpoint_dto.event_id)})
     if not event_db:
         raise Exception('Вариант не найден')
     event_info = normalize_mongo(event_db, EventInfo)
@@ -232,7 +230,7 @@ async def create_checkpoint(
 async def get_results(
     event_id: str, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
@@ -251,7 +249,7 @@ async def get_results(
 @router.get('/pr1-class-right-checkpoints', status_code=status.HTTP_200_OK)
 async def get_right_checkpoints(event_id: str):
     db: Database = get_db()
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     event = normalize_mongo(event_db, PR1ClassEvent)
 
@@ -272,7 +270,7 @@ async def get_right_checkpoints(event_id: str):
         elif step.code == 'SELECT_LOGIST':
             checkpoint['chosen_letter'] = 'Б'
         elif step.code == 'OPTIONS_COMPARISON':
-            pass
+            logger.debug(f"Шаг OPTIONS_COMPARISON пропущен - не требует действий")
         elif step.code == 'CONDITIONS_SELECTION':
             checkpoint['chosen_incoterm'] = 'EXW'
         elif step.code == 'DESCRIBE_OPTION':
@@ -297,7 +295,7 @@ async def get_p1_class_hints(incoterm: Incoterm):
 async def retake_test(
     event_id: str, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
     if not event_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Event не найден')
 
@@ -319,7 +317,7 @@ async def retake_test(
 
         first_test_step = Step(id=len(practice_one_info.steps), code=f'TEST_1', name='Тестовый вопрос №1', role='ALL',)
 
-        db[CollectionNames.EVENTS.value].update_one(
+        await db[CollectionNames.EVENTS.value].update_one(
             {'_id': ObjectId(event_id)},
             {
                 '$inc': {'test_index': 1},
@@ -328,7 +326,7 @@ async def retake_test(
         )
 
         for user_id in event.users_ids:
-            db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {'$pop': {'history': 1}})
+            await db[CollectionNames.USERS.value].update_one({'_id': ObjectId(user_id)}, {'$pop': {'history': 1}})
 
         for comp_id, comp in WebsocketServiceState.connected_computers.items():
             if comp.event_id == event_id:
@@ -343,7 +341,7 @@ async def continue_work(
     db: Database = Depends(get_db),
     # _users_ids: list[str] = Depends(extract_users_ids_rest),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')
@@ -361,7 +359,7 @@ async def continue_work(
     if event.event_type == EventType.PR1.value:
         if event.event_mode == EventMode.CLASS.value:
             pr1_class_event = normalize_mongo(event_db, PR1ClassEvent)
-            PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
+            await PracticeOneClass(users_ids=event.users_ids).continue_work(pr1_class_event)
 
 
 @router.get('/computers-states', response_model=list[schemas.ConnectedComputerFrontResponse])
@@ -376,7 +374,7 @@ async def get_all_computers_states(db: Database = Depends(get_db)):
     for connected_computer in WebsocketServiceState.connected_computers.values():
         mini_users = []
         for user_id in connected_computer.users_ids:
-            user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
+            user_db = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
             user = normalize_mongo(user_db, schemas.MiniUser)
             mini_users.append(user)
 
@@ -399,8 +397,8 @@ async def get_all_computers_states(db: Database = Depends(get_db)):
 
 @router.get('/{event_id}')
 async def get_event(event_id: str, db: Database = Depends(get_db)):
-    print(f'event_id={event_id}')
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
+    logger.debug(f'Getting event with id={event_id}')
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Вариант не найден')

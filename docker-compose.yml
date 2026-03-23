@@ -4,13 +4,20 @@ services:
     image: mongo:4.4.6
     container_name: mongodb
     restart: always
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
       - ./db/data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   api:
     build: ./
@@ -20,4 +27,12 @@ services:
     container_name: api
     env_file:
       - .env
+    depends_on:
+      - mongodb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "7"
+        compress: "true"
     command: bash -c "python3 src/init_and_wait_for_mongo.py && cd src && uvicorn main:app --host 0.0.0.0 --port 80"

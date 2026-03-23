@@ -1,14 +1,9 @@
 import copy
+import logging
 import random
 from copy import deepcopy
 from datetime import datetime
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Type,
-    Union,
-)
+from typing import Dict, List, Optional, Type, Union
 
 from bson import ObjectId
 
@@ -55,6 +50,8 @@ from services.utils import (
     normalize_mongo,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class PracticeOneClass:
     def __init__(self, users_ids: List[str], computer_id: Optional[int] = None):
@@ -62,7 +59,7 @@ class PracticeOneClass:
         self.users_ids = users_ids
         self.db = get_db()
 
-    def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
+    async def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
         variables = self.prepare_event_variables()
 
         current_step = Step(id=0, code=f'SELECT_LOGIST', name=f'Выбор логиста', role=StepRole.ALL)
@@ -83,13 +80,13 @@ class PracticeOneClass:
             current_step=current_step,
         )
 
-        event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
+        event_db = await self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
 
-        event_db = self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
+        event_db = await self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
 
         return normalize_mongo(event_db, EventInfo)
 
-    def continue_work(self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
+    async def continue_work(self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
         if not event.steps_results:
             return
 
@@ -100,11 +97,11 @@ class PracticeOneClass:
                 event.steps_results.pop()
                 event.steps_results.pop()
 
-        self.db[CollectionNames.EVENTS.value].update_one(
+        await self.db[CollectionNames.EVENTS.value].update_one(
             {'_id': ObjectId(event.id)}, {'$set': {'steps_results': [sr.dict() for sr in event.steps_results]}}
         )
 
-    def get_current_step(self, pr1_class_event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
+    async def get_current_step(self, pr1_class_event: Union[PR1ClassEvent, Type[PR1ClassEvent]]):
         current_step_response = CurrentStepResponse(current_step=pr1_class_event.current_step,)
 
         if pr1_class_event.is_finished and 'TEST' not in pr1_class_event.current_step.code:
@@ -114,7 +111,7 @@ class PracticeOneClass:
         if pr1_class_event.current_step.code == 'OPTIONS_COMPARISON':
             options_comparison = self.get_options_comparison(pr1_class_event)
             pr1_class_event.options_comparison = options_comparison
-            self.db[CollectionNames.EVENTS.value].update_one(
+            await self.db[CollectionNames.EVENTS.value].update_one(
                 {'_id': ObjectId(pr1_class_event.id)},
                 {'$set': {'options_comparison': {key: value.dict() for key, value in options_comparison.items()}}},
             )
@@ -162,8 +159,8 @@ class PracticeOneClass:
                         role=StepRole.ALL,
                     )
 
-            print(f'steps={practice_one_info.steps[0]}')
-            print(f'current_step={event.current_step}')
+            logger.debug(f'steps={practice_one_info.steps[0]}')
+            logger.debug(f'current_step={event.current_step}')
 
             # Если этот чекпоинт завершен, то обновляем current_step
             current_step_index = None
@@ -172,7 +169,7 @@ class PracticeOneClass:
                     current_step_index = index
                     break
 
-            print(f'current_step_index={current_step_index}')
+            logger.debug(f'current_step_index={current_step_index}')
 
             # current_step_index = practice_one_info.steps.index(event.current_step)
             if len(practice_one_info.steps) >= current_step_index + 2:
@@ -182,7 +179,7 @@ class PracticeOneClass:
         else:
             return event.current_step
 
-    def get_results(self, event: PR1ClassEvent) -> list[PR1ClassResults]:
+    async def get_results(self, event: PR1ClassEvent) -> list[PR1ClassResults]:
         results = []
 
         for user_id in self.users_ids:
@@ -210,7 +207,7 @@ class PracticeOneClass:
                     else:
                         final_test_results[step.test_index].failed += 1
 
-            user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
+            user_db = await self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
 
             user = normalize_mongo(user_db, UserOut)
 
@@ -305,7 +302,7 @@ class PracticeOneClass:
 
         return incoterms_mapping
 
-    def checkpoint(
+    async def checkpoint(
         self, event: Union[PR1ClassEvent, Type[PR1ClassEvent]], checkpoint_dto: CheckpointData
     ) -> CheckpointResponse:
         checkpoint_response = CheckpointResponse()
@@ -505,7 +502,7 @@ class PracticeOneClass:
             if next_step.code == 'FINISHED':
                 event.is_finished = True
                 event.finished_at = datetime.now()
-                event.results = self.get_results(event)
+                event.results = await self.get_results(event)
                 for i, user_id in enumerate(event.users_ids):
                     history_element = UserHistoryElement(
                         id=event.id,
@@ -542,13 +539,13 @@ class PracticeOneClass:
                     history_element.incoterms_v2 = incoterms_v2
                     history_element.test = best
 
-                    self.db[CollectionNames.USERS.value].update_one(
+                    await self.db[CollectionNames.USERS.value].update_one(
                         {'_id': ObjectId(user_id)}, {'$push': {'history': history_element.dict()}}
                     )
 
             checkpoint_response.next_step = next_step
 
-        self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
+        await self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
         return checkpoint_response
 

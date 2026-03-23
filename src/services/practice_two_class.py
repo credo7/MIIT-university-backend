@@ -84,11 +84,11 @@ class PracticeTwoClass:
 
         checkpoint_response.fails = event.steps_results[-1].fails
 
-    def get_results(self, event: PR2ClassEvent) -> list[PR2ClassResult]:
+    async def get_results(self, event: PR2ClassEvent) -> list[PR2ClassResult]:
         pr2_class_results = []
 
         for user_id in event.users_ids:
-            user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
+            user_db = await self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(user_id)})
 
             step_codes_with_point_system = [
                 'SCREEN_4_20_FOOT_CONTAINER_3_PACKAGE_NUMBER',
@@ -136,7 +136,7 @@ class PracticeTwoClass:
 
         return pr2_class_results
 
-    def checkpoint(self, event: Union[PR2ClassEvent, Type[PR2ClassEvent]], checkpoint_dto: CheckpointData):
+    async def checkpoint(self, event: Union[PR2ClassEvent, Type[PR2ClassEvent]], checkpoint_dto: CheckpointData):
         checkpoint_response = CheckpointResponse()
 
         if checkpoint_dto.step_code != event.current_step.code:
@@ -374,8 +374,8 @@ class PracticeTwoClass:
             next_step = Step(id=13, code=self._get_next_code_by_id(13),)
 
             right_formulas = [
-                f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g}/21.8',
-                f'{event.source_data.package_weight_in_ton:g}/21.8*{event.source_data.number_of_packages_in_40_foot_container}',
+                f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton:g}/26.4',
+                f'{event.source_data.package_weight_in_ton:g}/26.4*{event.source_data.number_of_packages_in_40_foot_container}',
             ]
 
             is_failed = checkpoint_dto.formula not in right_formulas
@@ -784,7 +784,7 @@ class PracticeTwoClass:
 
             event.is_finished = True
             event.finished_at = datetime.datetime.now()
-            event.results = self.get_results(event)
+            event.results = await self.get_results(event)
 
             for i, user_id in enumerate(event.users_ids):
                 history_element = UserHistoryElement(
@@ -800,14 +800,14 @@ class PracticeTwoClass:
                     risks_chosen_by_user=event.risks_chosen_by_user,
                 )
 
-                self.db[CollectionNames.USERS.value].update_one(
+                await self.db[CollectionNames.USERS.value].update_one(
                     {'_id': ObjectId(user_id)}, {'$push': {'history': history_element.dict()}}
                 )
 
             is_failed = False
             self.handle_checkpoint_is_failed(event, is_failed, checkpoint_response, next_step)
 
-        self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
+        await self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
         return checkpoint_response
 
@@ -843,7 +843,7 @@ class PracticeTwoClass:
 
         return step_response
 
-    def create(self, event_dto: StartEventDto):
+    async def create(self, event_dto: StartEventDto):
         zero_step = Step(id=1, code=f'SCREEN_1_INSTRUCTION_WITH_LEGEND', name=f'Легенда и Инструкция',)
 
         all_destination_countries = ['Польша', 'Германия', 'Франция', 'Нидерланды', 'Бельгия', 'Чехия', 'Австрия']
@@ -895,8 +895,7 @@ class PracticeTwoClass:
             random.randint(5, 10) * 100,
         ]
 
-        package_size = self.get_random_package_size()
-        package_weight_in_ton = random.randint(1, 9) / 10
+        package_size, package_weight_in_ton = self._get_valid_package_params()
 
         n_of_transport_packages_in_container_20 = math.floor(
             math.floor(5.9 / package_size.length)
@@ -1080,9 +1079,9 @@ class PracticeTwoClass:
             explanation=explanation,
         )
 
-        event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
+        event_db = await self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
 
-        event_db = self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
+        event_db = await self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
 
         return normalize_mongo(event_db, EventInfo)
 
@@ -1331,6 +1330,53 @@ class PracticeTwoClass:
             PackageSize(length=1, width=1.2, height=1.1),
         ]
         return random.choice(all_package_size_combinations)
+
+    @staticmethod
+    def _get_valid_package_params() -> tuple[PackageSize, float]:
+        """
+        Генерирует валидные параметры package_size и package_weight_in_ton,
+        гарантируя что все коэффициенты использования будут <= 1.00:
+        - n_packages_20 * volume / 32.3 <= 1
+        - n_packages_20 * weight / 21.8 <= 1
+        - n_packages_40 * volume / 65.7 <= 1
+        - n_packages_40 * weight / 26.4 <= 1
+        """
+        all_package_size_combinations = [
+            PackageSize(length=0.8, width=1.2, height=0.8),
+            PackageSize(length=0.8, width=1.2, height=0.9),
+            PackageSize(length=0.8, width=1.2, height=1),
+            PackageSize(length=0.8, width=1.2, height=1.1),
+            PackageSize(length=1, width=1.2, height=1),
+            PackageSize(length=1, width=1.2, height=1.1),
+        ]
+
+        while True:
+            package_size = random.choice(all_package_size_combinations)
+            package_weight_in_ton = random.randint(1, 9) / 10
+
+            transport_package_volume = package_size.length * package_size.width * package_size.height
+
+            n_of_packages_20 = math.floor(
+                math.floor(5.9 / package_size.length)
+                * math.floor(2.33 / package_size.width)
+                * math.floor(2.35 / package_size.height)
+            )
+
+            n_of_packages_40 = math.floor(
+                math.floor(12 / package_size.length)
+                * math.floor(2.33 / package_size.width)
+                * math.floor(2.35 / package_size.height)
+            )
+
+            # Проверяем все 4 коэффициента
+            coef_20_capacity = n_of_packages_20 * transport_package_volume / 32.3
+            coef_20_load = n_of_packages_20 * package_weight_in_ton / 21.8
+            coef_40_capacity = n_of_packages_40 * transport_package_volume / 65.7
+            coef_40_load = n_of_packages_40 * package_weight_in_ton / 26.4
+
+            if (coef_20_capacity <= 1.0 and coef_20_load <= 1.0 and
+                coef_40_capacity <= 1.0 and coef_40_load <= 1.0):
+                return package_size, package_weight_in_ton
 
     def _get_optimal_results_step_response(self, event, row_index: int):
         step_response = CurrentStepResponse(is_finished=event.is_finished, current_step=event.current_step)
@@ -1690,7 +1736,7 @@ class PracticeTwoClass:
             ),
             FormulaRow(
                 name=f'Коэффициент использования грузоподъёмности',
-                formula=f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}/21.8='
+                formula=f'{event.source_data.number_of_packages_in_40_foot_container}*{event.source_data.package_weight_in_ton}/26.4='
                 f'{round(event.source_data.number_of_packages_in_40_foot_container * event.source_data.package_weight_in_ton / 26.4, 2)}',
             ),
         ]

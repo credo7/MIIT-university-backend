@@ -10,12 +10,10 @@ from transliterate import translit
 from pymongo.cursor import Cursor
 import pymongo
 
-from db.mongo import CollectionNames, Database, get_db
+from db.mongo import CollectionNames, get_db
 from schemas import UserSearch, ConnectedComputer
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-
-db: Database = get_db()
 
 
 def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
@@ -66,6 +64,7 @@ def search_users_by_group(user_search: UserSearch, sort: Optional[str] = None):
     if user_search.group_id is not None:
         filter['group_id'] = user_search.group_id
 
+    db = get_db()
     if sort is None or sort == 'AZ':
         return db[CollectionNames.USERS.value].find(filter).sort('last_name', pymongo.ASCENDING)
     else:
@@ -164,16 +163,17 @@ def normalize_mongo(db_obj, pydantic_schema: T, return_dict: bool = False) -> Un
     raise Exception(f'Некорректный обьект в normilize_mongo. db_obj={db_obj}')
 
 
-def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
+async def to_db(obj, collection_name: CollectionNames) -> Union[List[str], str]:
+    db = get_db()
     if isinstance(obj, list):
         if isinstance(obj[0], BaseModel):
             obj = [instance.dict() for instance in obj]
-        response = db[collection_name].insert_many(obj)
+        response = await db[collection_name].insert_many(obj)
         return [str(id) for id in response.inserted_ids]
     else:
         if isinstance(obj, BaseModel):
             obj = obj.dict()
-        inserted = db[collection_name].insert_one(obj)
+        inserted = await db[collection_name].insert_one(obj)
         return str(inserted.inserted_id)
 
 

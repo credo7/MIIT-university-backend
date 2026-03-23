@@ -50,7 +50,7 @@ class PracticeOneControl:
         self.users_ids = users_ids
         self.db = get_db()
 
-    def get_results(self, event: PR1ControlEvent):
+    async def get_results(self, event: PR1ControlEvent):
         incoterms_results = {}
         right_tests = 0
 
@@ -68,7 +68,7 @@ class PracticeOneControl:
                 if not step.fails:
                     right_tests += 1
 
-        user_db = self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(event.users_ids[0])})
+        user_db = await self.db[CollectionNames.USERS.value].find_one({'_id': ObjectId(event.users_ids[0])})
 
         user = normalize_mongo(user_db, UserOut)
 
@@ -84,7 +84,7 @@ class PracticeOneControl:
             incoterms_points=incoterms_results,
         )
 
-    def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
+    async def create(self, event_dto: StartEventDto) -> Type[EventInfo]:
         current_step = Step(id=1, code=f'PR1_CONTROL_1')
 
         test_questions = deepcopy(pr1_control_info.test_questions)
@@ -108,9 +108,9 @@ class PracticeOneControl:
             step3=PR1ControlStep3.create(),
         )
 
-        event_db = self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
+        event_db = await self.db[CollectionNames.EVENTS.value].insert_one(event.dict())
 
-        event_db = self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
+        event_db = await self.db[CollectionNames.EVENTS.value].find_one({'_id': event_db.inserted_id})
 
         return normalize_mongo(event_db, EventInfo)
 
@@ -136,7 +136,7 @@ class PracticeOneControl:
             step_response.legend = step.get_formatted_legend()
         return step_response
 
-    def checkpoint(self, event: Union[PR1ControlEvent, Type[PR1ControlEvent]], checkpoint_dto: CheckpointData):
+    async def checkpoint(self, event: Union[PR1ControlEvent, Type[PR1ControlEvent]], checkpoint_dto: CheckpointData):
         checkpoint_response = CheckpointResponse()
 
         if checkpoint_dto.step_code != event.current_step.code:
@@ -174,7 +174,7 @@ class PracticeOneControl:
                 event.current_step = finished_step
                 event.is_finished = True
                 event.finished_at = datetime.now()
-                event.results = self.get_results(event)
+                event.results = await self.get_results(event)
 
                 history_element = UserHistoryElement(
                     id=event.id,
@@ -218,7 +218,7 @@ class PracticeOneControl:
 
                 history_element.points = points
 
-                self.db[CollectionNames.USERS.value].update_one(
+                await self.db[CollectionNames.USERS.value].update_one(
                     {'_id': ObjectId(event.users_ids[0])}, {'$push': {'history': history_element.dict()}}
                 )
             else:
@@ -278,6 +278,6 @@ class PracticeOneControl:
 
         checkpoint_response.fails = event.steps_results[-1].fails
 
-        self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
+        await self.db[CollectionNames.EVENTS.value].update_one({'_id': ObjectId(event.id)}, {'$set': event.dict()})
 
         return checkpoint_response

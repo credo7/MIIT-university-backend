@@ -16,8 +16,12 @@ goal.py
 .delete_after.py
 .deleteafter.py
 .mypy_cache
+temp*.py
+temp*.txt
+todo.py
+for_*.py
 
-
+.venv
 # Distribution / packaging
 .Python
 build/
@@ -174,3 +178,6 @@ cython_debug/
 #.idea/
 /db/
 /.venv/
+
+# Backups
+/backups/

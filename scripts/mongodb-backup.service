@@ -1,0 +1,20 @@
+# MongoDB Backup Service
+# Копировать в: /etc/systemd/system/mongodb-backup.service
+# Или использовать: make backup-install
+
+[Unit]
+Description=MongoDB Backup Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# ВАЖНО: Замените /path/to/miit на реальный путь к проекту
+WorkingDirectory=/path/to/miit
+ExecStart=/path/to/miit/scripts/mongodb-backup.sh backup
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

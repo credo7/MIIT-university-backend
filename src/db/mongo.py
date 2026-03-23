@@ -1,14 +1,12 @@
 from enum import Enum
 
-from pymongo import MongoClient
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from core.config import settings
 
 
 class CollectionNames(str, Enum):
     PRACTICE_ONE_INFO = 'practice_one_info'
-    LESSONS = 'lessons'
     PR1_BETS = 'practice_one.bets'
     EVENTS_SESSION = 'events.session'
     EVENTS = 'events'
@@ -26,12 +24,29 @@ class CollectionNames(str, Enum):
     PR2_STEPS = 'practice_two.steps'
 
 
-mongo_client = MongoClient(settings.database_url)
+class Database:
+    client: AsyncIOMotorClient = None
 
 
-def get_db() -> Database:
-    return mongo_client['university']
+db = Database()
 
 
-def get_mongo_client() -> MongoClient:
-    return mongo_client
+async def connect_to_mongo():
+    """Подключение к MongoDB с настройками пула соединений"""
+    db.client = AsyncIOMotorClient(
+        settings.database_url,
+        maxPoolSize=10,
+        minPoolSize=1,
+        serverSelectionTimeoutMS=5000
+    )
+
+
+async def close_mongo_connection():
+    """Закрытие соединения с MongoDB"""
+    if db.client:
+        db.client.close()
+
+
+def get_db() -> AsyncIOMotorDatabase:
+    """Получение экземпляра базы данных"""
+    return db.client['university']

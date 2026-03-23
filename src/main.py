@@ -2,31 +2,51 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI
-from db.state import WebsocketServiceState
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import auth, group, user, event, help_request, ws, dev, computer_state
+from api import auth, computer_state, dev, event, group, help_request, user, ws
+from core.config import settings
+from db.mongo import close_mongo_connection, connect_to_mongo
+from db.state import WebsocketServiceState
 from services.error_log_handling_middleware import ErrorLogHandlingMiddleware
-from tg_logger import tg_wrapper
 
-logging.basicConfig(level=logging.INFO, filename='../app.log', format='%(asctime)s - %(levelname)s - %(message)s')
+# Настройка логирования
+logging.basicConfig(
+    level=getattr(logging, settings.log_level.upper()),
+    filename=settings.log_file,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger = logging.getLogger("")
 logger.addHandler(console_handler)
-tg_wrapper(logger)
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_to_mongo()
+    asyncio.create_task(WebsocketServiceState.clean_expired_computers())
+    logger.info("Приложение запущено")
+    yield
+    await close_mongo_connection()
+    logger.info("Приложение остановлено")
+
+
+app = FastAPI(lifespan=lifespan)
 
 origins = ['*']
 
 app.add_middleware(
-    CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=['*'], allow_headers=['*'],
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
-app = FastAPI()
-
+app.add_middleware(ErrorLogHandlingMiddleware)
 
 app.include_router(auth.router)
 app.include_router(group.router)
@@ -37,11 +57,5 @@ app.include_router(dev.router)
 app.include_router(ws.router)
 app.include_router(computer_state.router)
 
-
-app.add_middleware(ErrorLogHandlingMiddleware)
-
-
-import uvicorn
-
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=80)  # settings.api_port)
+    uvicorn.run(app, host='0.0.0.0', port=settings.api_port)

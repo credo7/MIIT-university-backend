@@ -1,17 +1,17 @@
+import logging
 from datetime import datetime, timedelta
 from typing import List
-import logging
-from bson import ObjectId
 
-from fastapi import Depends, HTTPException, status, Request
+from bson import ObjectId
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from starlette.datastructures import Headers
 
 import schemas
 from core.config import settings
-from db.mongo import get_db, CollectionNames
+from db.mongo import CollectionNames, get_db
 from services.utils import normalize_mongo
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -51,14 +51,11 @@ def verify_access_token(token: str, credentials_exception, raise_on_error=True) 
 
 
 def get_user_from_token(token: str):
-    id = None
     try:
         payload = jwt.decode(token, settings.access_token_secret_key, algorithms=[settings.algorithm])
-        id = payload.get('user_id', None)
-    except Exception as exc:
-        pass
-    finally:
-        return id
+        return payload.get('user_id', None)
+    except Exception:
+        return None
 
 
 def extract_users_ids(headers: Headers):
@@ -97,35 +94,32 @@ def extract_users_ids_rest(request: Request):
     return extract_users_ids(request.headers)
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme), raise_on_error=True, db: Database = Depends(get_db)
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), raise_on_error=True, db: AsyncIOMotorDatabase = Depends(get_db)
 ) -> schemas.UserOut:
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f'Could not validate credentials',
+        detail='Could not validate credentials',
         headers={'WWW-Authenticate': 'Bearer'},
     )
 
     token = verify_access_token(token, credentials_exception, raise_on_error=raise_on_error)
 
-    # TODO: Check! Maybe token.user_id
-    user = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
+    user = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
 
     return normalize_mongo(user, schemas.UserOut)
 
 
-def get_current_teacher(token: str = Depends(oauth2_scheme), db: Database = Depends(get_db)) -> schemas.UserOut:
+async def get_current_teacher(token: str = Depends(oauth2_scheme), db: AsyncIOMotorDatabase = Depends(get_db)) -> schemas.UserOut:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f'Could not validate credentials',
+        detail='Could not validate credentials',
         headers={'WWW-Authenticate': 'Bearer'},
     )
 
     token = verify_access_token(token, credentials_exception)
 
-    # TODO: Check! Maybe token.user_id
-    user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
+    user_db = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
 
     if not user_db:
         raise Exception(f'Пользователь с ID {token.id} не найден')
@@ -138,21 +132,21 @@ def get_current_teacher(token: str = Depends(oauth2_scheme), db: Database = Depe
     return user
 
 
-def get_current_user_socket(token: str, db: Database = get_db()):
-    user = None
+async def get_current_user_socket(token: str, db: AsyncIOMotorDatabase = None):
     try:
+        if db is None:
+            db = get_db()
         if 'Bearer' in token:
             token = token.split('Bearer ')[1]
         token = verify_access_token(token=token, credentials_exception=None, raise_on_error=False)
-        user = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
+        user = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
         return {**user, '_id': str(user['_id'])}
-    except:
-        ...
-    return user
+    except Exception:
+        return None
 
 
-def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
-    """Extract users_ids by bearer tokens from ws headers"""
+async def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
+    """Извлечение users_ids из bearer токенов в заголовках WebSocket"""
     db = get_db()
 
     rq_token1 = headers.get('authorization', None)
@@ -171,7 +165,6 @@ def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
 
     token2 = None
     if rq_token2 is not None:
-        print(f'rq_token2={rq_token2}')
         token2 = verify_access_token(token=rq_token2, credentials_exception=None, raise_on_error=False)
 
     users = []
@@ -180,17 +173,14 @@ def extract_ws_info_raise_if_teacher(headers: Headers) -> List[schemas.UserOut]:
         if token is None:
             continue
 
-        user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
-
+        user_db = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(token.id)})
         user: schemas.UserOut = normalize_mongo(user_db, schemas.UserOut)
-
         users.append(user)
 
     if not users:
         raise Exception('Проверьте токены, хотя бы первый должен быть актуален и корректен')
 
     if len(users) == 2 and users[0].id == users[1].id:
-        logger.info(f'users = {users}')
         raise Exception('Вы пытаетесь авторизоваться с одного и того же аккаунта дважды')
 
     for user in users:

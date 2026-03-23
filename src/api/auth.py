@@ -1,14 +1,14 @@
-from bson import ObjectId
 import logging
 import random
 import string
 
+from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 import schemas
-from db.mongo import get_db, CollectionNames
+from db.mongo import CollectionNames, get_db
 from db.state import WebsocketServiceState
 from services import oauth2, utils
 from services.utils import normalize_mongo
@@ -21,15 +21,15 @@ logger = logging.getLogger(__name__)
 @router.post(
     '/register', status_code=status.HTTP_201_CREATED, response_model=schemas.RegistrationResponse,
 )
-async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_db)):
-    group = db[CollectionNames.GROUPS.value].find_one({'_id': ObjectId(user_dto.group_id)})
+async def register(user_dto: schemas.UserCreateBody, db: AsyncIOMotorDatabase = Depends(get_db)):
+    group = await db[CollectionNames.GROUPS.value].find_one({'_id': ObjectId(user_dto.group_id)})
 
     if not group:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=f'Group with id {user_dto.group_id} is not found',
         )
 
-    hashed_password = utils.hash(user_dto.password.lower())
+    hashed_password = utils.hash(user_dto.password)
 
     username = utils.create_username(
         first_name=user_dto.first_name,
@@ -38,7 +38,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
         group_name=group['name'],
     ).lower()
 
-    candidate = db[CollectionNames.USERS.value].find_one(
+    candidate = await db[CollectionNames.USERS.value].find_one(
         {
             'first_name': user_dto.first_name.capitalize(),
             'last_name': user_dto.last_name.capitalize(),
@@ -52,7 +52,7 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
             status_code=status.HTTP_409_CONFLICT, detail='USER_ALREADY_REGISTERED',
         )
 
-    username = generate_unique_username(username, db)
+    username = await generate_unique_username(username, db)
 
     new_user = schemas.UserCreateDB(
         username=username,
@@ -65,8 +65,8 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
         student_id=user_dto.student_id.upper(),
     )
 
-    inserted_user = db[CollectionNames.USERS.value].insert_one(new_user.dict())
-    user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(inserted_user.inserted_id)})
+    inserted_user = await db[CollectionNames.USERS.value].insert_one(new_user.dict())
+    user_db = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(inserted_user.inserted_id)})
     user = normalize_mongo(user_db, schemas.UserOut)
 
     access_token = oauth2.create_access_token(data={'user_id': str(inserted_user.inserted_id)})
@@ -83,14 +83,14 @@ async def register(user_dto: schemas.UserCreateBody, db: Database = Depends(get_
 
 @router.post('/login', response_model=schemas.LoginResponse)
 async def login(
-    user_credentials: OAuth2PasswordRequestForm = Depends(), db: Database = Depends(get_db),
+    user_credentials: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorDatabase = Depends(get_db),
 ):
-    user_db = db[CollectionNames.USERS.value].find_one({'username': user_credentials.username.lower()})
+    user_db = await db[CollectionNames.USERS.value].find_one({'username': user_credentials.username.lower()})
 
     if not user_db:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Username not found')
 
-    if not utils.verify(user_credentials.password.lower(), user_db['password']):
+    if not utils.verify(user_credentials.password, user_db['password']):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f'Invalid Credentials')
 
     user: schemas.UserOutWithEvents = normalize_mongo(user_db, schemas.UserOutWithEvents)
@@ -112,11 +112,11 @@ async def login(
     return {'access_token': access_token, 'token_type': 'bearer', 'user_info': user}
 
 
-def generate_unique_username(initial_username, db, retries=10):
+async def generate_unique_username(initial_username, db, retries=10):
     candidate_username = initial_username
 
     for _ in range(retries):
-        if not db[CollectionNames.USERS.value].find_one({'username': candidate_username}):
+        if not await db[CollectionNames.USERS.value].find_one({'username': candidate_username}):
             return candidate_username
 
         candidate_username += random.choice(string.ascii_lowercase)

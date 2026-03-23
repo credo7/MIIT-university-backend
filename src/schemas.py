@@ -20,23 +20,6 @@ from pydantic.class_validators import validator
 from typing_extensions import Annotated
 
 
-# TODO: Think about it
-# class CustomBaseModel(BaseModel):
-#     class Config:
-#         json_encoders = {ObjectId: lambda x: str(x)}
-#         alias_generator = lambda string: string.replace("_id", "id")
-#
-#     @validator(pre=True, always=True)
-#     def parse_object_ids(cls, values):
-#         result = {}
-#         for field_name, value in values.items():
-#             if isinstance(value, str) and (field_name == "id" or field_name.endswith("_id")):
-#                 result[field_name] = ObjectId(value)
-#             else:
-#                 result[field_name] = value
-#         return result
-
-
 class AnswerStatus(str, enum.Enum):
     CORRECT = 'CORRECT'
     CORRECT_WITH_FAILS = 'CORRECT_WITH_FAILS'

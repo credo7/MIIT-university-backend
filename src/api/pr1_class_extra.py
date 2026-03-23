@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 async def select_logist(
     select_logist_dto: SelectLogist, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(select_logist_dto.event_id)})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': ObjectId(select_logist_dto.event_id)})
 
     if not event_db:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Event не найден')
@@ -39,7 +39,7 @@ async def select_logist(
             detail=f"Тип работы {event_db['event_type']}. mode работы {event_db['event_mode']}",
         )
 
-    db[CollectionNames.EVENTS.value].update_one(
+    await db[CollectionNames.EVENTS.value].update_one(
         {'_id': event_db['_id'],}, {'$set': {'chosen_logist_index': select_logist_dto.logist_index}}
     )
 
@@ -48,7 +48,7 @@ async def select_logist(
 async def get_comparison_options(
     event_id: str, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': event_id})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': event_id})
 
     if not event_db['event_type'] == EventType.PR1.value or not event_db['event_mode'] == EventMode.CLASS.value:
         raise HTTPException(
@@ -70,7 +70,7 @@ async def get_comparison_options(
 async def get_comparison_options(
     event_id: str, db: Database = Depends(get_db),
 ):
-    event_db = db[CollectionNames.EVENTS.value].find_one({'_id': event_id})
+    event_db = await db[CollectionNames.EVENTS.value].find_one({'_id': event_id})
 
     if not event_db['event_type'] == EventType.PR1.value or not event_db['event_mode'] == EventMode.CLASS.value:
         raise HTTPException(
@@ -129,7 +129,7 @@ async def get_comparison_options(
 
         incoterms_mapping_json = {key: value.dict() for key, value in incoterms_mapping.items()}
 
-        db[CollectionNames.EVENTS.value].update_one(
+        await db[CollectionNames.EVENTS.value].update_one(
             {'_id': ObjectId(pr1_class_event.id)}, {'$set': {'delivery_options': incoterms_mapping_json}}
         )
 

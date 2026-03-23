@@ -28,7 +28,7 @@ async def get_users(
     _current_user: schemas.FullUser = Depends(oauth2.get_current_user),
 ):
     found_users = utils.search_users_by_group(schemas.UserSearch(search=search, group_id=group_id), sort)
-    return normalize_mongo(found_users, schemas.UserOut)
+    return normalize_mongo(await found_users.to_list(length=None), schemas.UserOut)
 
 
 @router.patch('/edit', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -53,7 +53,7 @@ async def edit(
 
         user_update_dict = {}
         if group_filter:
-            group_db = db[CollectionNames.GROUPS.value].find_one(group_filter)
+            group_db = await db[CollectionNames.GROUPS.value].find_one(group_filter)
             if not group_db:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, 'Группа не найдена')
             user_update.group_id = str(group_db['_id'])
@@ -77,7 +77,7 @@ async def edit(
                 ),
             )
 
-        candidate = db[CollectionNames.USERS.value].find_one(
+        candidate = await db[CollectionNames.USERS.value].find_one(
             {
                 '_id': {'$ne': ObjectId(current_user.id)},
                 'first_name': user_update_dict.get('first_name') or current_user.first_name,
@@ -92,7 +92,7 @@ async def edit(
                 status_code=status.HTTP_409_CONFLICT, detail='DUPLICATE_USER_ERROR',
             )
 
-        user_db = db[CollectionNames.USERS.value].find_one_and_update(
+        user_db = await db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(current_user.id)},
             {'$set': {**user_update_dict, 'fix_for_approve_fields': None, 'updated_at': datetime.now()}},
             return_document=pymongo.ReturnDocument.AFTER,
@@ -115,7 +115,7 @@ async def approve_all(
     filter = {'approved': False, 'fix_for_approve_fields': None}
     if group_id:
         filter['group_id'] = group_id
-    db[CollectionNames.USERS.value].update_many(filter, {"$set": {'approved': True}})
+    await db[CollectionNames.USERS.value].update_many(filter, {"$set": {'approved': True}})
 
 
 @router.post('/approve/{user_id}', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
@@ -125,7 +125,7 @@ async def approve_user(
     db: Database = Depends(get_db),
 ):
     try:
-        user_db = db[CollectionNames.USERS.value].find_one_and_update(
+        user_db = await db[CollectionNames.USERS.value].find_one_and_update(
             {'_id': ObjectId(user_id)},
             {'$set': {'approved': True, 'updated_at': datetime.now()}},
             return_document=pymongo.ReturnDocument.AFTER,
@@ -154,7 +154,7 @@ async def request_edits(
     if len(fix_for_approve_fields) == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Поля не заданы.')
 
-    user_db = db[CollectionNames.USERS.value].find_one_and_update(
+    user_db = await db[CollectionNames.USERS.value].find_one_and_update(
         {'_id': ObjectId(body.user_id), 'approved': False},
         {'$set': {'fix_for_approve_fields': fix_for_approve_fields, 'updated_at': datetime.now()}},
     )
@@ -182,7 +182,7 @@ async def get_unapproved_users(
         filter = {'approved': False, 'fix_for_approve_fields': None}
         if group_id:
             filter['group_id'] = group_id
-        unapproved_users_db = db[CollectionNames.USERS.value].find(filter)
+        unapproved_users_db = await db[CollectionNames.USERS.value].find(filter).to_list(length=None)
         return normalize_mongo(unapproved_users_db, schemas.UserToApprove)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f'{str(e)}')
@@ -190,7 +190,7 @@ async def get_unapproved_users(
 
 @router.post('/change-password', status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 async def change_password(body: schemas.ChangePasswordBody, db: Database = Depends(get_db)):
-    user_db = db[CollectionNames.USERS.value].find_one(
+    user_db = await db[CollectionNames.USERS.value].find_one(
         {'last_name': body.last_name.capitalize(), 'student_id': body.student_id.upper()}
     )
 
@@ -201,7 +201,7 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
 
     user = normalize_mongo(user_db, schemas.UserOut)
 
-    db[CollectionNames.USERS.value].update_one(
+    await db[CollectionNames.USERS.value].update_one(
         {'_id': ObjectId(user.id)}, {'$set': {'password': hash_password, 'updated_at': datetime.now()}}
     )
 
@@ -210,7 +210,7 @@ async def change_password(body: schemas.ChangePasswordBody, db: Database = Depen
 
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=schemas.GetUserResponse)
 async def get_user(id: str, db: Database = Depends(get_db)):
-    user_db = db[CollectionNames.USERS.value].find_one({'_id': ObjectId(id)})
+    user_db = await db[CollectionNames.USERS.value].find_one({'_id': ObjectId(id)})
 
     if not user_db:
         raise HTTPException(status_code=404, detail='User not found')
@@ -235,7 +235,7 @@ async def delete_user(
     _current_teacher: schemas.UserOut = Depends(oauth2.get_current_teacher),
     db: Database = Depends(get_db),
 ):
-    deleted = db[CollectionNames.USERS.value].delete_one({'_id': ObjectId(user_id)})
+    deleted = await db[CollectionNames.USERS.value].delete_one({'_id': ObjectId(user_id)})
 
     if deleted.deleted_count < 1:
         raise HTTPException(status_code=404, detail='Пользователь не найден')
@@ -249,7 +249,7 @@ async def delete_user(
 async def make_teacher(
     current_user: schemas.FullUser = Depends(oauth2.get_current_user), db: Database = Depends(get_db),
 ):
-    db[CollectionNames.USERS.value].update_one(
+    await db[CollectionNames.USERS.value].update_one(
         {'_id': ObjectId(current_user.id)},
         {'$set': {'approved': True, 'role': 'TEACHER', 'updated_at': datetime.now()}},
     )
